@@ -7,14 +7,22 @@
 
 #include "engine.h"
 
+using namespace std;
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
-	SDL_Init(SDL_INIT_EVERYTHING); //Инициализация SDL
+	engine *Engine = new engine();
+	if(Engine->init()<0)
+	{
+		delete Engine;
+		return 0;
+	}
+
+	Engine->MainLoop();
 
 
-
-	SDL_Quit(); //Выходим
+	Engine->CleanUp();
+	delete Engine;
 
 	return 0;
 }
