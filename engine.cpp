@@ -9,31 +9,15 @@
 
 using namespace std;
 
-bool engine::quit = false;
-
-void engine::MainLoop()
-{
-	//Главный цикл приложения
-	while(!engine::quit)
-	{
-		while( SDL_PollEvent(&event))
-		{
-			//Ищем событие на закрытие окна
-			if( event.type == SDL_QUIT)
-			{
-				//Выходим
-				quit = true;
-			}
-		}
-	}
-}
 int engine::init()
 {
 	//TODO: доделать инициализацию без аудио
 	//Инициируем все системы и создаём элементы движка
 	if(SDL_Init(SDL_INIT_EVERYTHING)<0) //Инициализация SDL
 	{
+#ifdef DEBUG_ERRORS
 		cout << "Unable to initialize SDL: " << SDL_GetError() << endl;
+#endif
 		return -1;
 	}
 
@@ -43,7 +27,9 @@ int engine::init()
 	screen = SDL_SetVideoMode(SYS_WIDTH, SYS_HEIGTH, SYS_BPP, SDL_OPENGL|SDL_RESIZABLE);
 	if(!screen)
 	{
+#ifdef DEBUG_ERRORS
 		cout << "Unable to set screen: " << SDL_GetError() << endl;
+#endif
 	}
 
 	//Задаём текст для заголовка окна
@@ -55,9 +41,10 @@ int engine::init()
 	Graphics = new graphics();
 	Graphics->init();
 
-
+#ifdef DEBUG_SYS
 	cout << "All system initialization - success" << endl;
 	cout << "Engine initialization - success" << endl;
+#endif
 	return 0;
 }
 void engine::CleanUp()
@@ -66,7 +53,19 @@ void engine::CleanUp()
 	if(screen)
 		SDL_FreeSurface(screen);
 
+	if(Graphics)
+		delete Graphics;
+
+#ifdef DEBUG_SYS
+	cout << "Engine clean up - success" << endl;
+#endif
+
 	SDL_Quit(); //Выходим
+
+#ifdef DEBUG_SYS
+	cout << "SDL Quit!" << endl;
+#endif
+
 }
 engine::engine()
 {
@@ -78,7 +77,9 @@ engine::engine()
 engine::~engine()
 {
 	//Деструктор
-
+#ifdef DEBUG_SYS
+	cout << "Engine completely clean up - success" << endl;
+#endif
 }
 
 int graphics::init()
@@ -88,8 +89,9 @@ int graphics::init()
 	glOrtho(0, SYS_WIDTH, SYS_HEIGTH, 0, -1, 1);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-
+#ifdef DEBUG_SYS
 	cout << "Graphics initialization - success" << endl;
+#endif
 	return 0;
 }
 void graphics::CleanUp()
@@ -102,5 +104,7 @@ graphics::graphics()
 }
 graphics::~graphics()
 {
-
+#ifdef DEBUG_SYS
+	cout << "Graphics clean up - success" << endl;
+#endif
 }
