@@ -30,13 +30,16 @@ const int			SYS_FULLSCREEN = 0;	//оконный режим
 const int			SYS_WIDTH = 800;	//ширина
 const int			SYS_HEIGTH = 600;	//высота
 const int			SYS_BPP = 32;		//палитра
+const int			SYS_FPS = 60;		//FPS
 
-const std::string 	SYS_VERSION = "0.0.0.0.3";
-const std::string 	SYS_BUILD = "000003";
+const std::string 	SYS_VERSION = "0.0.0.0.4";
+const std::string 	SYS_BUILD = "000004";
 
 class graphics;
 class sound;
+class p_timer;
 class game;
+struct textureClass;
 
 class engine
 {
@@ -47,9 +50,12 @@ class engine
 	SDL_Surface *screen;
 	SDL_Event event; //перевести в отдельный компонент
 
+	//p_timer fps;
+
 public:
 	int init();
 	void CleanUp();
+	void ResizeWin(int win_dX, int win_dY);
 	static std::string IntToString(int number)
 	{
 		std::stringstream stream;
@@ -62,7 +68,10 @@ public:
 
 
 };
-
+class p_timer
+{
+	//Таймер
+};
 class graphics
 {
 public:
@@ -73,28 +82,40 @@ public:
 	~graphics();
 
 };
-class image
+struct textureClass
 {
+	//Содержит саму OpenGL текстуру изображения и всевозможные данные о ней
 	GLuint tex;
+	float pxw; //ширина в пикселах
+	float pxh; //высота в пикселах
+
+	std::string fileName;
+};
+class image_manager
+{
+	textureClass texture;
 public:
-	int fload_image(std::string file);
+	int Open(std::string file, GLint filter = GL_NEAREST);
+	void Draw(float x, float y);
+	void Draw(float x, float y, float dX, float dY, float delta = 0, int center = 0);
+	void Resize(float width, float heigth);
+
+	float Width();
+	float Heigth();
+};
+
+class image : public image_manager
+{
+public:
 	image();
+	image(std::string file, GLint filter = GL_NEAREST);
+	~image();
 };
 
 class sound
 {
 
 };
-
-class game: public engine
-{
-	static bool quit;
-public:
-	void MainLoop();
-	game();
-	~game();
-};
-
 
 
 

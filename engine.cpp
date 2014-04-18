@@ -54,7 +54,10 @@ void engine::CleanUp()
 		SDL_FreeSurface(screen);
 
 	if(Graphics)
+	{
+		Graphics->CleanUp();
 		delete Graphics;
+	}
 
 #ifdef DEBUG_SYS
 	cout << "Engine clean up - success" << endl;
@@ -67,12 +70,28 @@ void engine::CleanUp()
 #endif
 
 }
+void engine::ResizeWin(int win_dX, int win_dY)
+{
+	//Изменяем рамер окна
+	//TODO: доделать тут
+	GLfloat ratio;
+	if(!win_dY) win_dY = 1;
+
+	ratio = (GLfloat) win_dX/(GLfloat)win_dY;
+	glViewport(0, 0, (GLsizei) win_dX, (GLsizei) win_dY);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(45.5f, ratio, 0.1f, 10.0f);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+}
 engine::engine()
 {
 	//Конструктор
 	screen = 0;
 	Graphics = 0;
-
 }
 engine::~engine()
 {
@@ -84,11 +103,28 @@ engine::~engine()
 
 int graphics::init()
 {
+	//Инициализация OpenGL
+
+	//Инициируем матрице проекции
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(0, SYS_WIDTH, SYS_HEIGTH, 0, -1, 1);
+	glOrtho(0.0, SYS_WIDTH, SYS_HEIGTH, 0.0, -1.0, 1.0);
+
+	//Инициирцуем матрицу вида
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+
+	glClearColor(0.f, 0.f, 0.f, 1.f);
+
+	//Проверка на ошибки
+	GLenum error = glGetError();
+	if(error!=GL_NO_ERROR)
+	{
+#ifdef DEBUG_ERRORS
+		cout << "Error initializing OpenGL: " << gluErrorString(error) << endl;
+#endif
+		return -1;
+	}
 #ifdef DEBUG_SYS
 	cout << "Graphics initialization - success" << endl;
 #endif
@@ -107,4 +143,108 @@ graphics::~graphics()
 #ifdef DEBUG_SYS
 	cout << "Graphics clean up - success" << endl;
 #endif
+}
+int image_manager::Open(std::string file, GLint filter)
+{
+	SDL_Surface *temp_surface = 0;
+	GLint maxTexSize;
+	GLuint glFormat = GL_RGBA;
+
+	if(!file.substr(file.length()-3, 3).compare("jpg"))
+	{
+		glFormat = GL_RGB;
+	}
+
+	temp_surface = IMG_Load(file.data());
+
+	if(!temp_surface)
+	{
+#ifdef DEBUG_ERRORS
+		cout << "Image manager error: " << file << " : " << SDL_GetError() << endl;
+#endif
+		return -1;
+	}
+
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexSize);
+
+	//TODO: рассмотреть внимательней следующий if
+	if(temp_surface->w > maxTexSize)
+	{
+#ifdef DEBUG_ERRORS
+		cout << "Image manager error: \"" << file << "\" texturesize too large." << endl;
+#endif
+		SDL_FreeSurface(temp_surface);
+		return -1;
+	}
+
+	glGenTextures(1, &texture.tex);
+	glBindTexture(GL_TEXTURE_2D, texture.tex);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, glFormat, temp_surface->w, temp_surface->h, 0, glFormat, GL_UNSIGNED_BYTE, temp_surface->pixels);
+
+	texture.pxw = temp_surface->w;
+	texture.pxh = temp_surface->h;
+
+	SDL_FreeSurface(temp_surface);
+	return 0;
+}
+void image_manager::Draw(float x, float y)
+{
+
+}
+void image_manager::Draw(float x, float y, float dX, float dY, float delta, int center)
+{
+	//Отрисовываем текстуру от точки (x, y)
+	//размером dX, dY.
+	//с возможным углом поворота delta относительно верхнего левого угла
+	//либо центра
+
+	glEnable(GL_TEXTURE_2D);
+	glLoadIdentity();
+	glTranslatef(x, y, 0);
+
+	if(delta)
+		glRotatef(delta, 0, 0, -1);
+	if(center)
+		glTranslatef(-dX/2, -dY/2, 0);
+
+	//Рисуем текстуру
+	glBegin(GL_QUADS);
+	glTexCoord2i(0, 0); glVertex2f(0,  0);  //Верхний левый угол
+	glTexCoord2i(0, 1); glVertex2f(0,  dY); //Нижний левый угол
+	glTexCoord2i(1, 1); glVertex2f(dX, dY); //Нижний правый угол
+	glTexCoord2i(1, 0); glVertex2f(dX, 0);  //Верхний правый угол
+	glEnd();
+
+	glLoadIdentity();
+}
+void image_manager::Resize(float width, float heigth)
+{
+
+}
+float image_manager::Width()
+{
+	return texture.pxw;
+}
+float image_manager::Heigth()
+{
+	return texture.pxh;
+}
+image::image()
+{
+
+}
+image::image(std::string file, GLint filter)
+{
+	Open(file, filter);
+}
+image::~image()
+{
+
 }
