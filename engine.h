@@ -32,8 +32,8 @@ const int			SYS_FPS = 60;		//FPS
 
 const GLint			SYS_GL_IMG_FILTER = GL_NEAREST; //Стандартный фильтр для изображений
 
-const std::string 	SYS_VERSION = "0.0.0.0.5";
-const std::string 	SYS_BUILD = "000005";
+const std::string 	SYS_VERSION = "0.0.0.0.6";
+const std::string 	SYS_BUILD = "000006";
 
 class graphics;
 class sound;
@@ -90,10 +90,13 @@ public:
 
 class image_manager
 {
+	//TODO: подумать над необходимостью класса
 public:
 	virtual int Open() = 0;
-	void Draw(float x, float y);
-	void Draw(float x, float y, float dX, float dY, float delta = 0, int center = 0);
+	virtual void Draw(float x, float y);																	//простая отрисовка
+	virtual void Draw(float x, float y, float dx, float dy, float delta = 0, int center = 0);				//отрисовка в определённом размере
+	virtual void Draw(float width, float heigth, float top_x, float top_y, float top_dx, float top_dy,		//отрисовка кусочка изображения
+						float x, float y, float dx, float dy, float delta = 0, int center = 0);				//в определённом размере
 	void Resize(float width, float heigth);
 	image_manager() {}
 	virtual ~image_manager() {}
@@ -112,18 +115,20 @@ struct textureClass
 
 class image : public image_manager
 {
-
-public:
 	textureClass texture;
+public:
 	image();
 	image(std::string file, GLint filter = SYS_GL_IMG_FILTER);
-	void render();
-	int Open();
 	~image();
 
 	textureClass GetTXT() { return texture; }
 	float Width();
 	float Heigth();
+
+	void render();
+	//void Draw(float x, float y);
+	//void Draw(float x, float y, float dX, float dY, float delta = 0, int center = 0);
+	int Open();
 };
 
 class sound

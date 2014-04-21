@@ -53,10 +53,16 @@ void game::MainLoop()
 	cout << "Game start!" << endl;
 #endif
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glBindTexture(GL_TEXTURE_2D, Mmenu.background->texture.tex);
+	glBindTexture(GL_TEXTURE_2D, Mmenu.background->GetTXT().tex);
     glLoadIdentity();
     if(Mmenu.background)
-    	Mmenu.background->Draw(0.0, 0.0, 800, 600);
+    	//Mmenu.background->Draw(0.0, 0.0, 800, 600);
+    	Mmenu.background->Draw(1024, 1024, 0, 0, 300, 300, 0, 0, 300, 300);
+
+    if(Mmenu.background)
+    	//Mmenu.background->Draw(0.0, 0.0, 800, 600);
+    	Mmenu.background->Draw(1024, 1024, 0, 300, 300, 300, 310, 0, 300, 300);
+
 	SDL_GL_SwapBuffers();
 	//Главный цикл приложения
 	while(!game::quit)
