@@ -22,7 +22,7 @@ int engine::init()
 	}
 
 	//Задаём двойную буфферизацию
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	//SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
 	screen = SDL_SetVideoMode(SYS_WIDTH, SYS_HEIGTH, SYS_BPP, SDL_OPENGL|SDL_RESIZABLE);
 	if(!screen)
@@ -104,6 +104,10 @@ engine::~engine()
 int graphics::init()
 {
 	//Инициализация OpenGL
+	glClearColor( 0, 0, 0, 0 );
+	glClearDepth(1.0f);
+
+	glViewport(0, 0, SYS_WIDTH, SYS_HEIGTH);
 
 	//Инициируем матрице проекции
 	glMatrixMode(GL_PROJECTION);
@@ -112,9 +116,8 @@ int graphics::init()
 
 	//Инициирцуем матрицу вида
 	glMatrixMode(GL_MODELVIEW);
+	glEnable(GL_TEXTURE_2D);
 	glLoadIdentity();
-
-	glClearColor(0.f, 0.f, 0.f, 1.f);
 
 	//Проверка на ошибки
 	GLenum error = glGetError();
@@ -144,23 +147,24 @@ graphics::~graphics()
 	cout << "Graphics clean up - success" << endl;
 #endif
 }
-int image_manager::Open(std::string file, GLint filter)
+
+int image::Open()
 {
 	SDL_Surface *temp_surface = 0;
 	GLint maxTexSize;
 	GLuint glFormat = GL_RGBA;
 
-	if(!file.substr(file.length()-3, 3).compare("jpg"))
+	if(!texture.fileName.substr(texture.fileName.length()-3, 3).compare("jpg"))
 	{
 		glFormat = GL_RGB;
 	}
 
-	temp_surface = IMG_Load(file.data());
+	temp_surface = IMG_Load(texture.fileName.data());
 
 	if(!temp_surface)
 	{
 #ifdef DEBUG_ERRORS
-		cout << "Image manager error: " << file << " : " << SDL_GetError() << endl;
+		cout << "Image manager error: " << texture.fileName << " : " << SDL_GetError() << endl;
 #endif
 		return -1;
 	}
@@ -171,7 +175,7 @@ int image_manager::Open(std::string file, GLint filter)
 	if(temp_surface->w > maxTexSize)
 	{
 #ifdef DEBUG_ERRORS
-		cout << "Image manager error: \"" << file << "\" texturesize too large." << endl;
+		cout << "Image manager error: \"" << texture.fileName << "\" texturesize too large." << endl;
 #endif
 		SDL_FreeSurface(temp_surface);
 		return -1;
@@ -180,8 +184,8 @@ int image_manager::Open(std::string file, GLint filter)
 	glGenTextures(1, &texture.tex);
 	glBindTexture(GL_TEXTURE_2D, texture.tex);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, texture.filter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, texture.filter);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
@@ -194,6 +198,7 @@ int image_manager::Open(std::string file, GLint filter)
 	SDL_FreeSurface(temp_surface);
 	return 0;
 }
+
 void image_manager::Draw(float x, float y)
 {
 
@@ -228,23 +233,32 @@ void image_manager::Resize(float width, float heigth)
 {
 
 }
-float image_manager::Width()
+void image::render()
+{
+	//TODO: подумать над функцией
+    //Draw(0.0, 0.0, 300, 200);
+}
+float image::Width()
 {
 	return texture.pxw;
 }
-float image_manager::Heigth()
+float image::Heigth()
 {
 	return texture.pxh;
 }
 image::image()
 {
-
+	texture.filter = 0;
+	texture.filter = SYS_GL_IMG_FILTER;
 }
 image::image(std::string file, GLint filter)
 {
-	Open(file, filter);
+	texture.fileName = file;
+	texture.filter = filter;
 }
 image::~image()
 {
 
 }
+
+

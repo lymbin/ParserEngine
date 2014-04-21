@@ -36,8 +36,15 @@ void game::update()
 {
 
 }
+void game::render()
+{
+
+}
 void game::MainLoop()
 {
+
+
+
 #ifdef DEBUG_SYS
 	cout << "Load textures" << endl;
 #endif
@@ -45,6 +52,12 @@ void game::MainLoop()
 #ifdef DEBUG_SYS
 	cout << "Game start!" << endl;
 #endif
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glBindTexture(GL_TEXTURE_2D, Mmenu.background->texture.tex);
+    glLoadIdentity();
+    if(Mmenu.background)
+    	Mmenu.background->Draw(0.0, 0.0, 800, 600);
+	SDL_GL_SwapBuffers();
 	//Главный цикл приложения
 	while(!game::quit)
 	{
@@ -60,9 +73,9 @@ void game::MainLoop()
 		}
 		//Здесь уже сама игра
 		update();
-
-
-
+		render();
+		SDL_GL_SwapBuffers();
+		SDL_Delay(10);
 	}
 	FreeTextures();
 }
@@ -71,12 +84,11 @@ int game::LoadTextures()
 {
 	//Загружаем текстуры для дальнейшей работы с ними
 
-	Mmenu.background = new image();
+	Mmenu.background = new image("data/graphics/test/test1.png");
 	//Mmenu.button_start = new image();
 	//Mmenu.button_exit = new image();
 
-	Mmenu.background->Open("data/graphics/test/test.png");
-
+	Mmenu.background->Open();
 
 	return 0;
 }

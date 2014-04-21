@@ -30,6 +30,7 @@ public:
 	int LoadTextures();
 	void FreeTextures();
 	void update();
+	void render();
 	void MainLoop();
 	game();
 	~game();
