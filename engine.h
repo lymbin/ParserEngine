@@ -23,6 +23,8 @@
 #include "SDL/SDL_mixer.h"
 #include "SDL/SDL_opengl.h"
 
+#include "timer.h"
+
 const int 			SYS_AUDIO = 0; 		//без аудио
 const int			SYS_FULLSCREEN = 0;	//оконный режим
 const int			SYS_WIDTH = 800;	//ширина
@@ -32,12 +34,12 @@ const int			SYS_FPS = 60;		//FPS
 
 const GLint			SYS_GL_IMG_FILTER = GL_NEAREST; //Стандартный фильтр для изображений
 
-const std::string 	SYS_VERSION = "0.0.0.0.6";
-const std::string 	SYS_BUILD = "000006";
+const std::string 	SYS_VERSION = "0.0.0.0.7";
+const std::string 	SYS_BUILD = "000007";
 
 class graphics;
 class sound;
-class p_timer;
+
 class game;
 struct textureClass;
 
@@ -50,7 +52,8 @@ protected:
 	SDL_Surface *screen;
 	SDL_Event event; //перевести в отдельный компонент
 
-	//p_timer fps;
+	//Таймер для подсчёта FPS
+	p_timer fps;
 
 public:
 	int init();
@@ -71,10 +74,6 @@ public:
 	~engine();
 
 
-};
-class p_timer
-{
-	//Таймер
 };
 class graphics
 {

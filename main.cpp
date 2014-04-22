@@ -64,6 +64,8 @@ void game::MainLoop()
     	Mmenu.background->Draw(1024, 1024, 0, 300, 300, 300, 310, 0, 300, 300);
 
 	SDL_GL_SwapBuffers();
+
+	fps.start();
 	//Главный цикл приложения
 	while(!game::quit)
 	{

@@ -25,6 +25,7 @@ struct MainMenu
 class game: public engine
 {
 	static bool quit;
+	static bool timer_running;
 	MainMenu Mmenu;
 public:
 	int LoadTextures();
