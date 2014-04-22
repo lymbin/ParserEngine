@@ -10,18 +10,18 @@
 using namespace std;
 
 
-int image::Open()
+int image::Open(std::string source, GLint filter)
 {
 	SDL_Surface *temp_surface = 0;
 	GLint maxTexSize;
 	GLuint glFormat = GL_RGBA;
 
-	if(!texture.fileName.substr(texture.fileName.length()-3, 3).compare("jpg"))
+	if(!source.substr(source.length()-3, 3).compare("jpg"))
 	{
 		glFormat = GL_RGB;
 	}
 
-	temp_surface = IMG_Load(texture.fileName.data());
+	temp_surface = IMG_Load(source.data());
 
 	if(!temp_surface)
 	{
@@ -37,7 +37,7 @@ int image::Open()
 	if(temp_surface->w > maxTexSize)
 	{
 #ifdef DEBUG_ERRORS
-		cout << "Image manager error: \"" << texture.fileName << "\" texturesize too large." << endl;
+		cout << "Image manager error: \"" << source << "\" texturesize too large." << endl;
 #endif
 		SDL_FreeSurface(temp_surface);
 		return -1;
@@ -46,8 +46,8 @@ int image::Open()
 	glGenTextures(1, &texture.tex);
 	glBindTexture(GL_TEXTURE_2D, texture.tex);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, texture.filter);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, texture.filter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
@@ -60,11 +60,11 @@ int image::Open()
 	SDL_FreeSurface(temp_surface);
 	return 0;
 }
-void image_manager::Draw(float x, float y)
+void image::Draw(float x, float y)
 {
 
 }
-void image_manager::Draw(float x, float y, float dx, float dy, float delta, int center)
+void image::Draw(float x, float y, float dx, float dy, float delta, int center)
 {
 	//Отрисовываем текстуру от точки (x, y)
 	//размером dX, dY.
@@ -90,7 +90,7 @@ void image_manager::Draw(float x, float y, float dx, float dy, float delta, int 
 
 	glLoadIdentity();
 }
-void image_manager::Draw(float width, float heigth,
+void image::Draw(float width, float heigth,
 						float top_x, float top_y, float top_dx, float top_dy,
 						float x, float y, float dx, float dy,
 						float delta, int center)
@@ -120,18 +120,20 @@ void image_manager::Draw(float width, float heigth,
 
 	glLoadIdentity();
 }
-
-void image_manager::Resize(float width, float heigth)
+/*
+void texture_manager::Resize(float width, float heigth)
 {
 	//Изменяем размер изображения
 
-}
+}*/
+/*
 void image::render()
 {
 	//Функция отрисовывает изображение
 	//TODO: доделать
 	Draw(0.0, 0.0, 300, 200);
 }
+*/
 float image::Width()
 {
 	return texture.pxw;
@@ -142,13 +144,12 @@ float image::Heigth()
 }
 image::image()
 {
-	texture.filter = 0;
-	texture.filter = SYS_GL_IMG_FILTER;
+	texture.fileName = "";
 }
 image::image(std::string file, GLint filter)
 {
 	texture.fileName = file;
-	texture.filter = filter;
+	Open(file, filter);
 }
 image::~image()
 {

@@ -96,7 +96,7 @@ int game::LoadTextures()
 	//Mmenu.button_start = new image();
 	//Mmenu.button_exit = new image();
 
-	Mmenu.background->Open();
+	//Mmenu.background->Open();
 
 	return 0;
 }
@@ -111,7 +111,6 @@ void game::FreeTextures()
 }
 game::game()
 {
-	//engine *Engine = new engine();
 	Mmenu.background = 0;
 }
 game::~game()

@@ -33,9 +33,10 @@ const int			SYS_BPP = 32;		//палитра
 const int			SYS_FPS = 60;		//FPS
 
 const GLint			SYS_GL_IMG_FILTER = GL_NEAREST; //Стандартный фильтр для изображений
+const int			SYS_TEXT_SIZE = 16;				//Размер текста по умолчанию
 
-const std::string 	SYS_VERSION = "0.0.0.0.7";
-const std::string 	SYS_BUILD = "000007";
+const std::string 	SYS_VERSION = "0.0.0.0.8";
+const std::string 	SYS_BUILD = "000008";
 
 class graphics;
 class sound;
@@ -87,32 +88,31 @@ public:
 
 };
 
-class image_manager
+class texture_manager
 {
 	//TODO: подумать над необходимостью класса
 public:
-	virtual int Open() = 0;
-	virtual void Draw(float x, float y);																	//простая отрисовка
-	virtual void Draw(float x, float y, float dx, float dy, float delta = 0, int center = 0);				//отрисовка в определённом размере
+	//virtual int Open(std::string source) = 0;
+	virtual void Draw(float x, float y) = 0;																	//простая отрисовка
+	virtual void Draw(float x, float y, float dx, float dy, float delta = 0, int center = 0) = 0;				//отрисовка в определённом размере
 	virtual void Draw(float width, float heigth, float top_x, float top_y, float top_dx, float top_dy,		//отрисовка кусочка изображения
-						float x, float y, float dx, float dy, float delta = 0, int center = 0);				//в определённом размере
-	void Resize(float width, float heigth);
-	image_manager() {}
-	virtual ~image_manager() {}
+						float x, float y, float dx, float dy, float delta = 0, int center = 0) = 0;				//в определённом размере
+	//virtual void Resize(float width, float heigth) = 0;
+	texture_manager() {}
+	virtual ~texture_manager() {}
 };
 
 struct textureClass
 {
 	//Содержит саму OpenGL текстуру изображения и всевозможные данные о ней
 	GLuint tex;
-	GLint filter;
 	float pxw; //ширина в пикселах
 	float pxh; //высота в пикселах
 
-	std::string fileName;
+	std::string fileName; //Путь до файла
 };
 
-class image : public image_manager
+class image : public texture_manager
 {
 	textureClass texture;
 public:
@@ -124,12 +124,73 @@ public:
 	float Width();
 	float Heigth();
 
-	void render();
-	//void Draw(float x, float y);
-	//void Draw(float x, float y, float dX, float dY, float delta = 0, int center = 0);
-	int Open();
-};
+	//void render();
+	void Draw(float x, float y);																//простая отрисовка
+	void Draw(float x, float y, float dx, float dy, float delta = 0, int center = 0) ;			//отрисовка в определённом размере
+	void Draw(float width, float heigth, float top_x, float top_y, float top_dx, float top_dy,	//отрисовка кусочка изображения
+			float x, float y, float dx, float dy, float delta = 0, int center = 0) ;			//в определённом размере
 
+	int Open(std::string source, GLint filter = SYS_GL_IMG_FILTER);
+};
+class font
+{
+	TTF_Font 	*ttf_font;
+	std::string fileName;
+	SDL_Color 	textcolor;
+	SDL_Color 	bgcolor;
+
+public:
+	font();
+	font(std::string file, int size);
+	~font();
+
+	static int 	FontInit();
+	TTF_Font	*GetFont() {return ttf_font;}
+
+	int Open(std::string source, int size);
+
+	void SetColor(Uint8 R, Uint8 G, Uint8 B, Uint8 A = 255);
+	void SetBGColor(Uint8 R, Uint8 G, Uint8 B);
+	void SetStyle(bool bold, bool italic, bool underline);
+	void Resize(int size);
+
+	void Write(std::string text, GLuint tex, GLfloat x, GLfloat y);
+
+	int GetHeigth();
+	int CalcTextWidth(std::string text);
+	int CalcTextHeigth(std::string text);
+
+};
+class text
+{
+	GLuint 		tex;
+	std::string textString;
+	font		*textFont;
+	int 		size;
+	GLfloat x;
+	GLfloat y;
+public:
+	GLuint 		GetTXT() {return tex;}
+	font		*GetFont() {return textFont;}
+	std::string GetText() { return textString;}
+	int 		GetSize() { return size;}
+
+	text();
+	text(std::string textStrings);
+	text(std::string textStrings, int textSize);
+	text(std::string textStrings, font	*textFont);
+	text(std::string textStrings, std::string fontFile, int fontSize);
+	~text();
+
+	void ResizeText(int textSize);
+	void Write(GLfloat new_x, GLfloat new_y, bool center = false);
+	void Write(GLfloat new_x, GLfloat new_y, std::string textStrings, bool center);
+
+	void SetText(std::string newText) { textString = newText;}
+	void SetFont(font *newFont);
+	void SetCoordinates(GLfloat new_x = 0, GLfloat new_y = 0);
+
+};
 class sound
 {
 

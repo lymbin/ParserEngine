@@ -17,7 +17,8 @@
 
 struct MainMenu
 {
-	image *background;
+	image 	*background;
+	text 	*title;
 	//image *button_start;
 	//image *button_exit;
 };

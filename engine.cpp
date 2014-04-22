@@ -103,6 +103,10 @@ engine::~engine()
 
 int graphics::init()
 {
+	//Инициализация шрифтов
+	if(font::FontInit() < 0)
+		return -1;
+
 	//Инициализация OpenGL
 	glClearColor( 0, 0, 0, 0 );
 	glClearDepth(1.0f);
@@ -135,7 +139,8 @@ int graphics::init()
 }
 void graphics::CleanUp()
 {
-
+	if(TTF_WasInit())
+		TTF_Quit();
 }
 graphics::graphics()
 {
