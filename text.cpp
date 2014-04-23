@@ -280,10 +280,15 @@ void text::CreateTex()
 			SDL_FreeSurface(tempb);
 			return;
 	}
-	temp = TTF_RenderText_Solid(textFont->ttf_font, textString.c_str(), textFont->format.textcolor);
+	TTF_SizeUTF8(textFont->ttf_font, textString.c_str(), &w, &h);
+	temp = TTF_RenderUTF8_Solid(textFont->ttf_font, textString.c_str(), textFont->format.textcolor);
+	//TODO:test
+	//temp = TTF_RenderUTF8_Shaded(textFont->ttf_font, textString.c_str(), textFont->format.textcolor, textFont->format.bgcolor);
+	//temp = TTF_RenderUTF8_Blended(textFont->ttf_font, textString.c_str(), textFont->format.textcolor);
+
 	SDL_SetAlpha(temp, 0, 0);
 
-	tempb = SDL_CreateRGBSurface(0, x, y, SYS_TEXT_DEPTH, rmask, gmask, bmask, amask);
+	tempb = SDL_CreateRGBSurface(0, w, h, SYS_TEXT_DEPTH, rmask, gmask, bmask, amask);
 	if(!tempb)
 	{
 #ifdef DEBUG_ERRORS
@@ -295,7 +300,6 @@ void text::CreateTex()
 	}
 
 	SDL_Rect src={0,0,0,0}, dest={0,0,0,0};
-	TTF_SizeUTF8(textFont->ttf_font, textString.c_str(), &w, &h);
 
 	src.x = 0;
 	src.y = 0;

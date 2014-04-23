@@ -28,8 +28,8 @@
 
 const int 			SYS_AUDIO = 0; 		//без аудио
 const int			SYS_FULLSCREEN = 0;	//оконный режим
-const int			SYS_WIDTH = 800;	//ширина
-const int			SYS_HEIGTH = 600;	//высота
+const int			SYS_WIDTH = 1024;	//ширина
+const int			SYS_HEIGTH = 768;	//высота
 const int			SYS_BPP = 32;		//палитра
 const int			SYS_FPS = 60;		//FPS
 
@@ -37,8 +37,8 @@ const GLint			SYS_GL_IMG_FILTER = GL_NEAREST; //Стандартный филь�
 const int			SYS_TEXT_SIZE = 16;				//Размер текста по умолчанию
 const int			SYS_TEXT_DEPTH = 32;			//Глубина прорисовки текста
 
-const std::string 	SYS_VERSION = "0.0.0.0.9";
-const std::string 	SYS_BUILD = "000009";
+const std::string 	SYS_VERSION = "0.0.0.0.10";
+const std::string 	SYS_BUILD = "000010";
 
 class graphics;
 class sound;
@@ -215,6 +215,21 @@ public:
 
 	void Draw(float x, float y, float dx, float dy, float delta = 0, int center = 0) ; //отрисовка в определённом размере
 
+
+};
+class input
+{
+	//Система ввода: клики мышкой, кнопками клавиатуры и внутренняя система ввода - кнопки, текстовые боксы и т.п.
+public:
+	int init();
+	void CleanUp();
+
+	input();
+	~input();
+
+};
+class button
+{
 
 };
 class sound

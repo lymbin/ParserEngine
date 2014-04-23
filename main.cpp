@@ -64,7 +64,7 @@ void game::MainLoop()
     	Mmenu.background->Draw(1024, 1024, 0, 300, 300, 300, 310, 0, 300, 300);
 */
     if(Mmenu.title)
-    	Mmenu.title->Write(200, 300, 0);
+    	Mmenu.title->Write(10, 10, 0);
 
 	SDL_GL_SwapBuffers();
 
@@ -96,7 +96,8 @@ int game::LoadTextures()
 	//Загружаем текстуры для дальнейшей работы с ними
 
 	Mmenu.background = new image("data/graphics/test/test1.png");
-	Mmenu.title = new text("FireFly", "data/fonts/non-free/Minecraftia.ttf", 44);
+	Mmenu.title = new text("FireFly", "data/fonts/non-free/Minecraftia.ttf", 30);
+	//Mmenu.title = new text("Кириллица", "data/fonts/PTS55F.ttf", 30);
 	//Mmenu.button_start = new image();
 	//Mmenu.button_exit = new image();
 
