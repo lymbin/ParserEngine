@@ -153,6 +153,7 @@ image::image(std::string file, GLint filter)
 }
 image::~image()
 {
-
+	if(texture.tex)
+		glDeleteTextures(1, &texture.tex);
 }
 

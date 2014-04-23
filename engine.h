@@ -25,6 +25,7 @@
 
 #include "timer.h"
 
+
 const int 			SYS_AUDIO = 0; 		//без аудио
 const int			SYS_FULLSCREEN = 0;	//оконный режим
 const int			SYS_WIDTH = 800;	//ширина
@@ -34,15 +35,19 @@ const int			SYS_FPS = 60;		//FPS
 
 const GLint			SYS_GL_IMG_FILTER = GL_NEAREST; //Стандартный фильтр для изображений
 const int			SYS_TEXT_SIZE = 16;				//Размер текста по умолчанию
+const int			SYS_TEXT_DEPTH = 32;			//Глубина прорисовки текста
 
-const std::string 	SYS_VERSION = "0.0.0.0.8";
-const std::string 	SYS_BUILD = "000008";
+const std::string 	SYS_VERSION = "0.0.0.0.9";
+const std::string 	SYS_BUILD = "000009";
 
 class graphics;
 class sound;
 
 class game;
 struct textureClass;
+
+class font;
+class text;
 
 class engine
 {
@@ -132,13 +137,21 @@ public:
 
 	int Open(std::string source, GLint filter = SYS_GL_IMG_FILTER);
 };
-class font
+struct fontFormatting
 {
-	TTF_Font 	*ttf_font;
-	std::string fileName;
 	SDL_Color 	textcolor;
 	SDL_Color 	bgcolor;
-
+	int 		size;
+	bool		bold;
+	bool		italic;
+	bool		underline;
+};
+class font
+{
+	friend text;
+	TTF_Font 		*ttf_font;
+	std::string 	fileName;
+	fontFormatting	format;
 public:
 	font();
 	font(std::string file, int size);
@@ -146,12 +159,22 @@ public:
 
 	static int 	FontInit();
 	TTF_Font	*GetFont() {return ttf_font;}
+	int 		GetSize() { return format.size;}
+	bool		isBold() { return format.bold;}
+	bool		isItalic() { return format.italic;}
+	bool		isUnderline() { return format.underline;}
+	SDL_Color	GetColor() { return format.textcolor;}
+	SDL_Color	GetBGColor() { return format.bgcolor;}
+	fontFormatting GetFormat() { return format;}
 
 	int Open(std::string source, int size);
 
 	void SetColor(Uint8 R, Uint8 G, Uint8 B, Uint8 A = 255);
 	void SetBGColor(Uint8 R, Uint8 G, Uint8 B);
 	void SetStyle(bool bold, bool italic, bool underline);
+	void SetFormat(bool bold, bool italic, bool underline, int size,
+			Uint8 R, Uint8 G, Uint8 B, Uint8 A,
+			Uint8 bgR, Uint8 bgG, Uint8 bgB);
 	void Resize(int size);
 
 	void Write(std::string text, GLuint tex, GLfloat x, GLfloat y);
@@ -166,29 +189,32 @@ class text
 	GLuint 		tex;
 	std::string textString;
 	font		*textFont;
-	int 		size;
 	GLfloat x;
 	GLfloat y;
 public:
 	GLuint 		GetTXT() {return tex;}
 	font		*GetFont() {return textFont;}
 	std::string GetText() { return textString;}
-	int 		GetSize() { return size;}
+
 
 	text();
 	text(std::string textStrings);
-	text(std::string textStrings, int textSize);
 	text(std::string textStrings, font	*textFont);
 	text(std::string textStrings, std::string fontFile, int fontSize);
 	~text();
 
+	void CreateTex();
 	void ResizeText(int textSize);
-	void Write(GLfloat new_x, GLfloat new_y, bool center = false);
-	void Write(GLfloat new_x, GLfloat new_y, std::string textStrings, bool center);
+	void Write(GLfloat new_x, GLfloat new_y, int center = 0);
+	void Write(GLfloat new_x, GLfloat new_y, std::string textStrings, int center = 0);
+	//void Write(GLfloat new_x, GLfloat new_y, std::string textStrings, int center = 0);
 
 	void SetText(std::string newText) { textString = newText;}
 	void SetFont(font *newFont);
 	void SetCoordinates(GLfloat new_x = 0, GLfloat new_y = 0);
+
+	void Draw(float x, float y, float dx, float dy, float delta = 0, int center = 0) ; //отрисовка в определённом размере
+
 
 };
 class sound

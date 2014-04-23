@@ -55,13 +55,16 @@ void game::MainLoop()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glBindTexture(GL_TEXTURE_2D, Mmenu.background->GetTXT().tex);
     glLoadIdentity();
-    if(Mmenu.background)
+    /*if(Mmenu.background)
     	//Mmenu.background->Draw(0.0, 0.0, 800, 600);
     	Mmenu.background->Draw(1024, 1024, 0, 0, 300, 300, 0, 0, 300, 300);
 
     if(Mmenu.background)
     	//Mmenu.background->Draw(0.0, 0.0, 800, 600);
     	Mmenu.background->Draw(1024, 1024, 0, 300, 300, 300, 310, 0, 300, 300);
+*/
+    if(Mmenu.title)
+    	Mmenu.title->Write(200, 300, 0);
 
 	SDL_GL_SwapBuffers();
 
@@ -93,6 +96,7 @@ int game::LoadTextures()
 	//Загружаем текстуры для дальнейшей работы с ними
 
 	Mmenu.background = new image("data/graphics/test/test1.png");
+	Mmenu.title = new text("FireFly", "data/fonts/non-free/Minecraftia.ttf", 44);
 	//Mmenu.button_start = new image();
 	//Mmenu.button_exit = new image();
 
