@@ -123,6 +123,10 @@ int graphics::init()
 	glEnable(GL_TEXTURE_2D);
 	glLoadIdentity();
 
+	//Включаем альфа-канал и блендинг
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	glEnable( GL_BLEND );
+
 	//Проверка на ошибки
 	GLenum error = glGetError();
 	if(error!=GL_NO_ERROR)

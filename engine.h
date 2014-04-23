@@ -37,8 +37,8 @@ const GLint			SYS_GL_IMG_FILTER = GL_NEAREST; //Стандартный филь�
 const int			SYS_TEXT_SIZE = 16;				//Размер текста по умолчанию
 const int			SYS_TEXT_DEPTH = 32;			//Глубина прорисовки текста
 
-const std::string 	SYS_VERSION = "0.0.0.0.10";
-const std::string 	SYS_BUILD = "000010";
+const std::string 	SYS_VERSION = "0.0.0.0.11";
+const std::string 	SYS_BUILD = "000011";
 
 class graphics;
 class sound;

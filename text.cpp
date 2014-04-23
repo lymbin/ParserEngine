@@ -234,7 +234,6 @@ void text::Draw(float x, float y, float dx, float dy, float delta, int center)
 		glRotatef(delta, 0, 0, -1);
 	if(center)
 		glTranslatef(-dx/2, -dy/2, 0);
-
 	//Рисуем текстуру
 	glBegin(GL_QUADS);
 		glTexCoord2i(0, 0); glVertex2f(0,  0);  //Верхний левый угол
@@ -281,10 +280,10 @@ void text::CreateTex()
 			return;
 	}
 	TTF_SizeUTF8(textFont->ttf_font, textString.c_str(), &w, &h);
-	temp = TTF_RenderUTF8_Solid(textFont->ttf_font, textString.c_str(), textFont->format.textcolor);
+	//temp = TTF_RenderUTF8_Solid(textFont->ttf_font, textString.c_str(), textFont->format.textcolor);
 	//TODO:test
 	//temp = TTF_RenderUTF8_Shaded(textFont->ttf_font, textString.c_str(), textFont->format.textcolor, textFont->format.bgcolor);
-	//temp = TTF_RenderUTF8_Blended(textFont->ttf_font, textString.c_str(), textFont->format.textcolor);
+	temp = TTF_RenderUTF8_Blended(textFont->ttf_font, textString.c_str(), textFont->format.textcolor);
 
 	SDL_SetAlpha(temp, 0, 0);
 
@@ -299,27 +298,38 @@ void text::CreateTex()
 		return;
 	}
 
-	SDL_Rect src={0,0,0,0}, dest={0,0,0,0};
+	SDL_Rect //src={0,0,0,0},
+			dest={0,0,0,0};
 
-	src.x = 0;
+	/*src.x = 0;
 	src.y = 0;
 	src.w = w;
 	src.h = h;
+	 */
 
 	dest.x = 0;
 	dest.y = 0;
-	dest.w = w;
-	dest.h = h;
+	//dest.w = w;
+	//dest.h = h;
 
-	SDL_BlitSurface(temp, &src, tempb, &dest);
+	SDL_BlitSurface(temp, NULL, tempb, &dest);
+	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);
-	gluBuild2DMipmaps(GL_TEXTURE_2D,
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tempb->w, tempb->h, 0, GL_BGRA,
+				GL_UNSIGNED_BYTE, tempb->pixels);
+
+	/*gluBuild2DMipmaps(GL_TEXTURE_2D,
 						GL_RGBA,
 						tempb->w,
 						tempb->h,
 						GL_RGBA,
 						GL_UNSIGNED_BYTE,
 						tempb->pixels);
+						*/
 
 	SDL_FreeSurface(temp);
 	SDL_FreeSurface(tempb);
