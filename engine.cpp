@@ -52,12 +52,14 @@ void engine::CleanUp()
 	//Освобождаем ненужную память
 	if(screen)
 		SDL_FreeSurface(screen);
+	screen = 0;
 
 	if(Graphics)
 	{
 		Graphics->CleanUp();
 		delete Graphics;
 	}
+	Graphics = 0;
 
 #ifdef DEBUG_SYS
 	cout << "Engine clean up - success" << endl;
@@ -70,28 +72,16 @@ void engine::CleanUp()
 #endif
 
 }
-void engine::ResizeWin(int win_dX, int win_dY)
-{
-	//Изменяем рамер окна
-	//TODO: доделать тут
-	GLfloat ratio;
-	if(!win_dY) win_dY = 1;
-
-	ratio = (GLfloat) win_dX/(GLfloat)win_dY;
-	glViewport(0, 0, (GLsizei) win_dX, (GLsizei) win_dY);
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(45.5f, ratio, 0.1f, 10.0f);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-}
 engine::engine()
 {
 	//Конструктор
 	screen = 0;
 	Graphics = 0;
+	//Другие компоненты
+	//
+	//
+	//
+	//
 }
 engine::~engine()
 {
@@ -145,6 +135,59 @@ void graphics::CleanUp()
 {
 	if(TTF_WasInit())
 		TTF_Quit();
+}
+
+void graphics::ResizeWin(int width, int heigth)
+{
+	//Изменяем рамер окна
+	//TODO: доделать тут
+	GLfloat ratio;
+	if(!heigth) heigth = 1;
+
+	ratio = (GLfloat) width/(GLfloat)heigth;
+	glViewport(0, 0, (GLsizei) width, (GLsizei) heigth);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(45.5f, ratio, 0.1f, 10.0f);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	//Другая версия - пока тестовая
+	/*
+	if(!heigth) heigth = 1;
+	screen = SDL_SetVideoMode(SYS_WIDTH, SYS_HEIGTH, SYS_BPP, SDL_OPENGL|SDL_RESIZABLE);
+	if(!screen)
+	{
+#ifdef DEBUG_ERRORS
+		cout << "Unable to Resize win " << SDL_GetError() << endl;
+#endif
+		exit(1);
+	}
+
+	//Инициализация всех возможностей OpenGL
+	InitGL();
+
+	//Перезагружаем все хранящиеся в памяти текстуры
+	 * из менеджера текстур
+	 * TODO: нужно переделать менеджер и задать его глобально или через синглетон
+	ReloadTextures();
+
+
+	 */
+}
+
+// Очистка экрана
+void graphics::ClearScreen()
+{
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+// Отрисовываем буферы на экране
+void graphics::SwapBuffers()
+{
+	SDL_GL_SwapBuffers();
 }
 graphics::graphics()
 {

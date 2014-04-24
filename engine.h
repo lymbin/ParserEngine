@@ -37,8 +37,8 @@ const GLint			SYS_GL_IMG_FILTER = GL_NEAREST; //Стандартный филь�
 const int			SYS_TEXT_SIZE = 16;				//Размер текста по умолчанию
 const int			SYS_TEXT_DEPTH = 32;			//Глубина прорисовки текста
 
-const std::string 	SYS_VERSION = "0.0.0.0.11";
-const std::string 	SYS_BUILD = "000011";
+const std::string 	SYS_VERSION = "0.0.0.0.12";
+const std::string 	SYS_BUILD = "000012";
 
 class graphics;
 class sound;
@@ -51,23 +51,35 @@ class text;
 
 class engine
 {
-protected:
+public:
 	//Компоненты
 	graphics *Graphics;
+	//sound
+	//input
+	//fonts
+	//textures
+	//animation
+	//timer
 
+	// Инициализация всех систем движка
+	int init();
+
+	// Очищаем все системы движка
+	void CleanUp();
+
+	engine();
+	~engine();
+
+
+	//TODO: Всё что ниже к движку не относится - перенести в собственные системы
 	SDL_Surface *screen;
 	SDL_Event event; //перевести в отдельный компонент
 
 	//Таймер для подсчёта FPS
 	p_timer fps;
 
-public:
-	int init();
-	void CleanUp();
-	void ResizeWin(int win_dX, int win_dY);
-
 	SDL_Surface *Screen() {return screen;}
-	SDL_Event Event() {return event;}
+	SDL_Event 	Event() {return event;}
 
 	static std::string IntToString(int number)
 	{
@@ -75,18 +87,26 @@ public:
 		stream << number;
 		return stream.str();
 	}
-
-	engine();
-	~engine();
-
-
 };
 class graphics
 {
 public:
+	// Инициализируем все внутренние подсистемы
 	int init();
-	void render();
+
+	// Очищаем всю графическую систему
 	void CleanUp();
+
+	// Очистка экрана
+	void ClearScreen();
+
+	// Отрисовываем буферы на экране
+	void SwapBuffers();
+
+	// Меняем размеры окна
+	void ResizeWin(int win_dX, int win_dY);
+
+
 
 	graphics();
 	~graphics();
