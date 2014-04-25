@@ -177,7 +177,6 @@ void graphics::ResizeWin(int width, int heigth)
 
 	 */
 }
-
 // Очистка экрана
 void graphics::ClearScreen()
 {

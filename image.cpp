@@ -12,6 +12,7 @@ using namespace std;
 
 int image::Open(std::string source, GLint filter)
 {
+	// Открываем текстуру из файла
 	SDL_Surface *temp_surface = 0;
 	GLint maxTexSize;
 	GLuint glFormat = GL_RGBA;
@@ -60,16 +61,43 @@ int image::Open(std::string source, GLint filter)
 	SDL_FreeSurface(temp_surface);
 	return 0;
 }
+int image::OpenFromZip(string source, GLint filter)
+{
+	// Открываем текстуру из zip архива с файлом
+	return 0;
+}
 void image::Draw(float x, float y)
 {
+	// Отрисовываем текстуру от точки (x, y)
+	// 	полного размера
+	// TODO: проследить за правильностью отрисовки не квадратных тектур
+
+	Bind();
+
+	glEnable(GL_TEXTURE_2D);
+	glLoadIdentity();
+	glTranslatef(x, y, 0);
+
+	//Рисуем текстуру
+	glBegin(GL_QUADS);
+		glTexCoord2i(0, 0); glVertex2f(0,  			0);  			//Верхний левый угол
+		glTexCoord2i(0, 1); glVertex2f(0,  			texture.pxh); 	//Нижний левый угол
+		glTexCoord2i(1, 1); glVertex2f(texture.pxw, texture.pxh); 	//Нижний правый угол
+		glTexCoord2i(1, 0); glVertex2f(texture.pxw, 0);  			//Верхний правый угол
+	glEnd();
+
+	glLoadIdentity();
+
 
 }
 void image::Draw(float x, float y, float dx, float dy, float delta, int center)
 {
-	//Отрисовываем текстуру от точки (x, y)
-	//размером dX, dY.
-	//с возможным углом поворота delta относительно верхнего левого угла
-	//либо центра
+	// Отрисовываем текстуру от точки (x, y)
+	//	размером dX, dY.
+	//	с возможным углом поворота delta относительно верхнего левого угла
+	//	либо центра
+
+	Bind();
 
 	glEnable(GL_TEXTURE_2D);
 	glLoadIdentity();
@@ -101,6 +129,9 @@ void image::Draw(float width, float heigth,
 	//с размером dx, dy
 	//и возможным углом поворота delta относительно верхнего левого угла
 	//либо центра
+
+	Bind();
+
 	glEnable(GL_TEXTURE_2D);
 	glLoadIdentity();
 	glTranslatef(x,y,0);
@@ -120,20 +151,66 @@ void image::Draw(float width, float heigth,
 
 	glLoadIdentity();
 }
-/*
-void texture_manager::Resize(float width, float heigth)
+void image::Bind()
 {
-	//Изменяем размер изображения
-
-}*/
-/*
-void image::render()
-{
-	//Функция отрисовывает изображение
-	//TODO: доделать
-	Draw(0.0, 0.0, 300, 200);
+	if(texture.tex)
+	{
+		glBindTexture(GL_TEXTURE_2D, texture.tex);
+    	glLoadIdentity();
+	}
 }
-*/
+void image::Reload()
+{
+	//TODO: Косяк в функции - не удаляется старая текстура
+	if(texture.fileName != "")
+	{
+		Open(texture.fileName);
+	}
+}
+void image::Redraw(float x, float y, float dx, float dy, float delta, int center)
+{
+	// Полностью перерисовываем текстуру предварительно удалив и перегрузив в память
+	// Работает с полными картинками
+	Delete();
+	Reload();
+	if(texture.tex)
+	{
+		Draw(x, y, dx, dy, delta, center);
+	}
+	else
+	{
+#ifdef DEBUG_ERRORS
+		cout << "Redraw error" << endl;
+#endif
+	}
+}
+void image::Redraw(float width, float heigth, float top_x, float top_y, float top_dx, float top_dy,
+				   float x, float y, float dx, float dy, float delta, int center)
+{
+	// Полностью перерисовываем текстуру предварительно удалив и перегрузив в память
+	// Работает с куском изображения
+	Delete();
+	Reload();
+	if(texture.tex)
+	{
+		Draw(width, heigth, top_x, top_y, top_dx, top_dy,
+				   x, y, dx, dy, delta, center);
+	}
+	else
+	{
+#ifdef DEBUG_ERRORS
+		cout << "Redraw error" << endl;
+#endif
+	}
+}
+void image::Delete()
+{
+	if(texture.tex)
+	{
+		glDeleteTextures(1, &texture.tex);
+		texture.tex = 0;
+	}
+}
 float image::Width()
 {
 	return texture.pxw;
@@ -145,15 +222,20 @@ float image::Heigth()
 image::image()
 {
 	texture.fileName = "";
+	texture.pxh = 0;
+	texture.pxw = 0;
+	texture.tex = 0;
 }
 image::image(std::string file, GLint filter)
 {
 	texture.fileName = file;
+	texture.pxh = 0;
+	texture.pxw = 0;
+	texture.tex = 0;
 	Open(file, filter);
 }
 image::~image()
 {
-	if(texture.tex)
-		glDeleteTextures(1, &texture.tex);
+	Delete();
 }
 

@@ -37,14 +37,15 @@ const GLint			SYS_GL_IMG_FILTER = GL_NEAREST; //Стандартный филь�
 const int			SYS_TEXT_SIZE = 16;				//Размер текста по умолчанию
 const int			SYS_TEXT_DEPTH = 32;			//Глубина прорисовки текста
 
-const std::string 	SYS_VERSION = "0.0.0.0.12";
-const std::string 	SYS_BUILD = "000012";
+const std::string 	SYS_VERSION = "0.0.0.0.13";
+const std::string 	SYS_BUILD = "000013";
 
 class graphics;
 class sound;
 
 class game;
 struct textureClass;
+//class texture;
 
 class font;
 class text;
@@ -52,6 +53,15 @@ class text;
 class engine
 {
 public:
+	engine();
+	~engine();
+
+	// Инициализация всех систем движка
+	int init();
+
+	// Очищаем все системы движка
+	void CleanUp();
+
 	//Компоненты
 	graphics *Graphics;
 	//sound
@@ -60,16 +70,6 @@ public:
 	//textures
 	//animation
 	//timer
-
-	// Инициализация всех систем движка
-	int init();
-
-	// Очищаем все системы движка
-	void CleanUp();
-
-	engine();
-	~engine();
-
 
 	//TODO: Всё что ниже к движку не относится - перенести в собственные системы
 	SDL_Surface *screen;
@@ -91,6 +91,9 @@ public:
 class graphics
 {
 public:
+	graphics();
+	~graphics();
+
 	// Инициализируем все внутренние подсистемы
 	int init();
 
@@ -105,26 +108,30 @@ public:
 
 	// Меняем размеры окна
 	void ResizeWin(int win_dX, int win_dY);
-
-
-
-	graphics();
-	~graphics();
-
 };
 
 class texture_manager
 {
-	//TODO: подумать над необходимостью класса
+	//friend texture;
+protected:
+
+	// Вектор хранящий все текстуры, которыми управляем
+	//std::vector< texture *> Textures;
 public:
-	//virtual int Open(std::string source) = 0;
-	virtual void Draw(float x, float y) = 0;																	//простая отрисовка
-	virtual void Draw(float x, float y, float dx, float dy, float delta = 0, int center = 0) = 0;				//отрисовка в определённом размере
-	virtual void Draw(float width, float heigth, float top_x, float top_y, float top_dx, float top_dy,		//отрисовка кусочка изображения
-						float x, float y, float dx, float dy, float delta = 0, int center = 0) = 0;				//в определённом размере
-	//virtual void Resize(float width, float heigth) = 0;
 	texture_manager() {}
-	virtual ~texture_manager() {}
+	~texture_manager() {}
+
+	//Перезагружаем текстуры
+	void ReloadTextures();
+
+	//Удаляем текстуры
+	void DeleteTextures();
+
+	//Добавляем и удаляем из вектора управляющего текстурами
+	//void ManageTexture();
+	//void UnManageTexture();
+
+	//virtual void Resize(float width, float heigth) = 0;
 };
 
 struct textureClass
@@ -146,16 +153,35 @@ public:
 	~image();
 
 	textureClass GetTXT() { return texture; }
+
+	// Вывод реальных размеров изображения
 	float Width();
 	float Heigth();
 
-	//void render();
+	// Различные функции отрисовки
 	void Draw(float x, float y);																//простая отрисовка
-	void Draw(float x, float y, float dx, float dy, float delta = 0, int center = 0) ;			//отрисовка в определённом размере
+	void Draw(float x, float y, float dx, float dy, float delta = 0, int center = 0);			//отрисовка в определённом размере
 	void Draw(float width, float heigth, float top_x, float top_y, float top_dx, float top_dy,	//отрисовка кусочка изображения
-			float x, float y, float dx, float dy, float delta = 0, int center = 0) ;			//в определённом размере
+			  float x, float y, float dx, float dy, float delta = 0, int center = 0);			//в определённом размере
 
+	// Открываем изображение из файла
 	int Open(std::string source, GLint filter = SYS_GL_IMG_FILTER);
+	int OpenFromZip(std::string source, GLint filter = SYS_GL_IMG_FILTER);
+
+	// Полностью перерисовываем изображения с различными функциями отрисовки
+	void Redraw(float x, float y, float dx, float dy, float delta = 0, int center = 0);
+	void Redraw(float width, float heigth, float top_x, float top_y, float top_dx, float top_dy,
+				float x, float y, float dx, float dy, float delta = 0, int center = 0);
+
+	// Биндим текстуру для работы с OpenGL
+	void Bind();
+
+	// Перезагружаем текстуру в памяти из файла
+	void Reload();
+
+	// Удаляем текстуру
+	void Delete();
+
 };
 struct fontFormatting
 {
