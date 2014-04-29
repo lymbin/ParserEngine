@@ -53,22 +53,29 @@ void game::MainLoop()
 	cout << "Game start!" << endl;
 #endif
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    if(Mmenu.background)
+    Graphics->DrawFilledRectangle(10, 10, 200, 100, 0.0f, 0.0f, 1.0f);
+    /*if(Mmenu.background)
     	//Mmenu.background->Draw(0.0, 0.0, 800, 600);
     	Mmenu.background->Draw(1024, 1024, 0, 0, 300, 300, 0, 0, 300, 300);
 
     if(Mmenu.background)
     	//Mmenu.background->Draw(0.0, 0.0, 800, 600);
     	Mmenu.background->Draw(1024, 1024, 0, 300, 300, 300, 310, 0, 300, 300);
+*/
 
     if(Mmenu.title)
+    {
     	Mmenu.title->Write(700, 0, 0);
+    }
 
+
+/*
     if(Mmenu.background)
     	//Mmenu.background->Draw(0.0, 0.0, 800, 600);
     	Mmenu.background->Draw(500, 0);
+*/
 
-	SDL_GL_SwapBuffers();
+	Graphics->SwapBuffers();
 
 	fps.start();
 	//Главный цикл приложения

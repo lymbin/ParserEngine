@@ -53,8 +53,8 @@ const int			SYS_TEXT_SIZE = 16;				//Размер текста по умолча
 const int			SYS_TEXT_DEPTH = 32;			//Глубина прорисовки текста
 const std::string	SYS_GL_IMG_ZIP_MODE = "rb";
 
-const std::string 	SYS_VERSION = "0.0.0.0.14";
-const std::string 	SYS_BUILD = "000014";
+const std::string 	SYS_VERSION = "0.0.0.0.15";
+const std::string 	SYS_BUILD = "000015";
 
 class graphics;
 class sound;
@@ -106,10 +106,13 @@ public:
 };
 class graphics
 {
+	friend image;
 	texture_manager *TextureManager;	// Менеджер текстур
 
 	SDL_Surface *screen;	// Сурфейс окна
-	image *CurrentTexture;	// Текущая забинженная текстура
+	GLuint CurrentTexture;	// Текущая забинженная текстура
+
+	int FullScreen;
 
 public:
 	graphics();
@@ -133,12 +136,40 @@ public:
 	// Меняем размеры окна
 	void ResizeWin(int win_dX, int win_dY);
 
+	// Меняем полноэкранный режим
+	void ToggleFullScreen();
+
+	// Рисуем примитивы
+	// TODO: возможно вынести в одтельный класс
+	// TODO: позаботиться об их удалении без очистки экрана
+	// TODO: дать только некоторым классам использовать эти функции
+	//		например, из примитивов рисовать что-то полезное внутри другого класса
+
+	// Рисуем каркас прямоугольника цветными линиями
+	void DrawRectangle(GLfloat x, GLfloat y, GLfloat width, GLfloat height,
+						GLfloat red = 0, GLfloat green = 0, GLfloat blue = 0, GLfloat alpha = 1);
+
+	// Рисуем заполненный цветом прямоугольник
+	void DrawFilledRectangle(GLfloat x, GLfloat y, GLfloat width, GLfloat height,
+							GLfloat red = 0, GLfloat green = 0, GLfloat blue = 0, GLfloat alpha = 1);
+
+	// Рисуем линию
+	void DrawLine(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2,
+					GLfloat red = 0, GLfloat green = 0, GLfloat blue = 0, GLfloat alpha = 1);
+
+	// Устанавливаем текущую забинженную текстуру
+	void SetCurrentTexture(GLuint texture);
+
 	SDL_Surface *Screen() {return screen;}
+	GLuint GetCurrentTexture() {return CurrentTexture;}
+
 };
 
 class texture_manager
 {
 	friend image;
+	friend graphics;
+	graphics *Graphics;
 protected:
 
 	// Вектор хранящий все текстуры, которыми управляем
@@ -146,6 +177,9 @@ protected:
 public:
 	texture_manager();
 	~texture_manager();
+
+	// Получаем информацию по текстуре
+	image *GetTextureInfos(GLuint texture);
 
 	//Перезагружаем текстуры
 	void ReloadTextures();
@@ -176,7 +210,7 @@ class image
 {
 	friend texture_manager;
 	textureClass texture;
-	texture_manager *TextureManager;
+	texture_manager *TextureManager; // TODO:в глобал или в в синглтон
 
 	//TODO: протестировать
 	//std::vector< std::vector< bool > > m_PixelOn; // Храним пиксели текстуры для модуля столкновений(коллизии)
@@ -271,6 +305,7 @@ public:
 };
 class text
 {
+	friend game;
 	GLuint 		tex;
 	std::string textString;
 	font		*textFont;

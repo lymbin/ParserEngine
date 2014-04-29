@@ -236,7 +236,7 @@ void text::Draw(float x, float y, float dx, float dy, float delta, int center)
 		glTranslatef(-dx/2, -dy/2, 0);
 	//Рисуем текстуру
 	glBegin(GL_QUADS);
-	 	//glColor3f( 0.f, 0.f, 1.f );
+	 	glColor3f( 1.f, 1.f, 1.f );
 		glTexCoord2i(0, 0); glVertex2f(0,  0);  //Верхний левый угол
 		glTexCoord2i(0, 1); glVertex2f(0,  dy); //Нижний левый угол
 		glTexCoord2i(1, 1); glVertex2f(dx, dy); //Нижний правый угол

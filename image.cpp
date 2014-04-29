@@ -167,6 +167,11 @@ void image::Bind()
 	{
 		glBindTexture(GL_TEXTURE_2D, texture.tex);
     	glLoadIdentity();
+    	if(TextureManager && TextureManager->Graphics)
+    	{
+    		if(TextureManager->Graphics->GetCurrentTexture() != texture.tex)
+    			TextureManager->Graphics->SetCurrentTexture(texture.tex);
+       	}
 	}
 }
 void image::Reload()
@@ -272,6 +277,7 @@ image::~image()
 }
 texture_manager::texture_manager()
 {
+	Graphics = 0;
 	if(!Textures.empty())
 	Textures.clear();
 }
@@ -279,6 +285,19 @@ texture_manager::~texture_manager()
 {
 	DeleteTextures();
 	Textures.clear();
+	Graphics = 0;
+}
+image *texture_manager::GetTextureInfos(GLuint texture)
+{
+	// Получаем информацию о текстуре из её ID
+	for(unsigned int loop = 0; loop < Textures.size(); loop++)
+	{
+		if(Textures[loop]->texture.tex == texture)
+		{
+			return Textures[loop];
+		}
+	}
+	return 0;
 }
 void texture_manager::ReloadTextures()
 {
@@ -325,9 +344,11 @@ void texture_manager::UnManageTexture(image *managed_image)
 	// Удаляем текстуру из вектора управления
 	// Внимание: Это только удалит текстуру из вектора управления, но не удалит саму текстуру
 	// 	для этого нужно использовать delete - внутри деструктора вызовется Delete() и сделает всё необходимое
+	// Лучше использовать delete вместо UnManageTexture - внутри деструктора вызовется UnManage
 
 	int place = -1;
 
+	// Ищем текстуру с данным ID в памяти
 	for(unsigned int loop = 0; loop < Textures.size(); loop++)
 	{
 		if(Textures[loop]->texture.tex == managed_image->texture.tex)
@@ -337,17 +358,22 @@ void texture_manager::UnManageTexture(image *managed_image)
 		}
 	}
 
+	// Текстура не найдена - выходм
 	if(place < 0)
 		return;
 
 	if((unsigned int)(place+1) == Textures.size())
 	{
+		// Текстура в самом конце - удаляем, перед этим обснулив указатель на менеджер текстур
+		Textures[place]->TextureManager = 0;
 		Textures.pop_back();
 	}
 	else
 	{
+		// Текстура где-то внутри вектора - удаляем, перед этим обснулив указатель на менеджер текстур
 		//TODO: проверить
 		//Textures[place] = Textures[ Textures.size() - 1 ];
+		Textures[place]->TextureManager = 0;
 		Textures.erase( Textures.begin() + place);
 	}
 }
