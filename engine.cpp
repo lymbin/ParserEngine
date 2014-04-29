@@ -21,25 +21,10 @@ int engine::init()
 		return -1;
 	}
 
-	//Задаём двойную буфферизацию
-	//SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-	screen = SDL_SetVideoMode(SYS_WIDTH, SYS_HEIGTH, SYS_BPP, SDL_OPENGL|SDL_RESIZABLE);
-	if(!screen)
-	{
-#ifdef DEBUG_ERRORS
-		cout << "Unable to set screen: " << SDL_GetError() << endl;
-#endif
-	}
-
-	//Задаём текст для заголовка окна
-	std::stringstream title;
-	title << "FireFly project " << SYS_VERSION << " prealpha test. Build " << SYS_BUILD << ".";
-	SDL_WM_SetCaption(title.str().c_str(), "test icon");
-
 	//Забиваем графику
 	Graphics = new graphics();
-	Graphics->init();
+	if(Graphics->init() < 0)
+		return -1;
 
 #ifdef DEBUG_SYS
 	cout << "All system initialization - success" << endl;
@@ -50,10 +35,6 @@ int engine::init()
 void engine::CleanUp()
 {
 	//Освобождаем ненужную память
-	if(screen)
-		SDL_FreeSurface(screen);
-	screen = 0;
-
 	if(Graphics)
 	{
 		Graphics->CleanUp();
@@ -75,11 +56,8 @@ void engine::CleanUp()
 engine::engine()
 {
 	//Конструктор
-	screen = 0;
 	Graphics = 0;
 	//Другие компоненты
-	//
-	//
 	//
 	//
 }
@@ -93,11 +71,39 @@ engine::~engine()
 
 int graphics::init()
 {
-	//Инициализация шрифтов
+	// Инициализация основных компонентов графики
+
+	// Инициализация SDL-графики
+	screen = SDL_SetVideoMode(SYS_WIDTH, SYS_HEIGTH, SYS_BPP, SDL_OPENGL|SDL_RESIZABLE);
+	if(!screen)
+	{
+#ifdef DEBUG_ERRORS
+		cout << "Unable to set screen: " << SDL_GetError() << endl;
+#endif
+		return -1;
+	}
+
+	// Задаём двойную буфферизацию
+		//SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
+	// Задаём текст для заголовка окна
+	std::stringstream title;
+	title << "FireFly project " << SYS_VERSION << " prealpha test. Build " << SYS_BUILD << ".";
+	SDL_WM_SetCaption(title.str().c_str(), "test icon");
+
+
+	// Инициализация шрифтов
 	if(font::FontInit() < 0)
 		return -1;
 
-	//Инициализация OpenGL
+	// Инициализация OpenGL
+	if(initGL() < 0)
+		return -1;
+
+	return 0;
+}
+int graphics::initGL()
+{
 	glClearColor( 0, 0, 0, 0 );
 	glClearDepth(1.0f);
 
@@ -135,6 +141,15 @@ void graphics::CleanUp()
 {
 	if(TTF_WasInit())
 		TTF_Quit();
+
+	if(screen)
+		SDL_FreeSurface(screen);
+	screen = 0;
+
+	if(TextureManager)
+		delete TextureManager;
+	TextureManager = 0;
+	CurrentTexture = 0;
 }
 
 void graphics::ResizeWin(int width, int heigth)
@@ -190,7 +205,9 @@ void graphics::SwapBuffers()
 }
 graphics::graphics()
 {
-
+	TextureManager = new texture_manager();
+	CurrentTexture = 0;
+	screen = 0;
 }
 graphics::~graphics()
 {

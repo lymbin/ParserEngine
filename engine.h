@@ -12,16 +12,31 @@
 #define DEBUG_SYS
 #define DEBUG_ERRORS
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <string.h>
+
+#include <math.h>
+
+#include <vector>
+#include <list>
+#include <map>
+#include <stack>
 
 #include "SDL/SDL.h"
 #include "SDL/SDL_image.h"
 #include "SDL/SDL_ttf.h"
 #include "SDL/SDL_mixer.h"
 #include "SDL/SDL_opengl.h"
+#include <GL/gl.h>
+#include <GL/glu.h>
+
+#ifndef WIN32
+#include <GL/glext.h>
+#endif
 
 #include "timer.h"
 
@@ -36,9 +51,10 @@ const int			SYS_FPS = 60;		//FPS
 const GLint			SYS_GL_IMG_FILTER = GL_NEAREST; //Стандартный фильтр для изображений
 const int			SYS_TEXT_SIZE = 16;				//Размер текста по умолчанию
 const int			SYS_TEXT_DEPTH = 32;			//Глубина прорисовки текста
+const std::string	SYS_GL_IMG_ZIP_MODE = "rb";
 
-const std::string 	SYS_VERSION = "0.0.0.0.13";
-const std::string 	SYS_BUILD = "000013";
+const std::string 	SYS_VERSION = "0.0.0.0.14";
+const std::string 	SYS_BUILD = "000014";
 
 class graphics;
 class sound;
@@ -46,6 +62,8 @@ class sound;
 class game;
 struct textureClass;
 //class texture;
+class image;
+class texture_manager;
 
 class font;
 class text;
@@ -72,13 +90,11 @@ public:
 	//timer
 
 	//TODO: Всё что ниже к движку не относится - перенести в собственные системы
-	SDL_Surface *screen;
 	SDL_Event event; //перевести в отдельный компонент
 
 	//Таймер для подсчёта FPS
 	p_timer fps;
 
-	SDL_Surface *Screen() {return screen;}
 	SDL_Event 	Event() {return event;}
 
 	static std::string IntToString(int number)
@@ -90,12 +106,20 @@ public:
 };
 class graphics
 {
+	texture_manager *TextureManager;	// Менеджер текстур
+
+	SDL_Surface *screen;	// Сурфейс окна
+	image *CurrentTexture;	// Текущая забинженная текстура
+
 public:
 	graphics();
 	~graphics();
 
 	// Инициализируем все внутренние подсистемы
 	int init();
+
+	// Инициализация OpenGL
+	int initGL();
 
 	// Очищаем всю графическую систему
 	void CleanUp();
@@ -108,30 +132,34 @@ public:
 
 	// Меняем размеры окна
 	void ResizeWin(int win_dX, int win_dY);
+
+	SDL_Surface *Screen() {return screen;}
 };
 
 class texture_manager
 {
-	//friend texture;
+	friend image;
 protected:
 
 	// Вектор хранящий все текстуры, которыми управляем
-	//std::vector< texture *> Textures;
+	std::vector< image *> Textures;
 public:
-	texture_manager() {}
-	~texture_manager() {}
+	texture_manager();
+	~texture_manager();
 
 	//Перезагружаем текстуры
 	void ReloadTextures();
+
+	//
+	//void RedrawTextures();
 
 	//Удаляем текстуры
 	void DeleteTextures();
 
 	//Добавляем и удаляем из вектора управляющего текстурами
-	//void ManageTexture();
-	//void UnManageTexture();
+	void ManageTexture(image *managed_image);
+	void UnManageTexture(image *managed_image);
 
-	//virtual void Resize(float width, float heigth) = 0;
 };
 
 struct textureClass
@@ -144,13 +172,21 @@ struct textureClass
 	std::string fileName; //Путь до файла
 };
 
-class image : public texture_manager
+class image
 {
+	friend texture_manager;
 	textureClass texture;
+	texture_manager *TextureManager;
+
+	//TODO: протестировать
+	//std::vector< std::vector< bool > > m_PixelOn; // Храним пиксели текстуры для модуля столкновений(коллизии)
+
 public:
 	image();
 	image(std::string file, GLint filter = SYS_GL_IMG_FILTER);
 	~image();
+
+	void SetTexManager(texture_manager *TextureManager);
 
 	textureClass GetTXT() { return texture; }
 
@@ -168,10 +204,13 @@ public:
 	int Open(std::string source, GLint filter = SYS_GL_IMG_FILTER);
 	int OpenFromZip(std::string source, GLint filter = SYS_GL_IMG_FILTER);
 
+	// Создаём текстуру из сурфейса(бывшая часть функции Open)
+	void MakeTexture(SDL_Surface *Surface, GLint filter = SYS_GL_IMG_FILTER, bool LoadPixels = false);
+
 	// Полностью перерисовываем изображения с различными функциями отрисовки
-	void Redraw(float x, float y, float dx, float dy, float delta = 0, int center = 0);
+	void Redraw(float x, float y, float dx = -1, float dy = -1, float delta = 0, int center = 0);
 	void Redraw(float width, float heigth, float top_x, float top_y, float top_dx, float top_dy,
-				float x, float y, float dx, float dy, float delta = 0, int center = 0);
+				float x, float y, float dx = -1, float dy = -1, float delta = 0, int center = 0);
 
 	// Биндим текстуру для работы с OpenGL
 	void Bind();

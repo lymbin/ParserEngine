@@ -15,12 +15,6 @@ int image::Open(std::string source, GLint filter)
 	// Открываем текстуру из файла
 	SDL_Surface *temp_surface = 0;
 	GLint maxTexSize;
-	GLuint glFormat = GL_RGBA;
-
-	if(!source.substr(source.length()-3, 3).compare("jpg"))
-	{
-		glFormat = GL_RGB;
-	}
 
 	temp_surface = IMG_Load(source.data());
 
@@ -44,6 +38,24 @@ int image::Open(std::string source, GLint filter)
 		return -1;
 	}
 
+	MakeTexture(temp_surface);
+
+	SDL_FreeSurface(temp_surface);
+	return 0;
+}
+int image::OpenFromZip(string source, GLint filter)
+{
+	// Открываем текстуру из zip архива с файлом
+	// TODO: пока никак не работает функция - доделать
+
+	if(!Open(source, filter))
+		return 0;
+	else
+		return -1;
+}
+void image::MakeTexture(SDL_Surface *Surface, GLint filter, bool LoadPixels)
+{
+	// Создаём текстуру из сурфейса(бывшая часть функции Open)
 	glGenTextures(1, &texture.tex);
 	glBindTexture(GL_TEXTURE_2D, texture.tex);
 
@@ -53,18 +65,16 @@ int image::Open(std::string source, GLint filter)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, glFormat, temp_surface->w, temp_surface->h, 0, glFormat, GL_UNSIGNED_BYTE, temp_surface->pixels);
+	GLuint glFormat = GL_RGBA;
+	if(!Surface->format->Amask)
+	{
+		glFormat = GL_RGB;
+	}
 
-	texture.pxw = temp_surface->w;
-	texture.pxh = temp_surface->h;
+	glTexImage2D(GL_TEXTURE_2D, 0, glFormat, Surface->w, Surface->h, 0, glFormat, GL_UNSIGNED_BYTE, Surface->pixels);
 
-	SDL_FreeSurface(temp_surface);
-	return 0;
-}
-int image::OpenFromZip(string source, GLint filter)
-{
-	// Открываем текстуру из zip архива с файлом
-	return 0;
+	texture.pxw = Surface->w;
+	texture.pxh = Surface->h;
 }
 void image::Draw(float x, float y)
 {
@@ -76,7 +86,7 @@ void image::Draw(float x, float y)
 
 	glEnable(GL_TEXTURE_2D);
 	glLoadIdentity();
-	glTranslatef(x, y, 0);
+	glTranslatef(x, y, 0.0f);
 
 	//Рисуем текстуру
 	glBegin(GL_QUADS);
@@ -173,9 +183,12 @@ void image::Redraw(float x, float y, float dx, float dy, float delta, int center
 	// Работает с полными картинками
 	Delete();
 	Reload();
-	if(texture.tex)
+	if(!texture.tex)
 	{
-		Draw(x, y, dx, dy, delta, center);
+		if((dx < 0)||(dy < 0))
+			Draw(x, y); //TODO: проверить
+		else
+			Draw(x, y, dx, dy, delta, center);
 	}
 	else
 	{
@@ -191,8 +204,12 @@ void image::Redraw(float width, float heigth, float top_x, float top_y, float to
 	// Работает с куском изображения
 	Delete();
 	Reload();
-	if(texture.tex)
+	if(!texture.tex)
 	{
+		if((dx < 0)||(dy < 0))
+			Draw(width, heigth, top_x, top_y, top_dx, top_dy,
+					   x, y, texture.pxh, texture.pxw, delta, center); //TODO: проверить
+		else
 		Draw(width, heigth, top_x, top_y, top_dx, top_dy,
 				   x, y, dx, dy, delta, center);
 	}
@@ -205,11 +222,22 @@ void image::Redraw(float width, float heigth, float top_x, float top_y, float to
 }
 void image::Delete()
 {
+	//Удаляем gl текстуру изображения
 	if(texture.tex)
 	{
 		glDeleteTextures(1, &texture.tex);
 		texture.tex = 0;
 	}
+	if(TextureManager)
+	{
+		// Если менеджер задан, то анамаджим текстуру, но не удаляем - удалять будем только delete
+		TextureManager->UnManageTexture(this);
+		TextureManager = 0;
+	}
+}
+void image::SetTexManager(texture_manager *TexManager)
+{
+	TextureManager = TexManager;
 }
 float image::Width()
 {
@@ -225,6 +253,8 @@ image::image()
 	texture.pxh = 0;
 	texture.pxw = 0;
 	texture.tex = 0;
+
+	TextureManager = 0;
 }
 image::image(std::string file, GLint filter)
 {
@@ -232,10 +262,92 @@ image::image(std::string file, GLint filter)
 	texture.pxh = 0;
 	texture.pxw = 0;
 	texture.tex = 0;
+
+	TextureManager = 0;
 	Open(file, filter);
 }
 image::~image()
 {
 	Delete();
 }
+texture_manager::texture_manager()
+{
+	if(!Textures.empty())
+	Textures.clear();
+}
+texture_manager::~texture_manager()
+{
+	DeleteTextures();
+	Textures.clear();
+}
+void texture_manager::ReloadTextures()
+{
+	for(unsigned int loop = 0; loop < Textures.size(); loop++)
+	{
+		Textures[loop]->Reload();
+	}
+}
+/*
+ TODO: доделать/удалить перерисовку
+void texture_manager::RedrawTextures()
+{
+	for(int loop = 0; loop < Textures.size(); loop++)
+	{
+		Textures[loop]->Redraw();
+	}
+}
+*/
+void texture_manager::DeleteTextures()
+{
+	//Удаляем текстуры
+	for(unsigned int loop = 0; loop < Textures.size(); loop++)
+	{
+		delete Textures[loop];
+	}
+}
+void texture_manager::ManageTexture(image *managed_image)
+{
+	//Добавляем текстуру в вектор для управления
+	for(unsigned int loop = 0; loop < Textures.size(); loop++)
+	{
+		if(Textures[loop]->texture.tex == managed_image->texture.tex)
+		{
+			return;
+		}
+	}
+	if(!managed_image->TextureManager)
+		managed_image->SetTexManager(this);
 
+	Textures.push_back(managed_image);
+}
+void texture_manager::UnManageTexture(image *managed_image)
+{
+	// Удаляем текстуру из вектора управления
+	// Внимание: Это только удалит текстуру из вектора управления, но не удалит саму текстуру
+	// 	для этого нужно использовать delete - внутри деструктора вызовется Delete() и сделает всё необходимое
+
+	int place = -1;
+
+	for(unsigned int loop = 0; loop < Textures.size(); loop++)
+	{
+		if(Textures[loop]->texture.tex == managed_image->texture.tex)
+		{
+			place = loop;
+			break;
+		}
+	}
+
+	if(place < 0)
+		return;
+
+	if((unsigned int)(place+1) == Textures.size())
+	{
+		Textures.pop_back();
+	}
+	else
+	{
+		//TODO: проверить
+		//Textures[place] = Textures[ Textures.size() - 1 ];
+		Textures.erase( Textures.begin() + place);
+	}
+}
