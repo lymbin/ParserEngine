@@ -53,8 +53,8 @@ const int			SYS_TEXT_SIZE = 16;				//Размер текста по умолча
 const int			SYS_TEXT_DEPTH = 32;			//Глубина прорисовки текста
 const std::string	SYS_GL_IMG_ZIP_MODE = "rb";
 
-const std::string 	SYS_VERSION = "0.0.0.0.15";
-const std::string 	SYS_BUILD = "000015";
+const std::string 	SYS_VERSION = "0.0.0.0.16";
+const std::string 	SYS_BUILD = "000016";
 
 class graphics;
 class sound;
@@ -65,6 +65,7 @@ struct textureClass;
 class image;
 class texture_manager;
 
+class font_manager;
 class font;
 class text;
 
@@ -108,6 +109,7 @@ class graphics
 {
 	friend image;
 	texture_manager *TextureManager;	// Менеджер текстур
+	font_manager 	*FontManager;
 
 	SDL_Surface *screen;	// Сурфейс окна
 	GLuint CurrentTexture;	// Текущая забинженная текстура
@@ -167,6 +169,9 @@ public:
 
 class texture_manager
 {
+	// Менеджер текстур - управляет памятью.
+	// Пока не используется для изображений из-за сложности передачи каждому новому изображению указатель на менеджер
+	// TODO: доделать позднее выделив в глобал или в синглтон
 	friend image;
 	friend graphics;
 	graphics *Graphics;
@@ -194,6 +199,8 @@ public:
 	void ManageTexture(image *managed_image);
 	void UnManageTexture(image *managed_image);
 
+	void SetGraphics(graphics *setGraphics);
+
 };
 
 struct textureClass
@@ -210,7 +217,7 @@ class image
 {
 	friend texture_manager;
 	textureClass texture;
-	texture_manager *TextureManager; // TODO:в глобал или в в синглтон
+	texture_manager *TextureManager; // TODO:в глобал или в синглтон
 
 	//TODO: протестировать
 	//std::vector< std::vector< bool > > m_PixelOn; // Храним пиксели текстуры для модуля столкновений(коллизии)
@@ -256,27 +263,61 @@ public:
 	void Delete();
 
 };
+
+class font_manager
+{
+	// Менеджер шрифтов - управляет памятью всех шрифтов как менеджер текстур
+	// Пока не используется, всё по той же причине, что и менеджер текстур - из-за сложности передачи каждому новому шрифту указатель на менеджер
+	// TODO: доделать позднее выделив в глобал или в синглтон
+	friend font;
+
+	// Добавляем и удаляем шрифты из менеджера
+	void ManageFont(font *managed_font);
+	void UnManageFont(font *managed_font);
+
+	// Храним все шрифты
+	std::vector < font *> Fonts;
+	graphics *Graphics;
+public:
+	font_manager();
+	~font_manager();
+
+	// Инициализация TTF
+	static int FontsInit();
+
+	// Удаляем шрифты из памяти
+	void DeleteFonts();
+
+	// Устанавливаем указатель на графику
+	void SetGraphics(graphics *setGraphics);
+
+};
 struct fontFormatting
 {
-	SDL_Color 	textcolor;
-	SDL_Color 	bgcolor;
-	int 		size;
-	bool		bold;
-	bool		italic;
-	bool		underline;
+	// Формат шрифта
+	SDL_Color 	textcolor; 	// Цвет текста TODO: убрать отсюда
+	SDL_Color 	bgcolor;	// Цвет задней текстуры
+	int 		size;		// Размер шрифта
+	bool		bold;		// Жирный
+	bool		italic;		// Курсив
+	bool		underline;	// Подчёркивание
 };
 class font
 {
 	friend text;
-	TTF_Font 		*ttf_font;
-	std::string 	fileName;
-	fontFormatting	format;
+	friend font_manager;
+
+	TTF_Font 		*ttf_font; 	// SDL TTF шрифт
+	std::string 	fileName;	// Файл со шрифтом
+	fontFormatting	format;		// Формат шрифта, содержащий множество параметров
+	bool 			StaticFont; // Шрифт не меняется при изменении камеры TODO: протестировать позднее
+
+	font_manager *FontManager;
 public:
-	font();
-	font(std::string file, int size);
+	font(std::string file = "", int size = SYS_TEXT_SIZE);
 	~font();
 
-	static int 	FontInit();
+	// Получаем все private параметры, в том числе формата шрифта
 	TTF_Font	*GetFont() {return ttf_font;}
 	int 		GetSize() { return format.size;}
 	bool		isBold() { return format.bold;}
@@ -285,20 +326,32 @@ public:
 	SDL_Color	GetColor() { return format.textcolor;}
 	SDL_Color	GetBGColor() { return format.bgcolor;}
 	fontFormatting GetFormat() { return format;}
+	bool GetStaticFont() { return StaticFont;}
 
-	int Open(std::string source, int size);
+	// Открываем шрифт с заданным размером
+	int Open(std::string source, int size = SYS_TEXT_SIZE);
 
+	// Устанавливаем цвет шрифта, заднего фона, стиль и формат
 	void SetColor(Uint8 R, Uint8 G, Uint8 B, Uint8 A = 255);
 	void SetBGColor(Uint8 R, Uint8 G, Uint8 B);
 	void SetStyle(bool bold, bool italic, bool underline);
 	void SetFormat(bool bold, bool italic, bool underline, int size,
 			Uint8 R, Uint8 G, Uint8 B, Uint8 A,
 			Uint8 bgR, Uint8 bgG, Uint8 bgB);
+
+	// Изменяем размер шрифта
 	void Resize(int size);
 
+	// Изменяем статический шрифт для движения с камерой TODO: протестировать
+	void SetStatic(bool static_font);
+
+	// Пишем текст прямо из класса шрифт и вносим текст в менеджер текста
 	void Write(std::string text, GLuint tex, GLfloat x, GLfloat y);
 
+	// Получаем высоту шрифта
 	int GetHeigth();
+
+	// Получаем ширину и высоту текстуры с текстом данного шрифта
 	int CalcTextWidth(std::string text);
 	int CalcTextHeigth(std::string text);
 

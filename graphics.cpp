@@ -33,7 +33,7 @@ int graphics::init()
 
 
 	// Инициализация шрифтов
-	if(font::FontInit() < 0)
+	if(font_manager::FontsInit() < 0)
 		return -1;
 
 	// Инициализация OpenGL
@@ -90,7 +90,12 @@ void graphics::CleanUp()
 
 	if(TextureManager)
 		delete TextureManager;
+
+	if(FontManager)
+		delete FontManager;
+
 	TextureManager = 0;
+	FontManager = 0;
 	CurrentTexture = 0;
 }
 
@@ -221,8 +226,11 @@ void graphics::SetCurrentTexture(GLuint texture)
 }
 graphics::graphics()
 {
+	FontManager = new font_manager();
+	FontManager->SetGraphics(this);
+
 	TextureManager = new texture_manager();
-	TextureManager->Graphics = this;
+	TextureManager->SetGraphics(this);
 	FullScreen = SYS_FULLSCREEN;
 	CurrentTexture = 0;
 	screen = 0;

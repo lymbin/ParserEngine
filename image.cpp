@@ -16,6 +16,7 @@ int image::Open(std::string source, GLint filter)
 	SDL_Surface *temp_surface = 0;
 	GLint maxTexSize;
 
+	// Загружаем текстуру во временную SDL поверхность
 	temp_surface = IMG_Load(source.data());
 
 	if(!temp_surface)
@@ -38,9 +39,17 @@ int image::Open(std::string source, GLint filter)
 		return -1;
 	}
 
+	// Создаём GL текстуру из SDL поверхности
 	MakeTexture(temp_surface);
 
+	// Освобождаем SDL поверхность
 	SDL_FreeSurface(temp_surface);
+
+	if(TextureManager)
+	{
+		// Если задан менеджер текстур, то добавляем эту текстуру в менеджер
+		TextureManager->ManageTexture(this);
+	}
 	return 0;
 }
 int image::OpenFromZip(string source, GLint filter)
@@ -376,4 +385,8 @@ void texture_manager::UnManageTexture(image *managed_image)
 		Textures[place]->TextureManager = 0;
 		Textures.erase( Textures.begin() + place);
 	}
+}
+void texture_manager::SetGraphics(graphics *setGraphics)
+{
+	Graphics = setGraphics;
 }

@@ -9,25 +9,109 @@
 
 using namespace std;
 
-int font::FontInit()
+void font_manager::ManageFont(font *managed_font)
 {
-	//Инициализация TTF
-	if(TTF_Init() < 0)
+	if(!managed_font)
+		return;
+
+	for(unsigned int loop = 0; loop < Fonts.size(); loop++)
 	{
-#ifdef DEBUG_ERRORS
-		cout << "Error initializing TTF : " << SDL_GetError() << endl;
-#endif
-		return -1;
+		if(managed_font->ttf_font == Fonts[loop]->ttf_font)
+			return;
 	}
+
+	Fonts.push_back(managed_font);
+}
+void font_manager::UnManageFont(font *managed_font)
+{
+	if(!managed_font)
+		return;
+
+	int place = -1;
+
+	for(unsigned int loop = 0; loop < Fonts.size(); loop++)
+	{
+		if(managed_font->ttf_font == Fonts[loop]->ttf_font)
+		{
+			place = (int)loop;
+			break;
+		}
+	}
+
+	if(place < 0)
+		return;
+
+	if((unsigned int)(place+1) == Fonts.size())
+	{
+		// Шрифт в самом конце - удаляем, перед этим обснулив указатель на менеджер шрифтов
+		//Fonts[place]-> = 0;
+		Fonts.pop_back();
+	}
+	else
+	{
+		// Шрифт где-то внутри вектора - удаляем, перед этим обснулив указатель на менеджер шрифтов
+		//TODO: проверить
+		//Textures[place] = Textures[ Textures.size() - 1 ];
+		//Fonts[place]->TextureManager = 0;
+		Fonts.erase( Fonts.begin() + place);
+	}
+}
+font_manager::font_manager()
+{
+	Graphics = 0;
+	if(!Fonts.empty())
+		Fonts.clear();
+}
+font_manager::~font_manager()
+{
+	DeleteFonts();
+	Fonts.clear();
+}
+
+// Инициализация TTF
+int font_manager::FontsInit()
+{
+	if(!TTF_WasInit())
+	{
+		if(TTF_Init() < 0)
+		{
+#ifdef DEBUG_ERRORS
+			cout << "Error initializing TTF : " << SDL_GetError() << endl;
+#endif
+			return -1;
+		}
+	}
+	else
+	{
+#ifdef DEBUG_SYS
+	cout << "TTF already initialized! " << endl;
+#endif
+		return 0;
+	}
+
 #ifdef DEBUG_SYS
 	cout << "TTF initialization - success" << endl;
 #endif
 	return 0;
 }
 
+// Удаляем шрифты из памяти
+void font_manager::DeleteFonts()
+{
+	for(unsigned int loop = 0; loop < Fonts.size(); loop++)
+	{
+		delete Fonts[loop];
+	}
+}
+
+// Устанавливаем указатель на графику
+void font_manager::SetGraphics(graphics *setGraphics)
+{
+	Graphics = setGraphics;
+}
 void font::SetColor(Uint8 R, Uint8 G, Uint8 B, Uint8 A )
 {
-	//Устанавливаем цвет текста
+	// Устанавливаем цвет текста
 	format.textcolor.r = R;
 	format.textcolor.g = G;
 	format.textcolor.b = B;
@@ -35,14 +119,14 @@ void font::SetColor(Uint8 R, Uint8 G, Uint8 B, Uint8 A )
 }
 void font::SetBGColor(Uint8 R, Uint8 G, Uint8 B)
 {
-	//Устанавливаем цвет заднего фона для текста
+	// Устанавливаем цвет заднего фона для текста
 	format.bgcolor.r = R;
 	format.bgcolor.g = G;
 	format.bgcolor.b = B;
 }
 void font::SetStyle(bool bold, bool italic, bool underline)
 {
-	//Устанавливаем стиль для текста
+	// Устанавливаем стиль для текста
 	int flags = 0;
 
 	if(bold)
@@ -65,7 +149,7 @@ void font::SetStyle(bool bold, bool italic, bool underline)
 }
 void font::Resize(int size)
 {
-	//Изменяем размер шрифта
+	// Изменяем размер шрифта
 	if(fileName.length())
 	{
 		format.size = size;
@@ -77,6 +161,10 @@ void font::Resize(int size)
 		cout << "Unable to resize font." << endl;
 #endif
 	}
+}
+void font::SetStatic(bool static_font)
+{
+	StaticFont = static_font;
 }
 int font::GetHeigth()
 {
@@ -126,7 +214,7 @@ int font::CalcTextHeigth(string text)
 }
 int font::Open(string source, int fontSize)
 {
-	//Открываем фон из источника
+	// Открываем фон из источника
 	ttf_font = TTF_OpenFont(source.c_str(), fontSize);
 	if(!ttf_font)
 	{
@@ -135,36 +223,40 @@ int font::Open(string source, int fontSize)
 #endif
 		return -1;
 	}
+	if(FontManager)
+		FontManager->ManageFont(this);
+
 	return 0;
 }
 void font::Write(std::string text, GLuint tex, GLfloat x, GLfloat y)
 {
-
-}
-font::font()
-{
-	ttf_font = 0;
-	fileName = "";
-	format.bold = format.italic = format.underline = false;
-	format.textcolor.r = format.textcolor.g = format.textcolor.b = format.textcolor.unused =255;
-	format.bgcolor.r = format.bgcolor.g = format.bgcolor.b = format.bgcolor.unused = 0;
-	format.size = SYS_TEXT_SIZE;
+	// Пишем текст без использования text класса
 }
 font::font(string file, int fontSize)
 {
 	ttf_font = 0;
 	fileName = file;
+	StaticFont = true;
 	format.bold = format.italic = format.underline = false;
 	format.textcolor.r = format.textcolor.g = format.textcolor.b = format.textcolor.unused =255;
 	format.bgcolor.r = format.bgcolor.g = format.bgcolor.b = format.bgcolor.unused = 0;
 	format.size = fontSize;
 
-	Open(file, format.size);
+	FontManager = 0;
+
+	if(fileName != "")
+		Open(file, format.size);
 }
 font::~font()
 {
+	if(FontManager)
+	{
+		FontManager->UnManageFont(this);
+		FontManager = 0;
+	}
 	if(ttf_font)
 		TTF_CloseFont(ttf_font);
+	ttf_font = 0;
 }
 
 text::text()
