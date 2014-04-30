@@ -53,8 +53,8 @@ const int			SYS_TEXT_SIZE = 16;				//Размер текста по умолча
 const int			SYS_TEXT_DEPTH = 32;			//Глубина прорисовки текста
 const std::string	SYS_GL_IMG_ZIP_MODE = "rb";
 
-const std::string 	SYS_VERSION = "0.0.0.0.16";
-const std::string 	SYS_BUILD = "000016";
+const std::string 	SYS_VERSION = "0.0.0.0.17";
+const std::string 	SYS_BUILD = "000017";
 
 class graphics;
 class sound;
@@ -345,6 +345,9 @@ public:
 	// Изменяем статический шрифт для движения с камерой TODO: протестировать
 	void SetStatic(bool static_font);
 
+	// Устанавливаем менеджер шрифтов для полуавтоматического управления памятью менеджером
+	void SetTexManager(font_manager *FonManager);
+
 	// Пишем текст прямо из класса шрифт и вносим текст в менеджер текста
 	void Write(std::string text, GLuint tex, GLfloat x, GLfloat y);
 
@@ -359,32 +362,43 @@ public:
 class text
 {
 	friend game;
-	GLuint 		tex;
-	std::string textString;
-	font		*textFont;
-	GLfloat x;
-	GLfloat y;
+
+	GLuint 		tex;		// OpenGL текстура
+	std::string textString;	// Сам текст для написания(можно менять и делать всё новые и новые записи тем же шрифтом)
+	font		*textFont;	// Указатель на шрифт
+
+	GLfloat x;	// Точка отрисовки
+	GLfloat y;	//
+
+	// Создаём текстуру
+	void CreateTex();
+
 public:
+	text(std::string textStrings = "", std::string fontFile = "", int fontSize = SYS_TEXT_SIZE);
+	text(std::string textStrings, font	*textFont);
+	~text();
+
+	// Получаем все private настройки
 	GLuint 		GetTXT() {return tex;}
 	font		*GetFont() {return textFont;}
 	std::string GetText() { return textString;}
 
-
-	text();
-	text(std::string textStrings);
-	text(std::string textStrings, font	*textFont);
-	text(std::string textStrings, std::string fontFile, int fontSize);
-	~text();
-
-	void CreateTex();
-	void ResizeText(int textSize);
 	void Write(GLfloat new_x, GLfloat new_y, int center = 0);
 	void Write(GLfloat new_x, GLfloat new_y, std::string textStrings, int center = 0);
 	//void Write(GLfloat new_x, GLfloat new_y, std::string textStrings, int center = 0);
 
-	void SetText(std::string newText) { textString = newText;}
+	// Устанавливаем текст для отрисовки
+	void SetText(std::string newText);
+
+	// Устанавливаем шрифт
 	void SetFont(font *newFont);
+
+	// Новые координаты
 	void SetCoordinates(GLfloat new_x = 0, GLfloat new_y = 0);
+
+	// Меняем размер текста(шрифта)
+	// TODO: переделать - сделать изменение размера текста не зависимое от размера шрифта
+	void ResizeText(int textSize);
 
 	void Draw(float x, float y, float dx, float dy, float delta = 0, int center = 0) ; //отрисовка в определённом размере
 

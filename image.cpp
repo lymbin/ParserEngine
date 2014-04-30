@@ -249,9 +249,18 @@ void image::Delete()
 		TextureManager = 0;
 	}
 }
+
+// Устанавливаем менеджер текстур для полуавтоматического управления памятью менеджером
 void image::SetTexManager(texture_manager *TexManager)
 {
+	// Если менеджер уже задан - выходим, т.к. менеджер может быть всего один на всю программу
+	if(TextureManager)
+		return;
+
 	TextureManager = TexManager;
+
+	// Добавляем в менеджер эту текстуру(даже если она там есть)
+	TextureManager->ManageTexture(this);
 }
 float image::Width()
 {

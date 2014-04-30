@@ -147,11 +147,13 @@ void font::SetStyle(bool bold, bool italic, bool underline)
 #endif
 	}
 }
+
+// Изменяем размер шрифта
 void font::Resize(int size)
 {
-	// Изменяем размер шрифта
 	if(fileName.length())
 	{
+		// заново пересоздаём шрифт из источника с заданным размером
 		format.size = size;
 		Open(fileName, size);
 	}
@@ -166,6 +168,19 @@ void font::SetStatic(bool static_font)
 {
 	StaticFont = static_font;
 }
+// Устанавливаем менеджер шрифтов для полуавтоматического управления памятью менеджером
+void font::SetTexManager(font_manager *FonManager)
+{
+	// Если менеджер уже задан - выходим, т.к. менеджер может быть всего один на всю программу
+	if(FontManager)
+		return;
+
+	FontManager = FonManager;
+
+	// Добавляем в менеджер этот шрифт(даже если он там есть)
+	FontManager->ManageFont(this);
+}
+
 int font::GetHeigth()
 {
 	if(ttf_font)
@@ -214,7 +229,7 @@ int font::CalcTextHeigth(string text)
 }
 int font::Open(string source, int fontSize)
 {
-	// Открываем фон из источника
+	// Открываем шрифт из источника
 	ttf_font = TTF_OpenFont(source.c_str(), fontSize);
 	if(!ttf_font)
 	{
@@ -258,21 +273,6 @@ font::~font()
 		TTF_CloseFont(ttf_font);
 	ttf_font = 0;
 }
-
-text::text()
-{
-	tex = 0;
-	textFont = 0;
-	textString = "";
-	x = y = 0;
-}
-text::text(string textStrings)
-{
-	tex = 0;
-	textFont = 0;
-	textString = textStrings;
-	x = y = 0;
-}
 text::text(string textStrings, font *textFonts)
 {
 	tex = 0;
@@ -283,9 +283,11 @@ text::text(string textStrings, font *textFonts)
 text::text(string textStrings, string fontFile, int fontSize)
 {
 	tex = 0;
-	textFont = new font(fontFile, fontSize);
 	textString = textStrings;
 	x = y = 0;
+
+	if(fontFile != "")
+		textFont = new font(fontFile, fontSize);
 }
 text::~text()
 {
@@ -337,6 +339,8 @@ void text::Draw(float x, float y, float dx, float dy, float delta, int center)
 
 	glLoadIdentity();
 }
+
+// Создаём текстуру
 void text::CreateTex()
 {
 	if(!textFont)
@@ -454,6 +458,10 @@ void text::Write(GLfloat new_x, GLfloat new_y, int center)
 }
 void text::Write(GLfloat new_x, GLfloat new_y, std::string newText, int center)
 {
-	textString = newText;
+	SetText(newText);
 	Write(new_x, new_y, center);
+}
+void text::SetText(std::string newText)
+{
+	textString = newText;
 }
