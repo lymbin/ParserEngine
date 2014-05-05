@@ -53,11 +53,17 @@ const int			SYS_TEXT_SIZE = 16;				//Размер текста по умолча
 const int			SYS_TEXT_DEPTH = 32;			//Глубина прорисовки текста
 const std::string	SYS_GL_IMG_ZIP_MODE = "rb";
 
-const std::string 	SYS_VERSION = "0.0.0.0.17";
-const std::string 	SYS_BUILD = "000017";
+const int			SYS_AUDIO_VOLUME = 64;
+const int			SYS_AUDIO_RATE = 44100;
+const Uint16 		SYS_AUDIO_FORMAT = AUDIO_S16; /* 16-bit stereo */
+const int			SYS_AUDIO_CHANNELS = 2;
+const int 			SYS_AUDIO_BUFFERS = 1024;
+
+const std::string 	SYS_VERSION = "0.0.0.0.18";
+const std::string 	SYS_BUILD = "000018";
 
 class graphics;
-class sound;
+class audio;
 
 class game;
 struct textureClass;
@@ -83,7 +89,7 @@ public:
 
 	//Компоненты
 	graphics *Graphics;
-	//sound
+	audio *Audio;
 	//input
 	//fonts
 	//textures
@@ -419,9 +425,96 @@ class button
 {
 
 };
+
+
 class sound
 {
+	friend audio;
+	Mix_Chunk *Sound;
+	std::string fileName;
+public:
+	sound(std::string file = "");
+	~sound();
 
+	int Open(std::string file);
+
+	void Delete();
+
+	void Play(unsigned int Repeats = 0);
+};
+class music
+{
+	friend audio;
+	Mix_Music *Music;
+	std::string fileName;
+
+	void Stop();
+
+	void Pause();
+
+	void Resume();
+public:
+	music(std::string file = "");
+	~music();
+
+	int Open(std::string file);
+
+	void Delete();
+
+	void Play(unsigned int Repeats = 0);
+};
+class audio
+{
+	// Менеджер звуков и музыки
+	unsigned int SoundVolume;
+	unsigned int MusicVolume;
+
+	std::vector< sound *> Sounds;
+	std::vector< music *> Music;
+
+	music *CurrentMusic;
+
+public:
+	audio();
+	~audio();
+
+	// Инициализация аудио системы
+	int init();
+
+	// Устанавливаем громкость звуков(в первый попавшийся канал) - TODO: Доделать это
+	// и громкость музыки
+	void SetSoundVolume(unsigned int Volume);
+	void SetMusicVolume(unsigned int Volume);
+
+	// Получаем громкость
+	unsigned int GetSoundVolume();
+	unsigned int GetMusicVolume();
+
+	// Удаляем всю музыку из менеджера
+	void DeleteAllMusic();
+
+	// Останавливаем музыку
+	void StopMusic();
+
+	// Проигрывание музыки в лупе - тест
+	void PlayLoopMusic();
+
+	// Паузим музыку
+	void PauseMusic();
+
+	// Возобновляем проигрывание музыки
+	void ResumeMusic();
+
+	// Удаляем все звуки из менеджера
+	void DeleteAllSounds();
+
+	// Функции управления памятью звуков
+	void ManageSound(sound *managed_sound);
+	void UnManageSound(sound *managed_sound);
+
+	// Функции управления памятью музыки
+	void ManageMusic(music *managed_music);
+	void UnManageMusic(music *managed_music);
 };
 
 
