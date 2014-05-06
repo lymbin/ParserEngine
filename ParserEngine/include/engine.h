@@ -516,7 +516,57 @@ public:
 	void ManageMusic(music *managed_music);
 	void UnManageMusic(music *managed_music);
 };
+struct PE_Point
+{
+	GLfloat x;	/**< The X coordinate */
+	GLfloat y;	/**< The Y coordinate */
+};
+struct PE_Rect
+{
+	GLfloat Top; 	/**< The top most point on the rectangle 	*/
+	GLfloat Right; 	/**< The right most point on the rectangle 	*/
+	GLfloat Bottom; /**< the bottom most point on the rectangle 	*/
+	GLfloat Left; 	/**< The left most point on the rectangle 	*/
+};
+class animation_manager
+{
 
+};
+class animation
+{
+	// Для первого типа анимаций текстуры полностью лежат в image и загружаются туда через интерфейс image
+	// Смена кадров это смена image'ов.
+	std::vector< image * > Textures;
 
+	image * CurrentTexture;
+
+	// Для второго типа анимаций текстуры лежат в одной из того же вектора(только там одна текстура)
+	// Смена кадров это смена кусков текстуры
+	std::vector< PE_Rect > frames;
+
+	uint CurrentFrame;
+
+	Uint32 Fps;
+
+	bool Paused;
+
+public:
+	animation();
+	~animation();
+
+	void Delete();
+
+	void Pause();
+	void Resume();
+
+	void SetTexture(image *Texture);
+	void SetFps(Uint32 FPS);
+
+	bool IsPaused();
+	image *GetTexture();
+	PE_Rect GetRect();
+
+	int anim_type;
+};
 
 #endif /* ENGINE_H_ */
