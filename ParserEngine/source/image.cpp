@@ -85,12 +85,13 @@ void image::MakeTexture(SDL_Surface *Surface, GLint filter, bool LoadPixels)
 	texture.pxw = Surface->w;
 	texture.pxh = Surface->h;
 }
-void image::Draw(float x, float y)
+void image::Draw(float x, float y, GLfloat Scale, GLfloat Rotatation,
+	GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
 	// Отрисовываем текстуру от точки (x, y)
 	// 	полного размера
 	// TODO: проследить за правильностью отрисовки не квадратных тектур
-
+	// TODO: пока никак не используем размер и поворот - доделать это
 	Bind();
 
 	glEnable(GL_TEXTURE_2D);
@@ -99,6 +100,8 @@ void image::Draw(float x, float y)
 
 	//Рисуем текстуру
 	glBegin(GL_QUADS);
+		glColor4f(red, green, blue, alpha); // Устанавливаем цвет
+
 		glTexCoord2i(0, 0); glVertex2f(0,  			0);  			//Верхний левый угол
 		glTexCoord2i(0, 1); glVertex2f(0,  			texture.pxh); 	//Нижний левый угол
 		glTexCoord2i(1, 1); glVertex2f(texture.pxw, texture.pxh); 	//Нижний правый угол
@@ -109,67 +112,40 @@ void image::Draw(float x, float y)
 
 
 }
-void image::Draw(float x, float y, float dx, float dy, float delta, int center)
+void image::Draw(float x, float y, PE_Rect *Box,
+			GLfloat Scale, GLfloat Rotatation,
+			GLfloat red, GLfloat green , GLfloat blue, GLfloat alpha)
 {
-	// Отрисовываем текстуру от точки (x, y)
-	//	размером dX, dY.
-	//	с возможным углом поворота delta относительно верхнего левого угла
-	//	либо центра
+	/*Отрисовка куска текстуры в точке (x, y)
+	 *  с параметрами куска - (top_x, top_y) (dx, dy)
+	 *  с заданным увеличением и поворотом текстуры(по умолчанию отсутствует)
+	 *  а также цветом текстуры(по умолчанию белый)
+	 *  TODO: пока никак не используем размер и поворот - доделать это
+	 */
+	Bind(); // Биндим текстуру
 
-	Bind();
+	float top_x = Box->X;
+	float top_y = Box->Y;
+
+	float dx = Box->Width;
+	float dy = Box->Heigth;
 
 	glEnable(GL_TEXTURE_2D);
 	glLoadIdentity();
-	glTranslatef(x, y, 0);
+	glTranslatef(x,y,0); // Смещаемся в точку (x, y)
 
-	if(delta)
-		glRotatef(delta, 0, 0, -1);
-	if(center)
-		glTranslatef(-dx/2, -dy/2, 0);
-
-	//Рисуем текстуру
+	// Отрисовываем текстуру
 	glBegin(GL_QUADS);
-		glTexCoord2i(0, 0); glVertex2f(0,  0);  //Верхний левый угол
-		glTexCoord2i(0, 1); glVertex2f(0,  dy); //Нижний левый угол
-		glTexCoord2i(1, 1); glVertex2f(dx, dy); //Нижний правый угол
-		glTexCoord2i(1, 0); glVertex2f(dx, 0);  //Верхний правый угол
+		glColor4f(red, green, blue, alpha); // Устанавливаем цвет
+		glTexCoord2f((top_x/texture.pxw),			(top_y/texture.pxh));			glVertex2f(0, 0); //Верхний левый угол
+		glTexCoord2f((top_x/texture.pxw),			((top_y+dy)/texture.pxh));	glVertex2f(0, dy);//Нижний левый угол
+		glTexCoord2f(((top_x+dx)/texture.pxw),((top_y+dy)/texture.pxh)); 	glVertex2f(dx,dy);//Нижний правый угол
+		glTexCoord2f(((top_x+dx)/texture.pxw),(top_y/texture.pxh));			glVertex2f(dx, 0);//Верхний правый угол
 	glEnd();
-
-	glLoadIdentity();
 }
-void image::Draw(float width, float heigth,
-						float top_x, float top_y, float top_dx, float top_dy,
-						float x, float y, float dx, float dy,
-						float delta, int center)
-{
-	//Вырезаем кусочек текстуры от большой размером width*heigth
-	//от верхней левой точки (top_x, top_y) размером top_dx, top_dy
-	//и отрисовываем изображение от точки (x, y)
-	//с размером dx, dy
-	//и возможным углом поворота delta относительно верхнего левого угла
-	//либо центра
 
-	Bind();
 
-	glEnable(GL_TEXTURE_2D);
-	glLoadIdentity();
-	glTranslatef(x,y,0);
 
-	if(delta)
-		glRotatef(delta, 0, 0, -1);
-
-	if (center)
-		glTranslatef(-dx/2,-dy/2,0);//смещаем по центре
-
-	glBegin(GL_QUADS);
-		glTexCoord2f((top_x/width),			(top_y/heigth));			glVertex2f(0, 0); //Верхний левый угол
-		glTexCoord2f((top_x/width),			((top_y+top_dy)/heigth));	glVertex2f(0, dy);//Нижний левый угол
-		glTexCoord2f(((top_x+top_dx)/width),((top_y+top_dy)/heigth)); 	glVertex2f(dx,dy);//Нижний правый угол
-		glTexCoord2f(((top_x+top_dx)/width),(top_y/heigth));			glVertex2f(dx, 0);//Верхний правый угол
-	glEnd();
-
-	glLoadIdentity();
-}
 void image::Bind()
 {
 	if(texture.tex)
@@ -191,7 +167,8 @@ void image::Reload()
 		Open(texture.fileName);
 	}
 }
-void image::Redraw(float x, float y, float dx, float dy, float delta, int center)
+void image::Redraw(float x, float y, GLfloat Scale, GLfloat Rotatation,
+			GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
 	// Полностью перерисовываем текстуру предварительно удалив и перегрузив в память
 	// Работает с полными картинками
@@ -199,10 +176,7 @@ void image::Redraw(float x, float y, float dx, float dy, float delta, int center
 	Reload();
 	if(!texture.tex)
 	{
-		if((dx < 0)||(dy < 0))
-			Draw(x, y); //TODO: проверить
-		else
-			Draw(x, y, dx, dy, delta, center);
+		Draw(x, y, Scale, Rotatation, red, green, blue, alpha);
 	}
 	else
 	{
@@ -211,8 +185,9 @@ void image::Redraw(float x, float y, float dx, float dy, float delta, int center
 #endif
 	}
 }
-void image::Redraw(float width, float heigth, float top_x, float top_y, float top_dx, float top_dy,
-				   float x, float y, float dx, float dy, float delta, int center)
+void image::Redraw(float x, float y, PE_Rect *Box,
+		GLfloat Scale, GLfloat Rotatation ,
+		GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
 	// Полностью перерисовываем текстуру предварительно удалив и перегрузив в память
 	// Работает с куском изображения
@@ -220,12 +195,7 @@ void image::Redraw(float width, float heigth, float top_x, float top_y, float to
 	Reload();
 	if(!texture.tex)
 	{
-		if((dx < 0)||(dy < 0))
-			Draw(width, heigth, top_x, top_y, top_dx, top_dy,
-					   x, y, texture.pxh, texture.pxw, delta, center); //TODO: проверить
-		else
-		Draw(width, heigth, top_x, top_y, top_dx, top_dy,
-				   x, y, dx, dy, delta, center);
+		Draw(x, y, Box, Scale, Rotatation, red, green , blue, alpha);
 	}
 	else
 	{

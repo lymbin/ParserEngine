@@ -18,6 +18,7 @@ animation::animation()
 	AnimSpeed = 0;
 	SpeedTicks = SDL_GetTicks();
 	Paused = false;
+	AnimOver = false;
 
 	Repeats = -1; // Без повторов
 
@@ -27,6 +28,8 @@ animation::~animation()
 {
 	Delete();
 }
+
+// Очищаем память
 void animation::Delete()
 {
 	if(CurrentTexture)
@@ -38,11 +41,13 @@ void animation::Delete()
 	AnimSpeed = 0;
 	SpeedTicks = 0;
 	Paused = false;
+	AnimOver = false;
 
 	Repeats = 0;
 
 	frames.clear();
 }
+
 void animation::Pause()
 {
 	Paused = true;
@@ -57,6 +62,7 @@ void animation::Reset()
 	CurrentFrame = 0;
 	SpeedTicks = SDL_GetTicks();
 }
+
 void animation::Update()
 {
 	// Получаем следующий фрейм
@@ -69,24 +75,39 @@ void animation::Update()
 
 	if(AnimSpeed)
 	{
+		// Скорость анимации задана - значит смотрим нужно ли обновлять фрейм
 		if(1000/AnimSpeed > (SDL_GetTicks() - SpeedTicks))
 		{
+			// Фреймы не надо обновлять - выходим
 			return;
 		}
 	}
-	SpeedTicks = SDL_GetTicks();
+	SpeedTicks = SDL_GetTicks(); // Получаем тики для скорости
 
 	CurrentFrame++; // Следющий фрейм
 
 	if(CurrentFrame >= frames.size())
 	{
-		// Фрейм выходит за пределы массива фреймов
+		// Фреймы закончились - для начала чекаем повторы
+		// Если повторы не заданы(т.е. динамик), то выходим
+		if(Repeats!=-1)
+		{
+			if(Repeats == 0)
+			{
+				// Если повторы на нуле, то заканчиваем анимацию
+				Paused = true;
+				AnimOver = true;
+			}
+		}
+		// Устанавливаем текущий фрейм в начало
 		CurrentFrame = 0;
 	}
 }
-void animation::Draw()
-{
 
+// Отрисовываем текстуру анимации
+void animation::Draw(float x, float y)
+{
+	CurrentTexture->Draw(x, y, &frames[CurrentFrame]);
 }
 void animation::SetTexture(image *Texture)
 {

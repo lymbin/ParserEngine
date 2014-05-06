@@ -54,18 +54,33 @@ void game::MainLoop()
 #endif
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     Graphics->DrawFilledRectangle(10, 10, 200, 100, 0.0f, 0.0f, 1.0f);
-    /*if(Mmenu.background)
-    	//Mmenu.background->Draw(0.0, 0.0, 800, 600);
-    	Mmenu.background->Draw(1024, 1024, 0, 0, 300, 300, 0, 0, 300, 300);
+
+    Graphics->ClearColor();
 
     if(Mmenu.background)
+    {
+    	PE_Rect Section;
+    	Section.X = 0;
+    	Section.Y = 0;
+    	Section.Width = 1024;
+    	Section.Heigth = 300;
+
     	//Mmenu.background->Draw(0.0, 0.0, 800, 600);
-    	Mmenu.background->Draw(1024, 1024, 0, 300, 300, 300, 310, 0, 300, 300);
-*/
+    	//Mmenu.background->Draw(1024, 1024, 0, 0, 300, 300, 0, 200, 300, 300);
+    	Mmenu.background->Draw(0, 200, &Section);
+
+    	Section.X = 0;
+    	Section.Y = 300;
+    	Section.Width = 1024;
+    	Section.Heigth = 300;
+    	//Mmenu.background->Draw(0.0, 0.0, 800, 600);
+    	//Mmenu.background->Draw(1024, 1024, 0, 300, 300, 300, 400, 200, 300, 300);
+    	Mmenu.background->Draw(400, 200, &Section);
+    }
 
     if(Mmenu.title)
     {
-    	Mmenu.title->Write(700, 0, 0);
+    	Mmenu.title->Write(700, 0);
     }
 
 
@@ -133,3 +148,6 @@ game::~game()
 	cout << "Game clean up - success" << endl;
 #endif
 }
+
+
+

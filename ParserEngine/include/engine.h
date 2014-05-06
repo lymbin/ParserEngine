@@ -39,6 +39,7 @@
 #endif
 
 #include "timer.h"
+#include "GraphicTypes.h"
 
 
 const int 			SYS_AUDIO = 0; 		//без аудио
@@ -59,8 +60,8 @@ const Uint16 		SYS_AUDIO_FORMAT = AUDIO_S16; /* 16-bit stereo */
 const int			SYS_AUDIO_CHANNELS = 2;
 const int 			SYS_AUDIO_BUFFERS = 1024;
 
-const std::string 	SYS_VERSION = "0.0.0.0.19";
-const std::string 	SYS_BUILD = "000019";
+const std::string 	SYS_VERSION = "0.0.0.0.20";
+const std::string 	SYS_BUILD = "000020";
 
 class graphics;
 class audio;
@@ -140,6 +141,12 @@ public:
 	// Очистка экрана
 	void ClearScreen();
 
+	// Очищаем цвет
+	void ClearColor();
+
+	// Устанавливаем цвет
+	void SetColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha = 1.0f);
+
 	// Отрисовываем буферы на экране
 	void SwapBuffers();
 
@@ -157,15 +164,15 @@ public:
 
 	// Рисуем каркас прямоугольника цветными линиями
 	void DrawRectangle(GLfloat x, GLfloat y, GLfloat width, GLfloat height,
-						GLfloat red = 0, GLfloat green = 0, GLfloat blue = 0, GLfloat alpha = 1);
+						GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
 
 	// Рисуем заполненный цветом прямоугольник
 	void DrawFilledRectangle(GLfloat x, GLfloat y, GLfloat width, GLfloat height,
-							GLfloat red = 0, GLfloat green = 0, GLfloat blue = 0, GLfloat alpha = 1);
+								GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
 
 	// Рисуем линию
 	void DrawLine(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2,
-					GLfloat red = 0, GLfloat green = 0, GLfloat blue = 0, GLfloat alpha = 1);
+					GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
 
 	// Устанавливаем текущую забинженную текстуру
 	void SetCurrentTexture(GLuint texture);
@@ -244,10 +251,26 @@ public:
 	float Heigth();
 
 	// Различные функции отрисовки
-	void Draw(float x, float y);																//простая отрисовка
-	void Draw(float x, float y, float dx, float dy, float delta = 0, int center = 0);			//отрисовка в определённом размере
-	void Draw(float width, float heigth, float top_x, float top_y, float top_dx, float top_dy,	//отрисовка кусочка изображения
-			  float x, float y, float dx, float dy, float delta = 0, int center = 0);			//в определённом размере
+
+	/*
+	 *  Простая отрисовка полной текстуры в точке (x,y) и размерами исходной текстуры
+	 *  с заданным увеличением и поворотом текстуры(по умолчанию отсутствует)
+	 *  а также цветом текстуры(по умолчанию белый)
+	 */
+	void Draw(float x, float y, GLfloat Scale = 1, GLfloat Rotatation = 0,
+			GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
+
+	/*
+	 *  Отрисовка куска текстуры в точке (x, y)
+	 *  с параметрами куска - (top_x, top_y) (dx, dy)
+	 *  с заданным увеличением и поворотом текстуры(по умолчанию отсутствует)
+	 *  а также цветом текстуры(по умолчанию белый)
+	 */
+	void Draw(float x, float y, PE_Rect *Box,
+			GLfloat Scale = 1, GLfloat Rotatation = 0,
+			GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
+
+
 
 	// Открываем изображение из файла
 	int Open(std::string source, GLint filter = SYS_GL_IMG_FILTER);
@@ -257,9 +280,11 @@ public:
 	void MakeTexture(SDL_Surface *Surface, GLint filter = SYS_GL_IMG_FILTER, bool LoadPixels = false);
 
 	// Полностью перерисовываем изображения с различными функциями отрисовки
-	void Redraw(float x, float y, float dx = -1, float dy = -1, float delta = 0, int center = 0);
-	void Redraw(float width, float heigth, float top_x, float top_y, float top_dx, float top_dy,
-				float x, float y, float dx = -1, float dy = -1, float delta = 0, int center = 0);
+	void Redraw(float x, float y, GLfloat Scale = 1, GLfloat Rotatation = 0,
+				GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
+	void Redraw(float x, float y, PE_Rect *Box,
+			GLfloat Scale = 1, GLfloat Rotatation = 0,
+			GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
 
 	// Биндим текстуру для работы с OpenGL
 	void Bind();
@@ -518,18 +543,6 @@ public:
 	void ManageMusic(music *managed_music);
 	void UnManageMusic(music *managed_music);
 };
-struct PE_Point
-{
-	GLfloat x;	/**< The X coordinate */
-	GLfloat y;	/**< The Y coordinate */
-};
-struct PE_Rect
-{
-	GLfloat Top; 	/**< The top most point on the rectangle 	*/
-	GLfloat Right; 	/**< The right most point on the rectangle 	*/
-	GLfloat Bottom; /**< the bottom most point on the rectangle 	*/
-	GLfloat Left; 	/**< The left most point on the rectangle 	*/
-};
 class animation_manager
 {
 
@@ -559,6 +572,9 @@ class animation
 	// Остановлена или нет
 	bool Paused;
 
+	// Закончена или нет
+	bool AnimOver;
+
 	// Количество повторов анимации для статики
 	// У динамики выставляется значение -1, чтобы не прерывать анимации по событиям
 	int Repeats;
@@ -580,8 +596,10 @@ public:
 	// Обновляем фрейм(каждый фрейм при событии)
 	void Update();
 
-	// Отрисовываем следующий фрейм анимации
-	void Draw();
+	// Отрисовываем текущий фрейм анимации
+	// Нужно лишь задать точку в которой начинается отрисовка
+	void Draw(float x, float y);
+	//void Draw(float x, float y, );
 
 
 	// Устанавливаем главную текстуру

@@ -145,6 +145,16 @@ void graphics::ClearScreen()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
+// Очищаем цвет
+void graphics::ClearColor()
+{
+	SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+}
+// Устанавливаем цвет OpenGL
+void graphics::SetColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
+{
+	glColor4f(red, green, blue, alpha);
+}
 // Отрисовываем буферы на экране
 void graphics::SwapBuffers()
 {
@@ -178,8 +188,9 @@ void graphics::DrawRectangle(GLfloat x, GLfloat y, GLfloat width, GLfloat height
 								GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
 	//TODO: доделать работу с камерой
+	glLoadIdentity();
 
-	glColor4f(red, green, blue, alpha);
+	SetColor(red, green, blue, alpha);
 
 	glBegin(GL_LINE_LOOP);
 		glVertex2f(x, y);
@@ -188,6 +199,7 @@ void graphics::DrawRectangle(GLfloat x, GLfloat y, GLfloat width, GLfloat height
 		glVertex2f(x, y + height);
 	glEnd();
 
+	glLoadIdentity();
 }
 
 // Рисуем заполненный цветом прямоугольник
@@ -196,8 +208,9 @@ void graphics::DrawFilledRectangle(GLfloat x, GLfloat y, GLfloat width, GLfloat 
 {
 	glLoadIdentity();
 
+	SetColor(red, green, blue, alpha);
+
 	glBegin(GL_QUADS);
-		glColor4f(red, green, blue, alpha);
 		glVertex3f(x, y, 0);
 		glVertex3f(x + width, y, 0);
 		glVertex3f(x + width, y + height, 0);
@@ -211,12 +224,16 @@ void graphics::DrawFilledRectangle(GLfloat x, GLfloat y, GLfloat width, GLfloat 
 void graphics::DrawLine(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2,
 						GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
-	glColor4f(red, green, blue, alpha);
+	glLoadIdentity();
+
+	SetColor(red, green, blue, alpha);
 
 	glBegin(GL_LINES);
 		glVertex2f(x1, y1);
 		glVertex2f(x2, y2);
 	glEnd();
+
+	glLoadIdentity();
 }
 
 // Устанавливаем текущую забинженную текстуру
