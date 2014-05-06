@@ -270,14 +270,9 @@ float image::Heigth()
 {
 	return texture.pxh;
 }
-image::image()
+textureClass image::GetTXT()
 {
-	texture.fileName = "";
-	texture.pxh = 0;
-	texture.pxw = 0;
-	texture.tex = 0;
-
-	TextureManager = 0;
+	return texture;
 }
 image::image(std::string file, GLint filter)
 {
@@ -287,7 +282,9 @@ image::image(std::string file, GLint filter)
 	texture.tex = 0;
 
 	TextureManager = 0;
-	Open(file, filter);
+
+	if(file != "")
+		Open(file, filter);
 }
 image::~image()
 {

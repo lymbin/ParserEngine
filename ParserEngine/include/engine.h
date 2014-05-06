@@ -59,8 +59,8 @@ const Uint16 		SYS_AUDIO_FORMAT = AUDIO_S16; /* 16-bit stereo */
 const int			SYS_AUDIO_CHANNELS = 2;
 const int 			SYS_AUDIO_BUFFERS = 1024;
 
-const std::string 	SYS_VERSION = "0.0.0.0.18";
-const std::string 	SYS_BUILD = "000018";
+const std::string 	SYS_VERSION = "0.0.0.0.19";
+const std::string 	SYS_BUILD = "000019";
 
 class graphics;
 class audio;
@@ -74,6 +74,8 @@ class texture_manager;
 class font_manager;
 class font;
 class text;
+
+class animation;
 
 class engine
 {
@@ -222,6 +224,7 @@ struct textureClass
 class image
 {
 	friend texture_manager;
+	friend animation;
 	textureClass texture;
 	texture_manager *TextureManager; // TODO:в глобал или в синглтон
 
@@ -229,13 +232,12 @@ class image
 	//std::vector< std::vector< bool > > m_PixelOn; // Храним пиксели текстуры для модуля столкновений(коллизии)
 
 public:
-	image();
-	image(std::string file, GLint filter = SYS_GL_IMG_FILTER);
+	image(std::string file = "", GLint filter = SYS_GL_IMG_FILTER);
 	~image();
 
 	void SetTexManager(texture_manager *TextureManager);
 
-	textureClass GetTXT() { return texture; }
+	textureClass GetTXT();
 
 	// Вывод реальных размеров изображения
 	float Width();
@@ -301,7 +303,7 @@ public:
 struct fontFormatting
 {
 	// Формат шрифта
-	SDL_Color 	textcolor; 	// Цвет текста TODO: убрать отсюда
+	SDL_Color 	textcolor; 	// Цвет текста TODO: убрать отсюда в текст
 	SDL_Color 	bgcolor;	// Цвет задней текстуры
 	int 		size;		// Размер шрифта
 	bool		bold;		// Жирный
@@ -536,7 +538,8 @@ class animation
 {
 	// Для первого типа анимаций текстуры полностью лежат в image и загружаются туда через интерфейс image
 	// Смена кадров это смена image'ов.
-	std::vector< image * > Textures;
+	//TODO: глянуть потом этот тип анимации
+	//std::vector< image * > Textures;
 
 	image * CurrentTexture;
 
@@ -544,29 +547,78 @@ class animation
 	// Смена кадров это смена кусков текстуры
 	std::vector< PE_Rect > frames;
 
+	// Текущий фрейм анимации
 	uint CurrentFrame;
 
-	Uint32 Fps;
+	// Таймер для тиков и подсчёта
+	Uint32 SpeedTicks;
 
+	// Скорость анимации
+	Uint32 AnimSpeed;
+
+	// Остановлена или нет
 	bool Paused;
+
+	// Количество повторов анимации для статики
+	// У динамики выставляется значение -1, чтобы не прерывать анимации по событиям
+	int Repeats;
 
 public:
 	animation();
 	~animation();
 
+	// Удаление анимации
 	void Delete();
 
+	// Паузим и возобновляем по необходимости анимацию
 	void Pause();
 	void Resume();
 
+	// Сбрасываем тики и текущий фрейм
+	void Reset();
+
+	// Обновляем фрейм(каждый фрейм при событии)
+	void Update();
+
+	// Отрисовываем следующий фрейм анимации
+	void Draw();
+
+
+	// Устанавливаем главную текстуру
 	void SetTexture(image *Texture);
-	void SetFps(Uint32 FPS);
 
+	// Устанавливаем скорость анимации
+	void SetSpeed(Uint32 Speed);
+
+	// Устанавливаем количество повторов, после которых не проигрываем анимацию
+	void SetRepeats(int rep);
+
+	// Добавляем новый фрейм в индекс или в конец
+	void AddNewFrame(PE_Rect, int index = -1);
+
+	// Прыгаем на фрейм с заданным индексом
+	void JumpToFrame(unsigned int index);
+
+
+	// Пауза
 	bool IsPaused();
-	image *GetTexture();
-	PE_Rect GetRect();
 
-	int anim_type;
+	// Получаем главную текстуру
+	image *GetTexture();
+
+	// Получаем фрейм с индексом
+	PE_Rect GetFrame(unsigned int index);
+
+	// Получаем номер текущего фрейма
+	int GetTrackNumber();
+
+	// Получаем количество повторов, которые остались
+	int GetRepeats();
+
+	// Получаем скорость анимации
+	Uint32 GetSpeed();
+
+	//int anim_type; // Тип анимации
 };
 
 #endif /* ENGINE_H_ */
