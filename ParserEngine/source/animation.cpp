@@ -9,6 +9,104 @@
 
 using namespace std;
 
+animation_manager::animation_manager()
+{
+	Animations.clear();
+}
+animation_manager::~animation_manager()
+{
+	DeleteAnims();
+}
+void animation_manager::DeleteAnims()
+{
+	for(unsigned int loop = 0; loop < Animations.size(); loop++)
+	{
+		delete Animations[loop];
+	}
+	Animations.clear();
+}
+void animation_manager::PauseAnims()
+{
+	for(unsigned int loop = 0; loop < Animations.size(); loop++)
+	{
+		Animations[loop]->Pause();
+	}
+}
+
+void animation_manager::ResumeAnims()
+{
+	for(unsigned int loop = 0; loop < Animations.size(); loop++)
+	{
+		Animations[loop]->Resume();
+	}
+}
+
+void animation_manager::ResetAnims()
+{
+	for(unsigned int loop = 0; loop < Animations.size(); loop++)
+	{
+		Animations[loop]->Reset();
+	}
+}
+
+void animation_manager::UpdateAnims()
+{
+	for(unsigned int loop = 0; loop < Animations.size(); loop++)
+	{
+		Animations[loop]->Update();
+	}
+}
+void animation_manager::ManageAnimation(animation *managed_anim)
+{
+	for(unsigned int loop = 0; loop < Animations.size(); loop++)
+	{
+		if(Animations[loop] == managed_anim)
+		{
+			return;
+		}
+	}
+
+	Animations.push_back(managed_anim);
+}
+void animation_manager::UnManageAnimation(animation *managed_anim)
+{
+	// Удаляем анимацию из вектора управления
+	// Внимание: Это только удалит анимацию из вектора управления, но не удалит саму анимацию
+	// 	для этого нужно использовать delete - внутри деструктора вызовется Delete() и сделает всё необходимое
+	// Лучше использовать delete вместо UnManageTexture - внутри деструктора вызовется UnManage
+	// TODO: пересмотреть идею менеджеров памяти и сделать их и их компоненты связанными - так что при удалении из вектора удалялся и сам компонент
+
+	int place = -1;
+
+	// Ищем звук в векторе
+	for(unsigned int loop = 0; loop < Animations.size(); loop++)
+	{
+		if(Animations[loop] == managed_anim)
+		{
+			place = loop;
+			break;
+		}
+	}
+
+	// звук не найден - выходим
+	if(place < 0)
+		return;
+
+	if((unsigned int)(place+1) == Animations.size())
+	{
+		// Звук в самом конце - удаляем, перед этим обснулив указатель на менеджер
+		//Sounds[place]->AudoManager = 0;
+		Animations.pop_back();
+	}
+	else
+	{
+		// Звук где-то внутри вектора - удаляем, перед этим обнулив указатель на менеджер
+		//TODO: проверить
+		//Sounds[place] = Sounds[ Sounds.size() - 1 ];
+		//Sounds[place]->AudoManager = 0;
+		Animations.erase( Animations.begin() + place);
+	}
+}
 animation::animation()
 {
 	//anim_type = 0;
@@ -105,9 +203,10 @@ void animation::Update()
 }
 
 // Отрисовываем текстуру анимации
-void animation::Draw(float x, float y)
+void animation::Draw(float x, float y, GLfloat Scale, GLfloat Rotation,
+		GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
-	CurrentTexture->Draw(x, y, &frames[CurrentFrame]);
+	CurrentTexture->Draw(x, y, &frames[CurrentFrame], Scale, Rotation, red, green, blue, alpha);
 }
 void animation::SetTexture(image *Texture)
 {

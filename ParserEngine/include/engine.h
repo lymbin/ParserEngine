@@ -40,6 +40,7 @@
 
 #include "timer.h"
 #include "GraphicTypes.h"
+#include "keys.h"
 
 
 const int 			SYS_AUDIO = 0; 		//без аудио
@@ -60,8 +61,8 @@ const Uint16 		SYS_AUDIO_FORMAT = AUDIO_S16; /* 16-bit stereo */
 const int			SYS_AUDIO_CHANNELS = 2;
 const int 			SYS_AUDIO_BUFFERS = 1024;
 
-const std::string 	SYS_VERSION = "0.0.0.0.21";
-const std::string 	SYS_BUILD = "000021";
+const std::string 	SYS_VERSION = "0.0.0.0.22";
+const std::string 	SYS_BUILD = "000022";
 
 class graphics;
 class audio;
@@ -421,7 +422,6 @@ public:
 
 	void Write(GLfloat new_x, GLfloat new_y, int center = 0);
 	void Write(GLfloat new_x, GLfloat new_y, std::string textStrings, int center = 0);
-	//void Write(GLfloat new_x, GLfloat new_y, std::string textStrings, int center = 0);
 
 	// Устанавливаем текст для отрисовки
 	void SetText(std::string newText);
@@ -440,22 +440,6 @@ public:
 
 
 };
-class input
-{
-	//Система ввода: клики мышкой, кнопками клавиатуры и внутренняя система ввода - кнопки, текстовые боксы и т.п.
-public:
-	int init();
-	void CleanUp();
-
-	input();
-	~input();
-
-};
-class button
-{
-
-};
-
 
 class sound
 {
@@ -548,7 +532,23 @@ public:
 };
 class animation_manager
 {
+	std::vector <animation * > Animations;
+public:
+	animation_manager();
+	~animation_manager();
 
+	void DeleteAnims();
+
+	void PauseAnims();
+
+	void ResumeAnims();
+
+	void ResetAnims();
+
+	void UpdateAnims();
+
+	void ManageAnimation(animation *managed_anim);
+	void UnManageAnimation(animation *managed_anim);
 };
 class animation
 {
@@ -601,9 +601,8 @@ public:
 
 	// Отрисовываем текущий фрейм анимации
 	// Нужно лишь задать точку в которой начинается отрисовка
-	void Draw(float x, float y);
-	//void Draw(float x, float y, );
-
+	void Draw(float x, float y, GLfloat Scale = 1, GLfloat Rotation = 0,
+			GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
 
 	// Устанавливаем главную текстуру
 	void SetTexture(image *Texture);
@@ -640,6 +639,40 @@ public:
 	Uint32 GetSpeed();
 
 	//int anim_type; // Тип анимации
+};
+class input
+{
+	//Система ввода: клики мышкой, кнопками клавиатуры и внутренняя система ввода - кнопки, текстовые боксы и т.п.
+
+	std::map <int, char> KeyStates;
+	std::map <int, Uint32> KeyHeldTime;
+
+	int MouseX;
+	int MouseY;
+
+	std::vector <char> MouseButtons;
+public:
+	input();
+	~input();
+
+	Uint32 TimeHeld(eKey Key);
+
+	bool IsKeyHeld(eKey Key);
+
+	bool IsKeyDown(eKey key);
+
+	bool IsKeyUp(eKey key);
+
+	int Update();
+};
+// TODO: нереализованные классы:
+class button
+{
+	// Класс кнопки и обработка нажатия
+};
+class memory_manager
+{
+	// Общий менеджер памяти
 };
 
 #endif /* ENGINE_H_ */
