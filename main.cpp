@@ -79,6 +79,7 @@ void game::MainLoop()
     if(Mmenu.title)
     {
     	Mmenu.title->Write(700, 0);
+    	Mmenu.title->Write(700, Mmenu.title->textFont->CalcTextHeigth(Mmenu.title->textString), 20);
     }
 
 

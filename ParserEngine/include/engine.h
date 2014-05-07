@@ -61,8 +61,10 @@ const Uint16 		SYS_AUDIO_FORMAT = AUDIO_S16; /* 16-bit stereo */
 const int			SYS_AUDIO_CHANNELS = 2;
 const int 			SYS_AUDIO_BUFFERS = 1024;
 
-const std::string 	SYS_VERSION = "0.0.0.0.22";
-const std::string 	SYS_BUILD = "000022";
+const std::string 	SYS_VERSION = "0.0.0.0.23";
+const std::string 	SYS_BUILD = "000023";
+
+const std::string	SYS_TEST_VERSION = "0.0.23";
 
 class graphics;
 class audio;
@@ -79,6 +81,8 @@ class text;
 
 class animation;
 
+class input;
+
 class engine
 {
 public:
@@ -94,8 +98,7 @@ public:
 	//Компоненты
 	graphics *Graphics;
 	audio *Audio;
-	//input
-	//fonts
+	input *Input;
 	//textures
 	//animation
 	//timer
@@ -105,8 +108,6 @@ public:
 
 	//Таймер для подсчёта FPS
 	p_timer fps;
-
-	SDL_Event 	Event() {return event;}
 
 	static std::string IntToString(int number)
 	{
@@ -396,9 +397,39 @@ public:
 	int CalcTextHeigth(std::string text);
 
 };
+
+class text_manager
+{
+	// Менеджер текста - управляет памятью.
+	// Пока не используется для текста из-за сложности передачи каждому новому тексту указатель на менеджер
+	// TODO: доделать позднее выделив в глобал или в синглтон
+	friend text;
+	friend graphics;
+	graphics *Graphics;
+protected:
+
+	// Вектор хранящий все текстуры, которыми управляем
+	std::vector< text *> Texts;
+public:
+	text_manager();
+	~text_manager();
+
+	// Получаем информацию по тексту
+	text *GetTextInfos(GLuint texture);
+
+	//Удаляем текст
+	void DeleteText();
+
+	//Добавляем и удаляем из вектора управляющего текстом
+	void ManageText(text *managed_text);
+	void UnManageText(text *managed_text);
+
+	void SetGraphics(graphics *setGraphics);
+};
 class text
 {
 	friend game;
+	friend text_manager;
 
 	GLuint 		tex;		// OpenGL текстура
 	std::string textString;	// Сам текст для написания(можно менять и делать всё новые и новые записи тем же шрифтом)
@@ -409,6 +440,7 @@ class text
 
 	// Создаём текстуру
 	void CreateTex();
+	void Bind();
 
 public:
 	text(std::string textStrings = "", std::string fontFile = "", int fontSize = SYS_TEXT_SIZE);
@@ -420,8 +452,8 @@ public:
 	font		*GetFont() {return textFont;}
 	std::string GetText() { return textString;}
 
-	void Write(GLfloat new_x, GLfloat new_y, int center = 0);
-	void Write(GLfloat new_x, GLfloat new_y, std::string textStrings, int center = 0);
+	void Write(GLfloat new_x, GLfloat new_y, int size = -1, GLfloat Rotation = 0, int center = 0,
+			GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
 
 	// Устанавливаем текст для отрисовки
 	void SetText(std::string newText);
@@ -436,8 +468,10 @@ public:
 	// TODO: переделать - сделать изменение размера текста не зависимое от размера шрифта
 	void ResizeText(int textSize);
 
-	void Draw(float x, float y, float dx, float dy, float delta = 0, int center = 0) ; //отрисовка в определённом размере
-
+	// Отрисовка текста от точки, в определённом размере, с заданным углом поворота,
+	//		относительно центра или левого верхнего угла указанным цветом
+	void Draw(float x, float y, int size = -1, GLfloat Rotation = 0, int center = 0,
+			GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f) ;
 
 };
 

@@ -313,24 +313,54 @@ void text::SetCoordinates(GLfloat new_x, GLfloat new_y)
 	x = new_x;
 	y = new_y;
 }
-void text::Draw(float x, float y, float dx, float dy, float delta, int center)
+void text::Draw(float x, float y, int size, GLfloat Rotation, int center,
+			GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
 	//Отрисовываем текстуру от точки (x, y)
 	//размером dX, dY.
 	//с возможным углом поворота delta относительно верхнего левого угла
 	//либо центра
 
+	if(size>0)
+	{
+		// Меняем размер шрифта
+		ResizeText(size);
+	}
+
+	int dx, dy;
+	TTF_SizeUTF8(textFont->ttf_font, textString.c_str(), &dx, &dy);
+
 	glEnable(GL_TEXTURE_2D);
 	glLoadIdentity();
 	glTranslatef(x, y, 0);
 
-	if(delta)
-		glRotatef(delta, 0, 0, -1);
-	if(center)
-		glTranslatef(-dx/2, -dy/2, 0);
+	// Удаляем лишние градусы
+	if(Rotation > 0)
+	{
+		while(Rotation >= 360)
+			Rotation-=360;
+	}
+	else
+	{
+		while(Rotation <= -360)
+			Rotation+=360;
+	}
+
+	if(Rotation)
+	{
+		// Переворачиваем текстуру
+		if(center)
+			glTranslatef(dx/2, dy/2, 0); 		// Смещаемся в точку (dx/2, dx/2)
+
+		glRotatef(Rotation, 0.0f, 0.0f, 1.0f);	// Поворачиваем текстуру относительно предыдущей точки Translate на Rotate градусов по часовой стрелке
+
+		if(center)
+			glTranslatef(-dx/2, -dy/2, 0); 	// Возвращаемся в исходное состояние - в точку (x, y)
+
+	}
 	//Рисуем текстуру
 	glBegin(GL_QUADS);
-	 	glColor3f( 1.f, 1.f, 1.f );
+	 	glColor4f( red, green, blue, alpha );
 		glTexCoord2i(0, 0); glVertex2f(0,  0);  //Верхний левый угол
 		glTexCoord2i(0, 1); glVertex2f(0,  dy); //Нижний левый угол
 		glTexCoord2i(1, 1); glVertex2f(dx, dy); //Нижний правый угол
@@ -411,7 +441,7 @@ void text::CreateTex()
 
 	SDL_BlitSurface(temp, NULL, tempb, &dest);
 	glGenTextures(1, &tex);
-	glBindTexture(GL_TEXTURE_2D, tex);
+	Bind();
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -431,7 +461,13 @@ void text::CreateTex()
 	SDL_FreeSurface(temp);
 	SDL_FreeSurface(tempb);
 }
-void text::Write(GLfloat new_x, GLfloat new_y, int center)
+void text::Bind()
+{
+	if(tex)
+		glBindTexture(GL_TEXTURE_2D, tex);
+}
+void text::Write(GLfloat new_x, GLfloat new_y, int size, GLfloat Rotation, int center,
+		GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
 	//TODO: добавить посимвольную отрисовку текста с определением интервала между буквами и
 	//размером текста, независящим от размера шрифта
@@ -449,19 +485,104 @@ void text::Write(GLfloat new_x, GLfloat new_y, int center)
 	//Создаём текстуру с текстом определённого размера(он берётся из шрифта)
 	CreateTex();
 
-	int w, h;
-	TTF_SizeUTF8(textFont->ttf_font, textString.c_str(), &w, &h);
+	Bind();
 
-	glBindTexture(GL_TEXTURE_2D, tex);
-	Draw(x, y, w, h, 0, center);
-
-}
-void text::Write(GLfloat new_x, GLfloat new_y, std::string newText, int center)
-{
-	SetText(newText);
-	Write(new_x, new_y, center);
+	Draw(x, y, size, Rotation, center, red, green, blue, alpha);
 }
 void text::SetText(std::string newText)
 {
 	textString = newText;
+}
+
+text_manager::text_manager()
+{
+	Graphics = 0;
+	if(!Texts.empty())
+		Texts.clear();
+}
+text_manager::~text_manager()
+{
+	DeleteText();
+	if(!Texts.empty())
+		Texts.clear();
+	Graphics = 0;
+}
+// Получаем информацию по тексту
+text *text_manager::GetTextInfos(GLuint texture)
+{
+	// Получаем информацию о текстуре из её ID
+	for(unsigned int loop = 0; loop < Texts.size(); loop++)
+	{
+		if(Texts[loop]->tex == texture)
+		{
+			return Texts[loop];
+		}
+	}
+	return 0;
+}
+//Удаляем текст
+void text_manager::DeleteText()
+{
+	for(unsigned int loop = 0; loop < Texts.size(); loop++)
+	{
+		delete Texts[loop];
+	}
+}
+//Добавляем и удаляем из вектора управляющего текстом
+void text_manager::ManageText(text *managed_text)
+{
+	for(unsigned int loop = 0; loop < Texts.size(); loop++)
+	{
+		if(Texts[loop]->tex == managed_text->tex)
+		{
+			return;
+		}
+	}
+	/*if(!managed_image->TextureManager)
+		managed_image->SetTexManager(this);
+*/
+	Texts.push_back(managed_text);
+}
+void text_manager::UnManageText(text *managed_text)
+{
+	// Удаляем текст из вектора управления
+	// Внимание: Это только удалит текст из вектора управления, но не удалит сам текст
+	// 	для этого нужно использовать delete - внутри деструктора вызовется Delete() и сделает всё необходимое
+	// Лучше использовать delete вместо UnManageTexture - внутри деструктора вызовется UnManage
+
+	int place = -1;
+
+	// Ищем текст с данным ID в памяти
+	for(unsigned int loop = 0; loop < Texts.size(); loop++)
+	{
+		if(Texts[loop]->tex == managed_text->tex)
+		{
+			place = loop;
+			break;
+		}
+	}
+
+	// Текстура не найдена - выходм
+	if(place < 0)
+		return;
+
+	if((unsigned int)(place+1) == Texts.size())
+	{
+		// Текст в самом конце - удаляем, перед этим обснулив указатель на менеджер Texts
+		//Texts[place]->TextureManager = 0;
+		Texts.pop_back();
+	}
+	else
+	{
+		// Текст где-то внутри вектора - удаляем, перед этим обснулив указатель на менеджер Texts
+		//TODO: проверить
+		//Textures[place] = Textures[ Textures.size() - 1 ];
+		//Texts[place]->TextureManager = 0;
+		Texts.erase( Texts.begin() + place);
+	}
+}
+
+void text_manager::SetGraphics(graphics *setGraphics)
+{
+	Graphics = setGraphics;
 }
