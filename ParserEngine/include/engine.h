@@ -60,8 +60,8 @@ const Uint16 		SYS_AUDIO_FORMAT = AUDIO_S16; /* 16-bit stereo */
 const int			SYS_AUDIO_CHANNELS = 2;
 const int 			SYS_AUDIO_BUFFERS = 1024;
 
-const std::string 	SYS_VERSION = "0.0.0.0.20";
-const std::string 	SYS_BUILD = "000020";
+const std::string 	SYS_VERSION = "0.0.0.0.21";
+const std::string 	SYS_BUILD = "000021";
 
 class graphics;
 class audio;
@@ -250,14 +250,17 @@ public:
 	float Width();
 	float Heigth();
 
+
 	// Различные функции отрисовки
+	void DrawTransform(float x, float y, PE_Rect *Box,
+					GLfloat Scale = 1, GLfloat Rotation = 0);
 
 	/*
 	 *  Простая отрисовка полной текстуры в точке (x,y) и размерами исходной текстуры
 	 *  с заданным увеличением и поворотом текстуры(по умолчанию отсутствует)
 	 *  а также цветом текстуры(по умолчанию белый)
 	 */
-	void Draw(float x, float y, GLfloat Scale = 1, GLfloat Rotatation = 0,
+	void Draw(float x, float y, GLfloat Scale = 1, GLfloat Rotation = 0,
 			GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
 
 	/*
@@ -267,7 +270,7 @@ public:
 	 *  а также цветом текстуры(по умолчанию белый)
 	 */
 	void Draw(float x, float y, PE_Rect *Box,
-			GLfloat Scale = 1, GLfloat Rotatation = 0,
+			GLfloat Scale = 1, GLfloat Rotation = 0,
 			GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
 
 

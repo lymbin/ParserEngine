@@ -85,7 +85,59 @@ void image::MakeTexture(SDL_Surface *Surface, GLint filter, bool LoadPixels)
 	texture.pxw = Surface->w;
 	texture.pxh = Surface->h;
 }
-void image::Draw(float x, float y, GLfloat Scale, GLfloat Rotatation,
+void image::DrawTransform(float x, float y, PE_Rect *Box, GLfloat Scale, GLfloat Rotation)
+{
+	// Трансформируем расположение текстуры на экране
+	// Доступно: 	изменение позиции на экране
+	//				изменение размера текстуры
+	//				поворот текстуры
+
+	float dx, dy;
+
+	if(Box->Width >= texture.pxw)
+		dx = texture.pxw;
+	else
+		dx = Box->Width;
+
+	if(Box->Heigth >= texture.pxh)
+		dy = texture.pxh;
+	else
+		dy = Box->Heigth;
+
+	glLoadIdentity();
+	glTranslatef(x,y,0); // Смещаемся в точку (x, y)
+
+	if(Rotation)
+	{
+		// Поворот
+		GLfloat rotate_x, rotate_y;
+
+		// Начальные значения координат поворота
+		rotate_x = dx/2;
+		rotate_y = dy/2;
+
+		// Магические формулы смещения координат поворота в случае не квадратных текстур(кусков текстур)
+		// TODO: немного косячные формулы - лучше перепроверить для разных случаев
+		if(Rotation > 0)
+			while(Rotation >= 360)
+				Rotation-=360;
+		else
+			while(Rotation <= -360)
+				Rotation+=360;
+
+		if(dx > dy)
+			rotate_x -= ((dx - dy)/2);
+		else if(dx < dy)
+			rotate_y += ((dy - dx)/2);
+
+		glTranslatef(rotate_x,rotate_y,0); 		// Смещаемся в точку (rotate_x, rotate_y)
+		glRotatef(Rotation, 0.0f, 0.0f, 1.0f);	// Поворачиваем текстуру относительно предыдущей точки Translate на Rotate градусов по часовой стрелке
+		glTranslatef(-rotate_x,-rotate_y,0); 	// Возвращаемся в исходное состояние - в точку (x, y)
+	}
+	// Изменение размера текстуры
+	glScaled(Scale, Scale, 0);
+}
+void image::Draw(float x, float y, GLfloat Scale, GLfloat Rotation,
 	GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
 	// Отрисовываем текстуру от точки (x, y)
@@ -95,8 +147,14 @@ void image::Draw(float x, float y, GLfloat Scale, GLfloat Rotatation,
 	Bind();
 
 	glEnable(GL_TEXTURE_2D);
-	glLoadIdentity();
-	glTranslatef(x, y, 0.0f);
+
+	PE_Rect Box;
+	Box.X = 0;
+	Box.Y = 0;
+	Box.Width = 1;
+	Box.Heigth = 1;
+
+	DrawTransform(x, y, &Box, Scale, Rotation);
 
 	//Рисуем текстуру
 	glBegin(GL_QUADS);
@@ -110,10 +168,9 @@ void image::Draw(float x, float y, GLfloat Scale, GLfloat Rotatation,
 
 	glLoadIdentity();
 
-
 }
 void image::Draw(float x, float y, PE_Rect *Box,
-			GLfloat Scale, GLfloat Rotatation,
+			GLfloat Scale, GLfloat Rotation,
 			GLfloat red, GLfloat green , GLfloat blue, GLfloat alpha)
 {
 	/*Отрисовка куска текстуры в точке (x, y)
@@ -127,33 +184,38 @@ void image::Draw(float x, float y, PE_Rect *Box,
 	float top_x = Box->X;
 	float top_y = Box->Y;
 
-	float dx = Box->Width;
-	float dy = Box->Heigth;
+	float dx, dy;
+
+	dx = Box->Width;
+	dy = Box->Heigth;
 
 	glEnable(GL_TEXTURE_2D);
-	glLoadIdentity();
-	glTranslatef(x,y,0); // Смещаемся в точку (x, y)
+	DrawTransform(x, y, Box, Scale, Rotation);
 
 	// Отрисовываем текстуру
 	glBegin(GL_QUADS);
 		glColor4f(red, green, blue, alpha); // Устанавливаем цвет
-		glTexCoord2f((top_x/texture.pxw),			(top_y/texture.pxh));			glVertex2f(0, 0); //Верхний левый угол
-		glTexCoord2f((top_x/texture.pxw),			((top_y+dy)/texture.pxh));	glVertex2f(0, dy);//Нижний левый угол
-		glTexCoord2f(((top_x+dx)/texture.pxw),((top_y+dy)/texture.pxh)); 	glVertex2f(dx,dy);//Нижний правый угол
-		glTexCoord2f(((top_x+dx)/texture.pxw),(top_y/texture.pxh));			glVertex2f(dx, 0);//Верхний правый угол
+		glTexCoord2f((top_x/texture.pxw),		(top_y/texture.pxh));		glVertex2f(0, 0); //Верхний левый угол
+		glTexCoord2f((top_x/texture.pxw),		((top_y+dy)/texture.pxh));	glVertex2f(0, dy);//Нижний левый угол
+		glTexCoord2f(((top_x+dx)/texture.pxw),	((top_y+dy)/texture.pxh)); 	glVertex2f(dx,dy);//Нижний правый угол
+		glTexCoord2f(((top_x+dx)/texture.pxw),	(top_y/texture.pxh));		glVertex2f(dx, 0);//Верхний правый угол
 	glEnd();
+	glLoadIdentity();
+
 }
 
 
 
 void image::Bind()
 {
+	// Биндим текстуру
 	if(texture.tex)
 	{
 		glBindTexture(GL_TEXTURE_2D, texture.tex);
     	glLoadIdentity();
     	if(TextureManager && TextureManager->Graphics)
     	{
+    		// Если менеджер текстур и графика в нём определены, то меняем текущуюю текстуру
     		if(TextureManager->Graphics->GetCurrentTexture() != texture.tex)
     			TextureManager->Graphics->SetCurrentTexture(texture.tex);
        	}

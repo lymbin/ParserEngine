@@ -52,7 +52,7 @@ void game::MainLoop()
 #ifdef DEBUG_SYS
 	cout << "Game start!" << endl;
 #endif
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	Graphics->ClearScreen();
     Graphics->DrawFilledRectangle(10, 10, 200, 100, 0.0f, 0.0f, 1.0f);
 
     Graphics->ClearColor();
@@ -65,17 +65,15 @@ void game::MainLoop()
     	Section.Width = 1024;
     	Section.Heigth = 300;
 
-    	//Mmenu.background->Draw(0.0, 0.0, 800, 600);
-    	//Mmenu.background->Draw(1024, 1024, 0, 0, 300, 300, 0, 200, 300, 300);
+    	//Mmenu.background->Draw(0.0, 0.0);
     	Mmenu.background->Draw(0, 200, &Section);
 
     	Section.X = 0;
     	Section.Y = 300;
-    	Section.Width = 1024;
-    	Section.Heigth = 300;
-    	//Mmenu.background->Draw(0.0, 0.0, 800, 600);
-    	//Mmenu.background->Draw(1024, 1024, 0, 300, 300, 300, 400, 200, 300, 300);
-    	Mmenu.background->Draw(400, 200, &Section);
+    	Section.Width = 300;
+    	Section.Heigth = 400;
+    	//Mmenu.background->Draw(0.0, 0.0);
+    	Mmenu.background->Draw(500, 200, &Section, 1.4, 180);
     }
 
     if(Mmenu.title)
@@ -109,7 +107,7 @@ void game::MainLoop()
 		//Здесь уже сама игра
 		update();
 		render();
-		SDL_GL_SwapBuffers();
+		Graphics->SwapBuffers();
 		SDL_Delay(10);
 	}
 	FreeTextures();
