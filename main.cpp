@@ -38,6 +38,42 @@ void game::update()
 }
 void game::render()
 {
+	Graphics->ClearScreen();
+	glMatrixMode( GL_MODELVIEW );
+	glPopMatrix();
+
+	glPushMatrix();
+
+    //Graphics->ClearColor();
+    Graphics->DrawFilledRectangle(10, 10, 200, 100, 0.0f, 0.0f, 1.0f, 1.0f);
+    Graphics->DrawFilledRectangle(10, 110, 200, 100, 1.0f, 0.0f, 0.0f, 1.0f);
+
+
+    if(Mmenu.background)
+    {
+    	PE_Rect Section;
+    	Section.X = 0;
+    	Section.Y = 0;
+    	Section.Width = 1024;
+    	Section.Heigth = 300;
+
+    	//Mmenu.background->Draw(0.0, 0.0);
+    	//Mmenu.background->Draw(0, 300, &Section);
+
+    	Section.X = 0;
+    	Section.Y = 300;
+    	Section.Width = 300;
+    	Section.Heigth = 400;
+    	//Mmenu.background->Draw(0.0, 0.0);
+    	Mmenu.background->Draw(500, 200, &Section, 1.4, 180);
+    }
+/*
+    if(Mmenu.title)
+    {
+    	Mmenu.title->Write(700, 0);
+    	Mmenu.title->Write(700, Mmenu.title->textFont->CalcTextHeigth(Mmenu.title->textString), 20);
+    }
+*/
 
 }
 void game::MainLoop()
@@ -52,37 +88,9 @@ void game::MainLoop()
 #ifdef DEBUG_SYS
 	cout << "Game start!" << endl;
 #endif
+
 	Graphics->ClearScreen();
-    Graphics->DrawFilledRectangle(10, 10, 200, 100, 0.0f, 0.0f, 1.0f);
-
-    Graphics->ClearColor();
-
-    if(Mmenu.background)
-    {
-    	PE_Rect Section;
-    	Section.X = 0;
-    	Section.Y = 0;
-    	Section.Width = 1024;
-    	Section.Heigth = 300;
-
-    	//Mmenu.background->Draw(0.0, 0.0);
-    	Mmenu.background->Draw(0, 200, &Section);
-
-    	Section.X = 0;
-    	Section.Y = 300;
-    	Section.Width = 300;
-    	Section.Heigth = 400;
-    	//Mmenu.background->Draw(0.0, 0.0);
-    	Mmenu.background->Draw(500, 200, &Section, 1.4, 180);
-    }
-
-    if(Mmenu.title)
-    {
-    	Mmenu.title->Write(700, 0);
-    	Mmenu.title->Write(700, Mmenu.title->textFont->CalcTextHeigth(Mmenu.title->textString), 20);
-    }
-
-
+	Graphics->SetColor(0.f, 0.f, 0.f, 1.f);
 /*
     if(Mmenu.background)
     	//Mmenu.background->Draw(0.0, 0.0, 800, 600);
@@ -109,7 +117,14 @@ void game::MainLoop()
 		update();
 		render();
 		Graphics->SwapBuffers();
-		SDL_Delay(10);
+		SDL_Delay(100);
+
+		if(Mmenu.title)
+		{
+			delete Mmenu.title;
+			Mmenu.title = 0;
+		}
+
 	}
 	FreeTextures();
 }
@@ -136,10 +151,15 @@ void game::FreeTextures()
 
 	if(Mmenu.background)
 		delete Mmenu.background;
+	Mmenu.background = 0;
+	if(Mmenu.title)
+		delete Mmenu.title;
+	Mmenu.title = 0;
 }
 game::game()
 {
 	Mmenu.background = 0;
+	Mmenu.title = 0;
 }
 game::~game()
 {

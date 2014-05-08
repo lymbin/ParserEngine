@@ -292,8 +292,17 @@ text::text(string textStrings, string fontFile, int fontSize)
 text::~text()
 {
 	if(tex)
+	{
 		glDeleteTextures(1, &tex);
-
+		tex = 0;
+	}
+	if(textFont)
+	{
+		delete textFont;
+		textFont = 0;
+	}
+	textString.clear();
+	x = y =0;
 }
 void text::ResizeText(int textSize)
 {

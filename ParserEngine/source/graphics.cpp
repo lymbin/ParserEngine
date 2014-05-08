@@ -44,18 +44,22 @@ int graphics::init()
 }
 int graphics::initGL()
 {
+	// Система координат - от точки (0,0) с размером SYS_WIDTHxSYS_HEIGTH
 	glViewport(0.0f, 0.0f, SYS_WIDTH, SYS_HEIGTH);
 
 	//Инициируем матрице проекции
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
+
+	// Устанавливаем максимум и минимум в системе координат по разным осям
 	glOrtho(0.0, SYS_WIDTH, SYS_HEIGTH, 0.0, -1.0, 1.0);
 
 	//Инициирцуем матрицу вида
 	glMatrixMode(GL_MODELVIEW);
-	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_TEXTURE_2D);	// Включаем текстурирование
 	glLoadIdentity();
 
+	// Cохраняем матрицу вида
 	glPushMatrix();
 
 	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );

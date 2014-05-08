@@ -222,6 +222,7 @@ void animation::SetSpeed(Uint32 Speed)
 void animation::SetRepeats(int rep)
 {
 	Repeats = rep;
+	AnimOver = false;
 }
 
 // Добавляем новый фрейм в индекс или в конец
@@ -245,6 +246,9 @@ void animation::JumpToFrame(unsigned int index)
 
 	CurrentFrame = index;
 	SpeedTicks = SDL_GetTicks();
+
+	if(index != frames.size())
+		AnimOver = false;
 }
 
 // Пауза
@@ -252,7 +256,10 @@ bool animation::IsPaused()
 {
 	return Paused;
 }
-
+bool animation::IsOver()
+{
+	return AnimOver;
+}
 // Получаем главную текстуру
 image *animation::GetTexture()
 {

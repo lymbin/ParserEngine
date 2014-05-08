@@ -280,6 +280,8 @@ void image::Delete()
 		TextureManager->UnManageTexture(this);
 		TextureManager = 0;
 	}
+	texture.pxh = 0;
+	texture.pxw = 0;
 }
 
 // Устанавливаем менеджер текстур для полуавтоматического управления памятью менеджером

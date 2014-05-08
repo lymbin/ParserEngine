@@ -61,10 +61,10 @@ const Uint16 		SYS_AUDIO_FORMAT = AUDIO_S16; /* 16-bit stereo */
 const int			SYS_AUDIO_CHANNELS = 2;
 const int 			SYS_AUDIO_BUFFERS = 1024;
 
-const std::string 	SYS_VERSION = "0.0.0.0.23";
-const std::string 	SYS_BUILD = "000023";
+const std::string 	SYS_VERSION = "0.0.0.0.24";
+const std::string 	SYS_BUILD = "000024";
 
-const std::string	SYS_TEST_VERSION = "0.0.23";
+const std::string	SYS_TEST_VERSION = "0.0.24";
 
 class graphics;
 class audio;
@@ -657,6 +657,8 @@ public:
 	// Пауза
 	bool IsPaused();
 
+	bool IsOver();
+
 	// Получаем главную текстуру
 	image *GetTexture();
 
@@ -698,6 +700,20 @@ public:
 	bool IsKeyUp(eKey key);
 
 	int Update();
+};
+class camera
+{
+	GLfloat gCameraX;
+	GLfloat gCameraY;
+public:
+	camera();
+	~camera();
+
+	void MoveTo(GLfloat x, GLfloat y);
+	void SetPosition(GLfloat x, GLfloat y);
+
+	GLfloat GetXposition();
+	GLfloat GetYposition();
 };
 // TODO: нереализованные классы:
 class button
