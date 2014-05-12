@@ -42,6 +42,7 @@
 #include "GraphicTypes.h"
 #include "keys.h"
 
+///////////////// MAIN SYSTEM CONSTANTS /////////////////
 
 const int 			SYS_AUDIO = 0; 		//без аудио
 const int			SYS_FULLSCREEN = 0;	//оконный режим
@@ -50,10 +51,14 @@ const int			SYS_HEIGTH = 768;	//высота
 const int			SYS_BPP = 32;		//палитра
 const int			SYS_FPS = 60;		//FPS
 
+///////////////// GRAPHIC SYSTEM CONSTANTS /////////////////
+
 const GLint			SYS_GL_IMG_FILTER = GL_NEAREST; //Стандартный фильтр для изображений
 const int			SYS_TEXT_SIZE = 16;				//Размер текста по умолчанию
 const int			SYS_TEXT_DEPTH = 32;			//Глубина прорисовки текста
 const std::string	SYS_GL_IMG_ZIP_MODE = "rb";
+
+///////////////// AUDIO SYSTEM CONSTANTS /////////////////
 
 const int			SYS_AUDIO_VOLUME = 64;
 const int			SYS_AUDIO_RATE = 44100;
@@ -61,10 +66,13 @@ const Uint16 		SYS_AUDIO_FORMAT = AUDIO_S16; /* 16-bit stereo */
 const int			SYS_AUDIO_CHANNELS = 2;
 const int 			SYS_AUDIO_BUFFERS = 1024;
 
-const std::string 	SYS_VERSION = "0.0.0.0.24";
-const std::string 	SYS_BUILD = "000024";
+///////////////// VERSIONS CONSTANTS /////////////////
 
-const std::string	SYS_TEST_VERSION = "0.0.24";
+const std::string 	SYS_VERSION = "0.0.0.0.25";
+const std::string 	SYS_BUILD = "000025";
+const std::string	SYS_TEST_VERSION = "0.0.25";
+
+
 
 class graphics;
 class audio;
@@ -638,6 +646,9 @@ public:
 	void Draw(float x, float y, GLfloat Scale = 1, GLfloat Rotation = 0,
 			GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
 
+	// Очищаем массив фреймов
+	void ClearFrames();
+
 	// Устанавливаем главную текстуру
 	void SetTexture(image *Texture);
 
@@ -673,6 +684,9 @@ public:
 
 	// Получаем скорость анимации
 	Uint32 GetSpeed();
+
+	// Получаем размер массива фреймов
+	uint GetFramesSize();
 
 	//int anim_type; // Тип анимации
 };

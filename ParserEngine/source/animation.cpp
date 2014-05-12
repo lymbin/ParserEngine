@@ -9,14 +9,32 @@
 
 using namespace std;
 
+//////////////////////////////////////////////////////////////////////////
+// CONSTRUCTORS
+//////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------
+
 animation_manager::animation_manager()
 {
 	Animations.clear();
 }
+
+//-----------------------------------------------------------------------
+
 animation_manager::~animation_manager()
 {
 	DeleteAnims();
 }
+
+//-----------------------------------------------------------------------
+
+//////////////////////////////////////////////////////////////////////////
+// PUBLIC METODS
+//////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------
+
 void animation_manager::DeleteAnims()
 {
 	for(unsigned int loop = 0; loop < Animations.size(); loop++)
@@ -25,6 +43,9 @@ void animation_manager::DeleteAnims()
 	}
 	Animations.clear();
 }
+
+//-----------------------------------------------------------------------
+
 void animation_manager::PauseAnims()
 {
 	for(unsigned int loop = 0; loop < Animations.size(); loop++)
@@ -32,6 +53,8 @@ void animation_manager::PauseAnims()
 		Animations[loop]->Pause();
 	}
 }
+
+//-----------------------------------------------------------------------
 
 void animation_manager::ResumeAnims()
 {
@@ -41,6 +64,8 @@ void animation_manager::ResumeAnims()
 	}
 }
 
+//-----------------------------------------------------------------------
+
 void animation_manager::ResetAnims()
 {
 	for(unsigned int loop = 0; loop < Animations.size(); loop++)
@@ -49,6 +74,8 @@ void animation_manager::ResetAnims()
 	}
 }
 
+//-----------------------------------------------------------------------
+
 void animation_manager::UpdateAnims()
 {
 	for(unsigned int loop = 0; loop < Animations.size(); loop++)
@@ -56,6 +83,9 @@ void animation_manager::UpdateAnims()
 		Animations[loop]->Update();
 	}
 }
+
+//-----------------------------------------------------------------------
+
 void animation_manager::ManageAnimation(animation *managed_anim)
 {
 	for(unsigned int loop = 0; loop < Animations.size(); loop++)
@@ -68,6 +98,9 @@ void animation_manager::ManageAnimation(animation *managed_anim)
 
 	Animations.push_back(managed_anim);
 }
+
+//-----------------------------------------------------------------------
+
 void animation_manager::UnManageAnimation(animation *managed_anim)
 {
 	// Удаляем анимацию из вектора управления
@@ -107,6 +140,9 @@ void animation_manager::UnManageAnimation(animation *managed_anim)
 		Animations.erase( Animations.begin() + place);
 	}
 }
+
+//-----------------------------------------------------------------------
+
 animation::animation()
 {
 	//anim_type = 0;
@@ -122,10 +158,15 @@ animation::animation()
 
 	frames.clear();
 }
+
+//-----------------------------------------------------------------------
+
 animation::~animation()
 {
 	Delete();
 }
+
+//-----------------------------------------------------------------------
 
 // Очищаем память
 void animation::Delete()
@@ -146,20 +187,30 @@ void animation::Delete()
 	frames.clear();
 }
 
+//-----------------------------------------------------------------------
+
 void animation::Pause()
 {
 	Paused = true;
 }
+
+//-----------------------------------------------------------------------
+
 void animation::Resume()
 {
 	Paused = false;
 	SpeedTicks = SDL_GetTicks();
 }
+
+//-----------------------------------------------------------------------
+
 void animation::Reset()
 {
 	CurrentFrame = 0;
 	SpeedTicks = SDL_GetTicks();
 }
+
+//-----------------------------------------------------------------------
 
 void animation::Update()
 {
@@ -202,21 +253,40 @@ void animation::Update()
 	}
 }
 
+//-----------------------------------------------------------------------
+
 // Отрисовываем текстуру анимации
 void animation::Draw(float x, float y, GLfloat Scale, GLfloat Rotation,
 		GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
 	CurrentTexture->Draw(x, y, &frames[CurrentFrame], Scale, Rotation, red, green, blue, alpha);
 }
+
+//-----------------------------------------------------------------------
+
+// Очищаем массив фреймов
+void animation::ClearFrames()
+{
+	Reset();
+	frames.clear();
+}
+
+//-----------------------------------------------------------------------
+
 void animation::SetTexture(image *Texture)
 {
 	CurrentTexture = Texture;
 }
+
+//-----------------------------------------------------------------------
+
 void animation::SetSpeed(Uint32 Speed)
 {
 	AnimSpeed = Speed;
 	SpeedTicks = SDL_GetTicks();
 }
+
+//-----------------------------------------------------------------------
 
 // Устанавливаем количество повторов, после которых не проигрываем анимацию
 void animation::SetRepeats(int rep)
@@ -224,6 +294,8 @@ void animation::SetRepeats(int rep)
 	Repeats = rep;
 	AnimOver = false;
 }
+
+//-----------------------------------------------------------------------
 
 // Добавляем новый фрейм в индекс или в конец
 void animation::AddNewFrame(PE_Rect Rect, int index)
@@ -238,6 +310,8 @@ void animation::AddNewFrame(PE_Rect Rect, int index)
 	}
 }
 
+//-----------------------------------------------------------------------
+
 // Прыгаем на фрейм с заданным индексом
 void animation::JumpToFrame(unsigned int index)
 {
@@ -251,20 +325,29 @@ void animation::JumpToFrame(unsigned int index)
 		AnimOver = false;
 }
 
-// Пауза
+//-----------------------------------------------------------------------
+
 bool animation::IsPaused()
 {
 	return Paused;
 }
+
+//-----------------------------------------------------------------------
+
 bool animation::IsOver()
 {
 	return AnimOver;
 }
+
+//-----------------------------------------------------------------------
+
 // Получаем главную текстуру
 image *animation::GetTexture()
 {
 	return CurrentTexture;
 }
+
+//-----------------------------------------------------------------------
 
 // Получаем фрейм с индексом или текущий фрейм
 PE_Rect animation::GetFrame(unsigned int index)
@@ -277,11 +360,15 @@ PE_Rect animation::GetFrame(unsigned int index)
 	}
 }
 
+//-----------------------------------------------------------------------
+
 // Получаем номер текущего фрейма
 int animation::GetTrackNumber()
 {
 	return CurrentFrame;
 }
+
+//-----------------------------------------------------------------------
 
 // Получаем количество повторов, которые остались
 int animation::GetRepeats()
@@ -289,9 +376,16 @@ int animation::GetRepeats()
 	return Repeats;
 }
 
+//-----------------------------------------------------------------------
+
 // Получаем скорость анимации
 Uint32 animation::GetSpeed()
 {
 	return AnimSpeed;
 }
+uint animation::GetFramesSize()
+{
+	return frames.size();
+}
+//-----------------------------------------------------------------------
 
