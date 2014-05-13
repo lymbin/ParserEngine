@@ -68,9 +68,9 @@ const int 			SYS_AUDIO_BUFFERS = 1024;
 
 ///////////////// VERSIONS CONSTANTS /////////////////
 
-const std::string 	SYS_VERSION = "0.0.0.0.26";
-const std::string 	SYS_BUILD = "000026";
-const std::string	SYS_TEST_VERSION = "0.0.26";
+const std::string 	SYS_VERSION = "0.0.0.0.27";
+const std::string 	SYS_BUILD = "000027";
+const std::string	SYS_TEST_VERSION = "0.0.27";
 
 
 
@@ -624,6 +624,8 @@ class animation
 	// У динамики выставляется значение -1, чтобы не прерывать анимации по событиям
 	int Repeats;
 
+	std::string ItemName;
+
 public:
 	animation();
 	~animation();
@@ -658,6 +660,8 @@ public:
 	// Устанавливаем количество повторов, после которых не проигрываем анимацию
 	void SetRepeats(int rep);
 
+	void SetItemName(std::string name);
+
 	// Добавляем новый фрейм в индекс или в конец
 	void AddNewFrame(PE_Rect, int index = -1);
 
@@ -687,6 +691,8 @@ public:
 
 	// Получаем размер массива фреймов
 	uint GetFramesSize();
+
+	std::string GetItemName();
 
 	//int anim_type; // Тип анимации
 };

@@ -10,35 +10,35 @@
 
 #include "game.h"
 
-enum item_main_classification {
+enum eItemMainClassification {
 	TEST_ITEM ,
 	TEST_WEAPON ,
 	TEST_ROBE,
 	TEST_AMMO
 };
-enum item_classification {
+enum eItemClassification {
 	TEST_ITEM_UNKNOWN ,
 	TEST_ITEM2,
 	TEST_ITEM3,
 	TEST_ITEM_VLADISLAU_HAND
 };
-enum weapon_classification {
+enum eWeaponClassification {
 	TEST_WEAPON_NONE,
 	TEST_WEAPON_GUN,
 	TEST_WEAPON_PISTOL,
 	TEST_WEAPON_ROCKET,
 };
-enum robe_classification {
+enum eRobeClassification {
 	TEST_ROBE_NONE,
 	TEST_ROBE_1 ,
 	TEST_ROBE_2
 };
-enum ammo_classification {
+enum eAmmoClassification {
 	TEST_AMMO_1,
 	TEST_AMMO_2,
 	TEST_AMMO_BULLETS
 };
-enum move_type{
+enum eMoveTypes{
 	MOVE_NONE,
 	MOVE_RIGHT,
 	MOVE_LEFT,
@@ -48,7 +48,7 @@ enum move_type{
 	MOVE_JUMP,
 	MOVE_UNKNOWN
 };
-enum anim_type{
+enum eAnimsTypes{
 	ANIM_UNKNOWN,
 	ANIM_MOVE_RIGHT,
 	ANIM_MOVE_LEFT,
@@ -66,7 +66,12 @@ enum anim_type{
 	ANIM_WORKING_DOWN,
 	ANIM_WORKING_UP
 };
-
+enum eAxis{
+	AXIS_UNKNOWN,
+	AXIS_X,
+	AXIS_Y,
+	AXIS_Z
+};
 
 
 #endif /* GAMETYPES_H_ */
