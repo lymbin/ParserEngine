@@ -45,8 +45,8 @@ void game::render()
 	glPushMatrix();
 
     //Graphics->ClearColor();
-    Graphics->DrawFilledRectangle(10, 10, 200, 100, 0.0f, 0.0f, 1.0f, 1.0f);
-    Graphics->DrawFilledRectangle(10, 110, 200, 100, 1.0f, 0.0f, 0.0f, 1.0f);
+    //Graphics->DrawFilledRectangle(10, 10, 200, 100, 0.0f, 0.0f, 1.0f, 1.0f);
+   // Graphics->DrawFilledRectangle(10, 110, 200, 100, 1.0f, 0.0f, 0.0f, 1.0f);
 
 
     if(Mmenu.background)
@@ -57,7 +57,7 @@ void game::render()
     	Section.Width = 1024;
     	Section.Heigth = 300;
 
-    	//Mmenu.background->Draw(0.0, 0.0);
+    	Mmenu.background->Draw(0.0, 0.0);
     	//Mmenu.background->Draw(0, 300, &Section);
 
     	Section.X = 0;
@@ -134,7 +134,9 @@ int game::LoadTextures()
 	//Загружаем текстуры для дальнейшей работы с ними
 
 	Mmenu.background = new image("data/graphics/test/test1.png");
+	//Mmenu.background = new image("foo.png");
 	Mmenu.title = new text("FireFly", "data/fonts/non-free/Minecraftia.ttf", 30);
+	//Mmenu.background->SetColorKey();
 	//Mmenu.title = new text("Кириллица", "data/fonts/PTS55F.ttf", 30);
 	//Mmenu.button_start = new image();
 	//Mmenu.button_exit = new image();
@@ -160,6 +162,8 @@ game::game()
 {
 	Mmenu.background = 0;
 	Mmenu.title = 0;
+	Gui = 0;
+	Hero = 0;
 }
 game::~game()
 {

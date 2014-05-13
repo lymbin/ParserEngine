@@ -308,7 +308,7 @@ textureClass image::GetTXT()
 {
 	return texture;
 }
-image::image(std::string file, GLint filter)
+image::image(std::string file,  GLint filter)
 {
 	texture.fileName = file;
 	texture.pxh = 0;

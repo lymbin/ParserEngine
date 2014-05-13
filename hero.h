@@ -17,15 +17,22 @@ class hero
 
 	image 		*static_texture;
 
-	animation 	*rmove_animation;
-	animation 	*lmove_animation;
+	animation 	*moveright_animation;
+	animation 	*moveleft_animation;
+	animation 	*moveup_animation;
+	animation 	*movedown_animation;
+
+	/*
 	animation 	*jump_animation;
 	animation 	*sit_animation;
 
+	bool jumped;
+	*/
+
 	int last_state;
 
-	int anim_step;
-	bool jumped;
+	int anim_Xstep;
+	int anim_Ystep;
 
 	PE_Rect 	Box;
 
