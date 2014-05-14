@@ -9,8 +9,13 @@
 #define ENGINE_H_
 
 //Закомментировать строчки ниже для запрета показа отладочной информации и ошибок
+#define DEBUGGING
+
+#ifdef DEBUGGING
 #define DEBUG_SYS
 #define DEBUG_ERRORS
+#endif
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,6 +46,7 @@
 #include "timer.h"
 #include "GraphicTypes.h"
 #include "keys.h"
+#include "PhysicsTypes.h"
 
 ///////////////// MAIN SYSTEM CONSTANTS /////////////////
 
@@ -68,9 +74,9 @@ const int 			SYS_AUDIO_BUFFERS = 1024;
 
 ///////////////// VERSIONS CONSTANTS /////////////////
 
-const std::string 	SYS_VERSION = "0.0.0.0.27";
-const std::string 	SYS_BUILD = "000027";
-const std::string	SYS_TEST_VERSION = "0.0.27";
+const std::string 	SYS_VERSION = "0.0.0.0.28";
+const std::string 	SYS_BUILD = "000028";
+const std::string	SYS_TEST_VERSION = "0.0.28";
 
 
 
@@ -91,6 +97,8 @@ class animation;
 
 class input;
 
+class collision;
+
 class engine
 {
 public:
@@ -107,6 +115,7 @@ public:
 	graphics *Graphics;
 	audio *Audio;
 	input *Input;
+	collision *Collision;
 	//textures
 	//animation
 	//timer
@@ -700,9 +709,13 @@ class input
 {
 	//Система ввода: клики мышкой, кнопками клавиатуры и внутренняя система ввода - кнопки, текстовые боксы и т.п.
 
+	// Карта состояний клавиш
 	std::map <int, char> KeyStates;
+
+	// Карта времени зажатия клавиши
 	std::map <int, Uint32> KeyHeldTime;
 
+	// Текущие координаты мыши
 	int MouseX;
 	int MouseY;
 
@@ -711,14 +724,22 @@ public:
 	input();
 	~input();
 
+	// Инициализация системы ввода
+	int init();
+
+	// Выводим время зажатия клавиши(может понадобиться)
 	Uint32 TimeHeld(eKey Key);
 
+	// Клавиша зажата
 	bool IsKeyHeld(eKey Key);
 
+	// Клавиша нажата
 	bool IsKeyDown(eKey key);
 
+	// Клавиша отпущена
 	bool IsKeyUp(eKey key);
 
+	// Обновить
 	int Update();
 };
 class camera
@@ -735,6 +756,84 @@ public:
 	GLfloat GetXposition();
 	GLfloat GetYposition();
 };
+class collision_body
+{
+	friend collision;
+
+	// Тип тела
+	int BodyType;
+
+	// Вид столкновения
+	int CollisionType;
+
+	// Положение тела
+	PE_Rect BodyBox;
+
+public:
+	collision_body();
+	collision_body(PE_Rect Box, int ColType = COLLISION_UNPASSABLE, int Type = COLLISION_BODY_UNKNOWN);
+	~collision_body();
+
+	// Устанавливаем тип тела
+	void SetBodyType(int Type);
+
+	// Устанавливаем тип столкновения
+	void SetCollisionType(int Type);
+
+	// Устанавливаем положение тела
+	void SetBodyBox(PE_Rect Box);
+
+	// Получаем тип тела
+	int GetBodyType();
+
+	// Получаем тип столкновения
+	int GetCollisionType();
+
+	// Получаем положение тела
+	PE_Rect GetBodyBox();
+};
+class collision
+{
+	// Все тела в системе столкновений
+	std::vector< collision_body *> bodies;
+
+#ifdef DEBUGGING
+	// Включена ли система
+	bool IsEnabled;
+#endif
+
+	// Оптимизируем систем столкновений - сортировка, удаление "лишних" тел столкновения
+	void OptimizeCollisions();
+	void SortCollisions();
+
+public:
+	collision();
+	~collision();
+
+	int init();
+
+	// Добавляем новое тело в систему столкновений
+	void NewCollisionBody(PE_Rect Box, int ColType = COLLISION_UNPASSABLE, int BodyType = COLLISION_BODY_UNKNOWN);
+
+	// Проверка столкновения
+	bool CheckCollision(PE_Rect Box);
+
+	// Расширенная проверка столкновений
+	bool CheckCollisionExtended(PE_Rect Box);
+
+	// Удаление столкновений из системы
+	void DeleteAll();
+	void DeleteCollisionBody(PE_Rect Box);
+	void DeleteCollisionBody(int BodyId);
+
+#ifdef DEBUGGING
+	// Включение/выключение системы столкновений
+	void SwitchCollision();
+#endif
+};
+
+
+
 // TODO: нереализованные классы:
 class button
 {

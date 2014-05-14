@@ -7,6 +7,14 @@
 
 #include "engine.h"
 
+using namespace std;
+
+//////////////////////////////////////////////////////////////////////////
+// CONSTRUCTORS
+//////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------
+
 input::input()
 {
 	MouseX = 0;
@@ -15,6 +23,9 @@ input::input()
 	MouseButtons.clear();
 	KeyHeldTime.clear();
 }
+
+//-----------------------------------------------------------------------
+
 input::~input()
 {
 	MouseX = 0;
@@ -22,7 +33,27 @@ input::~input()
 	KeyStates.clear();
 	MouseButtons.clear();
 	KeyHeldTime.clear();
+
+#ifdef DEBUG_SYS
+	cout << "Input clean up - success" << endl;
+#endif
 }
+
+//-----------------------------------------------------------------------
+
+//////////////////////////////////////////////////////////////////////////
+// PUBLIC METODS
+//////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------
+
+int input::init()
+{
+	return 0;
+}
+
+//-----------------------------------------------------------------------
+
 Uint32 input::TimeHeld(eKey Key)
 {
 	if(KeyHeldTime.size() < (unsigned int)Key)
@@ -33,6 +64,9 @@ Uint32 input::TimeHeld(eKey Key)
 
 	return (SDL_GetTicks() - KeyHeldTime[Key]);
 }
+
+//-----------------------------------------------------------------------
+
 bool input::IsKeyHeld(eKey Key)
 {
 	if(KeyStates.size() < (unsigned int)Key)
@@ -44,6 +78,8 @@ bool input::IsKeyHeld(eKey Key)
 	}
 	return false;
 }
+
+//-----------------------------------------------------------------------
 
 bool input::IsKeyDown(eKey Key)
 {
@@ -57,6 +93,7 @@ bool input::IsKeyDown(eKey Key)
 	return false;
 }
 
+//-----------------------------------------------------------------------
 
 bool input::IsKeyUp(eKey Key)
 {
@@ -69,6 +106,8 @@ bool input::IsKeyUp(eKey Key)
 	}
 	return false;
 }
+
+//-----------------------------------------------------------------------
 
 int input::Update()
 {
@@ -108,7 +147,7 @@ int input::Update()
 		if(it->second == 'u')
 		{
 			bool keyFound = false;
-			for(int loop = 0; loop < keys.size(); loop++)
+			for(unsigned int loop = 0; loop < keys.size(); loop++)
 			{
 				if(keys[loop] == it->first)
 				{
@@ -124,7 +163,7 @@ int input::Update()
 		else if(it->second == 'd')
 		{
 			bool keyFound = false;
-			for(int loop = 0; loop < keys.size(); loop++)
+			for(unsigned int loop = 0; loop < keys.size(); loop++)
 			{
 				if(keys[loop] == it->first)
 				{
@@ -142,5 +181,7 @@ int input::Update()
 
 	return 0;
 }
+
+//-----------------------------------------------------------------------
 
 

@@ -41,6 +41,8 @@ class hero
 
 	PE_Rect 	Box;
 
+	collision_body *body;
+
 	std::string name;
 	int hit_points;
 

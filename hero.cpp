@@ -41,6 +41,8 @@ hero::hero(std::string nam, int hp)
 	Box.Heigth = 0;
 	Box.Width = 0;
 
+	body = new collision_body(Box, COLLISION_UNPASSABLE, COLLISION_BODY_GAME_OBJECT_DYNAMIC);
+
 	//jumped = false;
 
 	last_state = MOVE_NONE;

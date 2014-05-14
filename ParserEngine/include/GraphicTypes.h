@@ -49,6 +49,14 @@ struct PE_Rect
 	GLfloat Heigth; /**< Высота прямоугольника 	*/
 };
 
+// Четырёхугольник
+struct PE_Tetra
+{
+	GLfloat Left; 		/**< Координата крайней левой точки  */
+	GLfloat Right;		/**< Координата крайней правой точки  */
+	GLfloat Top; 		/**< Координата крайней верхней точки  */
+	GLfloat Bottom;		/**< Координата крайней нижней точки  */
+};
 
 
 #endif /* GRAPHICTYPES_H_ */

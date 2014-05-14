@@ -57,7 +57,7 @@ void game::render()
     	Section.Width = 1024;
     	Section.Heigth = 300;
 
-    	Mmenu.background->Draw(0.0, 0.0);
+    	Mmenu.background->Draw(0.0, 0.0, 0.2);
     	//Mmenu.background->Draw(0, 300, &Section);
 
     	Section.X = 0;
@@ -65,7 +65,7 @@ void game::render()
     	Section.Width = 300;
     	Section.Heigth = 400;
     	//Mmenu.background->Draw(0.0, 0.0);
-    	Mmenu.background->Draw(500, 200, &Section, 1.4, 180);
+    	//Mmenu.background->Draw(500, 200, &Section, 1.4, 180);
     }
 /*
     if(Mmenu.title)

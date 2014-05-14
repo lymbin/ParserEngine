@@ -26,6 +26,18 @@ int engine::init()
 	if(Graphics->init() < 0)
 		return -1;
 
+	Audio = new audio();
+	if(Audio->init() < 0)
+		return -1;
+
+	Input = new input();
+	if(Input->init() < 0)
+		return -1;
+
+	Collision = new collision();
+	if(Collision->init() < 0)
+		return -1;
+
 #ifdef DEBUG_SYS
 	cout << "All system initialization - success" << endl;
 	cout << "Engine initialization - success" << endl;
@@ -36,9 +48,25 @@ void engine::CleanUp()
 {
 	//Освобождаем ненужную память
 	if(Graphics)
+	{
 		delete Graphics;
-	Graphics = 0;
-
+		Graphics = 0;
+	}
+	if(Audio)
+	{
+		delete Audio;
+		Audio = 0;
+	}
+	if(Input)
+	{
+		delete Input;
+		Input = 0;
+	}
+	if(Collision)
+	{
+		delete Collision;
+		Collision = 0;
+	}
 #ifdef DEBUG_SYS
 	cout << "Engine clean up - success" << endl;
 #endif
@@ -55,6 +83,8 @@ engine::engine()
 	//Конструктор
 	Graphics = 0;
 	Audio = 0;
+	Input = 0;
+	Collision = 0;
 	//Другие компоненты
 	//
 	//
