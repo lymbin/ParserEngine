@@ -18,6 +18,10 @@ enum eCollisionBodyType{
 	COLLISION_BODY_GAME_OBJECT_STATIC,
 	COLLISION_BODY_WALL,
 };
-
+enum eCollisionType{
+	COLLISION_AABB,
+	COLLISION_OBB,
+	COLLISION_AABB_OBB
+};
 
 #endif /* PHYSICSTYPES_H_ */

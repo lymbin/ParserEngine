@@ -74,9 +74,9 @@ const int 			SYS_AUDIO_BUFFERS = 1024;
 
 ///////////////// VERSIONS CONSTANTS /////////////////
 
-const std::string 	SYS_VERSION = "0.0.0.0.28";
-const std::string 	SYS_BUILD = "000028";
-const std::string	SYS_TEST_VERSION = "0.0.28";
+const std::string 	SYS_VERSION = "0.0.0.0.29";
+const std::string 	SYS_BUILD = "000029";
+const std::string	SYS_TEST_VERSION = "0.0.29";
 
 
 
@@ -97,7 +97,12 @@ class animation;
 
 class input;
 
+class collision_AABB;
+class collision_OBB;
+class collision_body;
+class collision_layer;
 class collision;
+
 
 class engine
 {
@@ -756,9 +761,43 @@ public:
 	GLfloat GetXposition();
 	GLfloat GetYposition();
 };
-class collision_body
+
+class collision_AABB
+{
+public:
+	collision_AABB();
+	~collision_AABB();
+
+	// Проверка столкновения
+	bool OverlapsAABB(collision_AABB aabb);
+	bool OverlapsOBB(collision_OBB obb);
+
+	void SetAABBBox(PE_Rect AABBBodyBox);
+
+	// Положение тела
+	PE_Rect AABBBodyBox;
+	PE_Point MinPoint, MaxPoint;
+};
+class collision_OBB
+{
+public:
+	collision_OBB();
+	~collision_OBB();
+
+	// Проверка столкновения
+	//bool OverlapsAABB(collision_AABB aabb);
+	//bool OverlapsOBB(collision_OBB obb);
+
+	// Положение тела
+	PE_Rect OBBBodyBox;
+
+};
+class collision_body: public collision_OBB, public collision_AABB
 {
 	friend collision;
+
+	collision *Collision;
+	collision_layer *CurrentLayer;
 
 	// Тип тела
 	int BodyType;
@@ -766,13 +805,15 @@ class collision_body
 	// Вид столкновения
 	int CollisionType;
 
-	// Положение тела
-	PE_Rect BodyBox;
+	// Проходимо ли тело
+	unsigned int CollisionPass;
 
 public:
 	collision_body();
-	collision_body(PE_Rect Box, int ColType = COLLISION_UNPASSABLE, int Type = COLLISION_BODY_UNKNOWN);
+	collision_body(int ColPass = COLLISION_UNPASSABLE, int ColType = COLLISION_AABB, int Type = COLLISION_BODY_UNKNOWN);
 	~collision_body();
+
+	bool CheckCollision();
 
 	// Устанавливаем тип тела
 	void SetBodyType(int Type);
@@ -780,31 +821,62 @@ public:
 	// Устанавливаем тип столкновения
 	void SetCollisionType(int Type);
 
-	// Устанавливаем положение тела
-	void SetBodyBox(PE_Rect Box);
+	// Устанавливаем тип столкновения
+	void SetCollisionPass(unsigned int Pass);
+
+	// Устанавливем слой
+	void SetLayer(collision_layer *layer);
+
+	// Устанавливаем тип тела
+	int GetBodyType();
 
 	// Получаем тип тела
-	int GetBodyType();
+	unsigned int IsPassable();
 
 	// Получаем тип столкновения
 	int GetCollisionType();
 
-	// Получаем положение тела
-	PE_Rect GetBodyBox();
+	collision_layer *GetCollisionLayer();
+};
+class collision_layer
+{
+	friend collision;
+	// Тела в текущем слое
+	std::vector< collision_body *> bodies;
+	PE_Rect LayerBorder;
+
+
+	// Оптимизируем систем столкновений - сортировка, удаление "лишних" тел столкновения
+	void OptimizeCollisions();
+	void SortCollisions();
+
+public:
+	collision_layer(PE_Rect Box);
+	collision_layer(GLfloat W = SYS_WIDTH, GLfloat H = SYS_HEIGTH, GLfloat X = 0, GLfloat Y = 0);
+	~collision_layer();
+
+	void AddCollisionBody(collision_body *body);
+
+	bool CheckBodyInLayer(collision_body *body);
+
+	void EraseBody(collision_body *body);
+
+	void DeleteAll();
+	void DeleteCollisionBody(collision_body *body);
+
+	void SetLayerBorder(PE_Rect Border);
+
+	PE_Rect GetLayerBorder();
 };
 class collision
 {
 	// Все тела в системе столкновений
-	std::vector< collision_body *> bodies;
+	std::vector< collision_layer *> layers;
 
 #ifdef DEBUGGING
 	// Включена ли система
 	bool IsEnabled;
 #endif
-
-	// Оптимизируем систем столкновений - сортировка, удаление "лишних" тел столкновения
-	void OptimizeCollisions();
-	void SortCollisions();
 
 public:
 	collision();
@@ -813,18 +885,20 @@ public:
 	int init();
 
 	// Добавляем новое тело в систему столкновений
-	void NewCollisionBody(PE_Rect Box, int ColType = COLLISION_UNPASSABLE, int BodyType = COLLISION_BODY_UNKNOWN);
+	void NewCollisionBody(unsigned int LayerId, int ColPass = COLLISION_UNPASSABLE, int ColType = COLLISION_AABB, int Type = COLLISION_BODY_UNKNOWN);
+	void NewCollisionLayer();
 
-	// Проверка столкновения
-	bool CheckCollision(PE_Rect Box);
+	void AddBodyToLayer(collision_body *body, collision_layer *layer);
+	void AddBodyToLayer(collision_body *body, unsigned int LayerId);
 
-	// Расширенная проверка столкновений
-	bool CheckCollisionExtended(PE_Rect Box);
+	void EraseBodyFromLayer(collision_body *body, collision_layer *layer);
+
+	void ChangeBodyLayer(collision_body *body);
+
+	void ClearCollisionLayer(collision_layer *layer);
 
 	// Удаление столкновений из системы
 	void DeleteAll();
-	void DeleteCollisionBody(PE_Rect Box);
-	void DeleteCollisionBody(int BodyId);
 
 #ifdef DEBUGGING
 	// Включение/выключение системы столкновений
