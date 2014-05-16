@@ -54,8 +54,9 @@ collision_OBB::~collision_OBB()
 collision_body::collision_body()
 {
 	Collision = 0;
-	CurrentLayer = 0;
-	BodyType = COLLISION_BODY_UNKNOWN;
+	CurrentLayers.clear();
+
+	BoundingVolumeType = COLLISION_OUTSIDE;
 	CollisionPass = COLLISION_UNPASSABLE;
 	CollisionType = COLLISION_AABB;
 
@@ -63,33 +64,36 @@ collision_body::collision_body()
 
 //-----------------------------------------------------------------------
 
-collision_body::collision_body(int ColPass, int ColType, int Type)
+collision_body::collision_body(int ColPass, int ColType, int BVType)
 {
 	Collision = 0;
-	CurrentLayer = 0;
+	CurrentLayers.clear();
 
-	BodyType = Type;
+	BoundingVolumeType = BVType;
 	CollisionPass = ColPass;
 	CollisionType = ColType;
-	//BodyBox = Box;
+
 }
 
 //-----------------------------------------------------------------------
 
 collision_body::~collision_body()
 {
-	if(CurrentLayer)
+	if(!CurrentLayers.empty())
 	{
 
 	}
-	CurrentLayer = 0;
+
 	Collision = 0;
+	CurrentLayers.clear();
 }
 
 //-----------------------------------------------------------------------
 
 collision_layer::collision_layer(PE_Rect Box)
 {
+	Collision = 0;
+
 	LayerBorder = Box;
 	bodies.clear();
 }
@@ -98,6 +102,8 @@ collision_layer::collision_layer(PE_Rect Box)
 
 collision_layer::collision_layer(GLfloat W, GLfloat H, GLfloat X, GLfloat Y)
 {
+	Collision = 0;
+
 	LayerBorder.Width = W;
 	LayerBorder.Heigth = H;
 	LayerBorder.X = X;
@@ -155,42 +161,7 @@ bool collision_AABB::OverlapsAABB(collision_AABB aabb)
 {
 	// TODO: упростить с помощью векторов
 
-	GLfloat leftBox, leftChecked;
-	GLfloat rightBox, rightChecked;
-	GLfloat	topBox, topChecked;
-	GLfloat bottomBox, bottomChecked;
-
-	leftBox = aabb.AABBBodyBox.X;
-	rightBox = aabb.AABBBodyBox.X + aabb.AABBBodyBox.Width;
-	topBox = aabb.AABBBodyBox.Y;
-	bottomBox = aabb.AABBBodyBox.Y + aabb.AABBBodyBox.Heigth;
-
-	leftChecked = AABBBodyBox.X;
-	rightChecked = AABBBodyBox.X + AABBBodyBox.Width;
-	topChecked = AABBBodyBox.Y;
-	bottomChecked = AABBBodyBox.Y + AABBBodyBox.Heigth;
-
-	if(bottomBox <= topChecked)
-	{
-		return false;
-	}
-
-	if(topBox >= bottomChecked)
-	{
-		return false;
-	}
-
-	if(rightBox <= leftChecked)
-	{
-		return false;
-	}
-
-	if(leftBox >= rightChecked)
-	{
-		return false;
-	}
-
-	return true;
+	return collision::CheckCollision(AABBBodyBox, aabb.AABBBodyBox);
 }
 
 //-----------------------------------------------------------------------
@@ -217,13 +188,6 @@ bool collision_OBB::OverlapsOBB(collision_OBB obb)
 */
 //-----------------------------------------------------------------------
 
-void collision_body::SetBodyType(int Type)
-{
-	BodyType = Type;
-}
-
-//-----------------------------------------------------------------------
-
 void collision_body::SetCollisionType(int Type)
 {
 	CollisionType = Type;
@@ -239,21 +203,54 @@ void collision_body::SetCollisionPass(unsigned int Pass)
 
 //-----------------------------------------------------------------------
 
-// Устанавливем слой
-void collision_body::SetLayer(collision_layer *layer)
+void collision_body::SetBoundingVolumeType(int BVType)
 {
-	if(CurrentLayer)
-	{
-		CurrentLayer->EraseBody(this);
-	}
-	CurrentLayer = layer;
+	BoundingVolumeType = BVType;
 }
 
 //-----------------------------------------------------------------------
 
-int collision_body::GetBodyType()
+// Устанавливем слой
+void collision_body::AddNewLayer(collision_layer *layer)
 {
-	return BodyType;
+	CurrentLayers.push_back(layer);
+}
+
+//-----------------------------------------------------------------------
+
+void collision_body::RemoveLayer(unsigned int LayerID)
+{
+	if(CurrentLayers.empty())
+	{
+		return;
+	}
+
+	if(LayerID < 0)
+	{
+		CurrentLayers.pop_back();
+	}
+	else
+	{
+		CurrentLayers.erase(CurrentLayers.begin() + LayerID);
+	}
+}
+
+//-----------------------------------------------------------------------
+
+void collision_body::CheckInLayers()
+{
+	if(!CurrentLayers.empty())
+	{
+		for(unsigned int loop = 0; loop < CurrentLayers.size(); ++loop)
+		{
+			int result = CurrentLayers[loop]->CheckBodyInLayer(this);
+			if(result == COLLISION_OUTSIDE)
+			{
+				RemoveLayer(loop);
+				--loop;
+			}
+		}
+	}
 }
 
 //-----------------------------------------------------------------------
@@ -272,16 +269,39 @@ int collision_body::GetCollisionType()
 
 //-----------------------------------------------------------------------
 
-collision_layer *collision_body::GetCollisionLayer()
+int collision_body::GetBoundingVolumeType()
 {
-	return CurrentLayer;
+	return BoundingVolumeType;
+}
+
+//-----------------------------------------------------------------------
+
+collision_layer *collision_body::GetCollisionLayer(unsigned int LayerID)
+{
+	if(!CurrentLayers.empty())
+	{
+		if(LayerID <= CurrentLayers.size())
+		{
+			return CurrentLayers[LayerID];
+		}
+	}
+	return 0;
+}
+
+//-----------------------------------------------------------------------
+
+int collision_body::GetLayersSize()
+{
+	return CurrentLayers.size();
 }
 
 //-----------------------------------------------------------------------
 
 void collision_layer::AddCollisionBody(collision_body *body)
 {
-	if(!CheckBodyInLayer(body))
+	int BVPos = CheckBodyInLayer(body);
+
+	if((BVPos == COLLISION_INSIDE) || (BVPos == COLLISION_INTERSECT))
 	{
 		bodies.push_back(body);
 	}
@@ -289,24 +309,59 @@ void collision_layer::AddCollisionBody(collision_body *body)
 
 //-----------------------------------------------------------------------
 
-bool collision_layer::CheckBodyInLayer(collision_body *body)
+// Проверяем что тело находится в слое
+int collision_layer::CheckBodyInLayer(collision_body *body)
 {
-	if(!bodies.empty())
+	float leftBox, leftChecked;
+	float rightBox, rightChecked;
+	float	topBox, topChecked;
+	float bottomBox, bottomChecked;
+
+	// Параметры границы слоя
+	leftBox = LayerBorder.X;
+	rightBox = LayerBorder.X + LayerBorder.Width;
+	topBox = LayerBorder.Y;
+	bottomBox = LayerBorder.Y + LayerBorder.Heigth;
+
+	if(body->BoundingVolumeType != COLLISION_OBB)
 	{
-		for(unsigned int loop = 0; loop < bodies.size(); ++loop)
+		// Простое сравнение AABB
+		leftChecked = body->AABBBodyBox.X;
+		rightChecked = body->AABBBodyBox.X + body->AABBBodyBox.Width;
+		topChecked = body->AABBBodyBox.Y;
+		bottomChecked = body->AABBBodyBox.Y + body->AABBBodyBox.Heigth;
+
+		if((bottomBox >= bottomChecked) && (topBox <= topChecked) && (rightBox >= rightChecked) && (leftBox <= leftChecked))
 		{
-			if(bodies[loop] == body)
-				return true;
+			// Тело внутри слоя
+			return COLLISION_INSIDE;
 		}
+		else
+		{
+			// Ищем столкновения - можно сделать какую-нибудь общую функцию для поиска столкновений 2-х прямоугольников
+			if(!collision::CheckCollision(LayerBorder, body->AABBBodyBox))
+			{
+				return COLLISION_OUTSIDE;
+			}
+		}
+
+		// Тело соприкасается со слоем и входит одновременно в несколько слоёв и надо искать столкновения во всех
+		return COLLISION_INTERSECT;
 	}
-	return false;
+	else
+	{
+		// TODO: доделать проверку
+		return COLLISION_OUTSIDE;
+	}
+
+	return COLLISION_OUTSIDE;
 }
 
 //-----------------------------------------------------------------------
 
 void collision_layer::EraseBody(collision_body *body)
 {
-	if(CheckBodyInLayer(body))
+	if(!bodies.empty())
 	{
 		for(unsigned int loop = 0; loop < bodies.size(); ++loop)
 		{
@@ -375,10 +430,99 @@ int collision::init()
 
 //-----------------------------------------------------------------------
 
-void collision::NewCollisionBody(unsigned int LayerId, int ColPass, int ColType, int Type)
+void collision::NewCollisionBody(unsigned int LayerId, int ColPass, int ColType, int BVType)
 {
-	collision_body *newcollisionbody = new collision_body(ColPass, ColType, Type);
-	layers[LayerId]->bodies.push_back(newcollisionbody);
+	collision_body *NewCollisionBody = new collision_body(ColPass, ColType, BVType);
+	layers[LayerId]->bodies.push_back(NewCollisionBody);
+}
+
+//-----------------------------------------------------------------------
+
+void collision::NewCollisionLayer(GLfloat W, GLfloat H, GLfloat X, GLfloat Y)
+{
+	collision_layer *NewLayer = new collision_layer(W, H, X, Y);
+	layers.push_back(NewLayer);
+}
+
+//-----------------------------------------------------------------------
+
+void collision::AddBodyToLayer(collision_body *body, unsigned int LayerId)
+{
+	if(layers.size() >= LayerId)
+	{
+		if(layers[LayerId])
+		{
+			layers[LayerId]->AddCollisionBody(body);
+		}
+	}
+}
+
+//-----------------------------------------------------------------------
+
+void collision::EraseBodyFromLayer(collision_body *body, unsigned int LayerId)
+{
+	if(layers.size() >= LayerId)
+	{
+		if(layers[LayerId])
+		{
+			layers[LayerId]->EraseBody(body);
+		}
+	}
+}
+
+//-----------------------------------------------------------------------
+
+void collision::ClearCollisionLayer(unsigned int LayerId)
+{
+	if(layers.size() >= LayerId)
+	{
+		if(layers[LayerId])
+		{
+			layers[LayerId]->bodies.clear();
+		}
+	}
+}
+
+//-----------------------------------------------------------------------
+
+bool collision::CheckCollision(PE_Rect A, PE_Rect B)
+{
+	float leftBox, leftChecked;
+	float rightBox, rightChecked;
+	float	topBox, topChecked;
+	float bottomBox, bottomChecked;
+
+	leftBox = A.X;
+	rightBox = A.X + A.Width;
+	topBox = A.Y;
+	bottomBox = A.Y + A.Heigth;
+
+	leftChecked = B.X;
+	rightChecked = B.X + B.Width;
+	topChecked = B.Y;
+	bottomChecked = B.Y + B.Heigth;
+
+	if(bottomBox <= topChecked)
+	{
+		return false;
+	}
+
+	if(topBox >= bottomChecked)
+	{
+		return false;
+	}
+
+	if(rightBox <= leftChecked)
+	{
+		return false;
+	}
+
+	if(leftBox >= rightChecked)
+	{
+		return false;
+	}
+
+	return true;
 }
 
 //-----------------------------------------------------------------------

@@ -74,9 +74,9 @@ const int 			SYS_AUDIO_BUFFERS = 1024;
 
 ///////////////// VERSIONS CONSTANTS /////////////////
 
-const std::string 	SYS_VERSION = "0.0.0.0.29";
-const std::string 	SYS_BUILD = "000029";
-const std::string	SYS_TEST_VERSION = "0.0.29";
+const std::string 	SYS_VERSION = "0.0.0.0.30";
+const std::string 	SYS_BUILD = "000030";
+const std::string	SYS_TEST_VERSION = "0.0.30";
 
 
 
@@ -764,6 +764,7 @@ public:
 
 class collision_AABB
 {
+	// AABB бокс столкновений
 public:
 	collision_AABB();
 	~collision_AABB();
@@ -780,6 +781,7 @@ public:
 };
 class collision_OBB
 {
+	// OBB бокс столкновений
 public:
 	collision_OBB();
 	~collision_OBB();
@@ -794,29 +796,38 @@ public:
 };
 class collision_body: public collision_OBB, public collision_AABB
 {
-	friend collision;
+	// Тело столкновений - по-сути коробка, содержащаяся в слоях(слое) столкновений
+	friend class collision;
+	friend class collision_layer;
 
+	// Указатель на класс столкновений
 	collision *Collision;
-	collision_layer *CurrentLayer;
 
-	// Тип тела
-	int BodyType;
-
-	// Вид столкновения
-	int CollisionType;
+	// Вектор указателей на все слои в которые входит(пересекается) данное тело
+	std::vector< collision_layer *> CurrentLayers;
 
 	// Проходимо ли тело
 	unsigned int CollisionPass;
 
+	// Тип столкновения
+	int CollisionType;
+
+	// Тип рамки столкновения
+	int BoundingVolumeType;
+
 public:
 	collision_body();
-	collision_body(int ColPass = COLLISION_UNPASSABLE, int ColType = COLLISION_AABB, int Type = COLLISION_BODY_UNKNOWN);
+	collision_body(int ColPass = COLLISION_UNPASSABLE, int ColType = COLLISION_OUTSIDE, int BVType = COLLISION_AABB);
 	~collision_body();
 
-	bool CheckCollision();
+	// Устанавливем слой
+	void AddNewLayer(collision_layer *layer);
 
-	// Устанавливаем тип тела
-	void SetBodyType(int Type);
+	// Удаляем слой
+	void RemoveLayer(unsigned int LayerID = -1);
+
+	// Проверяем содержание в слоях
+	void CheckInLayers();
 
 	// Устанавливаем тип столкновения
 	void SetCollisionType(int Type);
@@ -824,11 +835,8 @@ public:
 	// Устанавливаем тип столкновения
 	void SetCollisionPass(unsigned int Pass);
 
-	// Устанавливем слой
-	void SetLayer(collision_layer *layer);
-
-	// Устанавливаем тип тела
-	int GetBodyType();
+	// Устанавливаем тип коробки
+	void SetBoundingVolumeType(int BVType);
 
 	// Получаем тип тела
 	unsigned int IsPassable();
@@ -836,15 +844,28 @@ public:
 	// Получаем тип столкновения
 	int GetCollisionType();
 
-	collision_layer *GetCollisionLayer();
+	// Получаем тип коробки столкновений
+	int GetBoundingVolumeType();
+
+	// Получаем определённый слой столкновений
+	collision_layer *GetCollisionLayer(unsigned int LayerID = 0);
+
+	// Получаем размер вектора слоёв
+	int GetLayersSize();
 };
 class collision_layer
 {
-	friend collision;
+	// Класс слоя столкновений хранит тела, которые могут сталкиваться в ограниченной области
+	friend class collision;
+
+	// Указатель на класс столкновений
+	collision *Collision;
+
 	// Тела в текущем слое
 	std::vector< collision_body *> bodies;
-	PE_Rect LayerBorder;
 
+	// Прямоугольная рамка слоя
+	PE_Rect LayerBorder;
 
 	// Оптимизируем систем столкновений - сортировка, удаление "лишних" тел столкновения
 	void OptimizeCollisions();
@@ -855,21 +876,29 @@ public:
 	collision_layer(GLfloat W = SYS_WIDTH, GLfloat H = SYS_HEIGTH, GLfloat X = 0, GLfloat Y = 0);
 	~collision_layer();
 
+	// Добавляем тело в слой
 	void AddCollisionBody(collision_body *body);
 
-	bool CheckBodyInLayer(collision_body *body);
+	// Проверяем где именно находится заданное тело, относительно слоя
+	int CheckBodyInLayer(collision_body *body);
 
+	// Удаляем тело из слоя
 	void EraseBody(collision_body *body);
 
+	// Функции полного удаления тел
 	void DeleteAll();
 	void DeleteCollisionBody(collision_body *body);
 
+	// Задаём границы слоя
 	void SetLayerBorder(PE_Rect Border);
 
+	// Получаем границы слоя
 	PE_Rect GetLayerBorder();
 };
 class collision
 {
+	// Класс, хранящий все слои столкновений и управляющий всей системой столкновений
+
 	// Все тела в системе столкновений
 	std::vector< collision_layer *> layers;
 
@@ -882,20 +911,26 @@ public:
 	collision();
 	~collision();
 
+	// Инициализация системы
 	int init();
 
 	// Добавляем новое тело в систему столкновений
-	void NewCollisionBody(unsigned int LayerId, int ColPass = COLLISION_UNPASSABLE, int ColType = COLLISION_AABB, int Type = COLLISION_BODY_UNKNOWN);
-	void NewCollisionLayer();
+	void NewCollisionBody(unsigned int LayerId, int ColPass = COLLISION_UNPASSABLE, int ColType = COLLISION_OUTSIDE, int BVType = COLLISION_AABB);
 
-	void AddBodyToLayer(collision_body *body, collision_layer *layer);
+	// Добавляем новый слой в систему столкновений
+	void NewCollisionLayer(GLfloat W = SYS_WIDTH, GLfloat H = SYS_HEIGTH, GLfloat X = 0, GLfloat Y = 0);
+
+	// Добавляем тело в слой с указанным id
 	void AddBodyToLayer(collision_body *body, unsigned int LayerId);
 
-	void EraseBodyFromLayer(collision_body *body, collision_layer *layer);
+	// Удаляем тело из слоя с указанным id
+	void EraseBodyFromLayer(collision_body *body, unsigned int LayerId);
 
-	void ChangeBodyLayer(collision_body *body);
+	// Очищаем выбранный слой
+	void ClearCollisionLayer(unsigned int LayerId);
 
-	void ClearCollisionLayer(collision_layer *layer);
+	// Общая функция проверки столкновений двух прямоугольников - является базовой для многих функций проверки столкновений в других классах системы
+	static bool CheckCollision(PE_Rect A, PE_Rect B);
 
 	// Удаление столкновений из системы
 	void DeleteAll();
