@@ -74,9 +74,9 @@ const int 			SYS_AUDIO_BUFFERS = 1024;
 
 ///////////////// VERSIONS CONSTANTS /////////////////
 
-const std::string 	SYS_VERSION = "0.0.0.0.30";
-const std::string 	SYS_BUILD = "000030";
-const std::string	SYS_TEST_VERSION = "0.0.30";
+const std::string 	SYS_VERSION = "0.0.0.0.31";
+const std::string 	SYS_BUILD = "000031";
+const std::string	SYS_TEST_VERSION = "0.0.31";
 
 
 
@@ -816,7 +816,6 @@ class collision_body: public collision_OBB, public collision_AABB
 	int BoundingVolumeType;
 
 public:
-	collision_body();
 	collision_body(int ColPass = COLLISION_UNPASSABLE, int ColType = COLLISION_OUTSIDE, int BVType = COLLISION_AABB);
 	~collision_body();
 
@@ -927,7 +926,8 @@ public:
 	void EraseBodyFromLayer(collision_body *body, unsigned int LayerId);
 
 	// Очищаем выбранный слой
-	void ClearCollisionLayer(unsigned int LayerId);
+	void EraseCollisionLayer(unsigned int LayerId);
+	void EraseCollisionLayer(collision_layer *layer);
 
 	// Общая функция проверки столкновений двух прямоугольников - является базовой для многих функций проверки столкновений в других классах системы
 	static bool CheckCollision(PE_Rect A, PE_Rect B);

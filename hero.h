@@ -22,6 +22,7 @@ class hero
 	game 		*Game;
 
 	image 		*static_texture;
+	int 		static_anim_speed;
 
 	std::map <int, sAnim > Anims;
 	std::map <int, sAnim >::iterator AnimIter;
@@ -54,7 +55,7 @@ public:
 	hero(std::string nam = "Timmi", int hp = 100);
 	~hero();
 
-	void move(int pos);
+	void move(int direction, int animation = ANIM_UNKNOWN, int animpos = 0);
 	void jump();
 	void sit();
 	void shoot();
@@ -65,6 +66,8 @@ public:
 	void SetTexture(image 	*texture);
 	void LoadTexture(std::string file);
 
+	void SetStaticSpeed(int speed);
+
 	void SetAnim(int AnimType, image *texture, std::vector< PE_Rect > frames);
 	void SetAnimSpeed(int AnimType, int speed);
 
@@ -73,6 +76,8 @@ public:
 	sAnim GetAnim(int AnimType);
 	image *GetTexture();
 	PE_Rect GetBox();
+
+	int GetStaticSpeed();
 
 	std::string GetHeroName();
 	int	GetHealth();

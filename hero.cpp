@@ -24,6 +24,7 @@ hero::hero(std::string nam, int hp)
 	weapon.sub_classification = TEST_WEAPON_NONE;
 
 	static_texture = 0;
+	static_anim_speed = 0;
 	/*
 	moveright_animation = 0;
 	moveleft_animation = 0;
@@ -41,7 +42,7 @@ hero::hero(std::string nam, int hp)
 	Box.Heigth = 0;
 	Box.Width = 0;
 
-	body = new collision_body(COLLISION_UNPASSABLE);
+	body = new collision_body();
 
 	//jumped = false;
 
@@ -88,49 +89,76 @@ hero::~hero()
 		}
 		Anims.clear();
 	}
+	if(body)
+	{
+		delete body;
+		body = 0;
+	}
 	Game = 0;
 }
 
-void hero::move(int pos)
+void hero::move(int direction, int animation, int animpos)
 {
-	// Двойная работа по поиску в карте - изменить
-	if(!Anims.empty())
+	if((animation == ANIM_UNKNOWN)||(Anims.empty()))
 	{
-		AnimIter = Anims.begin();
-		while(AnimIter != Anims.end())
+		if(direction == MOVE_RIGHT)
+			Box.X+=	static_anim_speed;
+		else if(direction == MOVE_LEFT)
+			Box.X-=static_anim_speed;
+		else if(direction == MOVE_UP)
+			Box.Y+=static_anim_speed;
+		else if(direction == MOVE_DOWN)
+			Box.Y-=static_anim_speed;
+	}
+	else
+	{
+		if(animpos==0)
 		{
-			if(pos == AnimIter->first)
+			AnimIter = Anims.begin();
+			while(AnimIter != Anims.end())
 			{
-				if(pos == ANIM_MOVE_RIGHT)
-					Box.X+=AnimIter->second.speed;
-				else if(pos == ANIM_MOVE_LEFT)
-					Box.X-=AnimIter->second.speed;
-				else if(pos == ANIM_MOVE_UP)
-					Box.Y+=AnimIter->second.speed;
-				else if(pos == ANIM_MOVE_DOWN)
-					Box.Y-=AnimIter->second.speed;
-				else
+				if(animation == AnimIter->first)
+				{
+					if(animation == ANIM_MOVE_RIGHT)
+						Box.X+=AnimIter->second.speed;
+					else if(animation == ANIM_MOVE_LEFT)
+						Box.X-=AnimIter->second.speed;
+					else if(animation == ANIM_MOVE_UP)
+						Box.Y+=AnimIter->second.speed;
+					else if(animation == ANIM_MOVE_DOWN)
+						Box.Y-=AnimIter->second.speed;
+					else
+						break;
+
+					// Пока блочим движение тела
+					// 	но в дальнейшем нужно менять камеру при движении
+					if(Box.X > SYS_WIDTH)
+						Box.X-=AnimIter->second.speed;
+					else if(Box.X < 0)
+						Box.X+=AnimIter->second.speed;
+					if(Box.Y > SYS_HEIGTH)
+						Box.Y-=AnimIter->second.speed;
+					else if(Box.Y < 0)
+						Box.Y+=AnimIter->second.speed;
+
+					AnimIter->second.pAnim->Update();
 					break;
-
-				// Пока блочим движение тела
-				// 	но в дальнейшем нужно менять камеру при движении
-				if(Box.X > SYS_WIDTH)
-					Box.X-=AnimIter->second.speed;
-				else if(Box.X < 0)
-					Box.X+=AnimIter->second.speed;
-				if(Box.Y > SYS_HEIGTH)
-					Box.Y-=AnimIter->second.speed;
-				else if(Box.Y < 0)
-					Box.Y+=AnimIter->second.speed;
-
-				AnimIter->second.pAnim->Update();
-				break;
+				}
+				++AnimIter;
 			}
-			++AnimIter;
+		}
+		else
+		{
+			if(animation == ANIM_MOVE_RIGHT)
+				Box.X+=	Anims[animpos].speed;
+			else if(animation == ANIM_MOVE_LEFT)
+				Box.X-=Anims[animpos].speed;
+			else if(animation == ANIM_MOVE_UP)
+				Box.Y+=Anims[animpos].speed;
+			else if(animation == ANIM_MOVE_DOWN)
+				Box.Y-=Anims[animpos].speed;
 		}
 	}
-
-
 }
 void hero::jump()
 {
@@ -181,7 +209,8 @@ void hero::update()
 	if((!Game)||(!Game->Input))
 		return;
 
-	last_state = MOVE_NONE;
+	int move_type = MOVE_NONE;	// Необходимо для движения
+	last_state = MOVE_NONE;		// Необходимо для учёта порядка движений по приоритетам
 
 	/*
 	if(jumped)
@@ -199,36 +228,68 @@ void hero::update()
 		}
 	}
 	*/
-	if(!Anims.empty())
+
+	// Сначала проверяем нажате клавиш и забиваем переменную last_state
+	if(Game->Input->IsKeyDown(KEY_RIGHT) || Game->Input->IsKeyHeld(KEY_RIGHT))
 	{
-		for(AnimIter = Anims.begin(); AnimIter != Anims.end(); ++AnimIter)
+		if(last_state < MOVE_RIGHT)
+			last_state = MOVE_RIGHT;
+		move_type = MOVE_RIGHT;
+	}
+	else if(Game->Input->IsKeyDown(KEY_LEFT) || Game->Input->IsKeyHeld(KEY_LEFT))
+	{
+		if(last_state < MOVE_LEFT)
+			last_state = MOVE_LEFT;
+		move_type = MOVE_LEFT;
+	}
+	else if(Game->Input->IsKeyDown(KEY_DOWN) || Game->Input->IsKeyHeld(KEY_DOWN))
+	{
+		if(last_state < MOVE_DOWN)
+			last_state = MOVE_DOWN;
+		move_type = MOVE_DOWN;
+	}
+	else if(Game->Input->IsKeyHeld(KEY_UP) || Game->Input->IsKeyHeld(KEY_UP))
+	{
+		if(last_state < MOVE_UP)
+			last_state = MOVE_UP;
+		move_type = MOVE_UP;
+	}
+
+	// Обрабатываем движение
+	if(move_type > MOVE_NONE)
+	{
+		// Только если движение было
+		if(!Anims.empty())
 		{
-			if((AnimIter->first == ANIM_MOVE_RIGHT) && (Game->Input->IsKeyDown(KEY_RIGHT) || Game->Input->IsKeyHeld(KEY_RIGHT)))
+			// Массив анимаций не пуст
+			int loop = 0;
+			bool animed = false;	// Движение анимировано
+
+			for(AnimIter = Anims.begin(); AnimIter != Anims.end(); ++AnimIter)
 			{
-				if(last_state < ANIM_MOVE_RIGHT)
-					last_state = ANIM_MOVE_RIGHT;
-				move(ANIM_MOVE_RIGHT);
+				if(AnimIter->first == move_type)
+				{
+					// Анимация найдена - двигаемся с нужной скоростью
+					move(move_type, AnimIter->first, loop);
+					animed = true;
+					break;
+				}
+				loop++;
 			}
-			else if((AnimIter->first == ANIM_MOVE_LEFT) && (Game->Input->IsKeyDown(KEY_LEFT) || Game->Input->IsKeyHeld(KEY_LEFT)))
+			if(!animed)
 			{
-				if(last_state < ANIM_MOVE_LEFT)
-					last_state = ANIM_MOVE_LEFT;
-				move(ANIM_MOVE_LEFT);
-			}
-			else if((AnimIter->first == ANIM_MOVE_DOWN) && (Game->Input->IsKeyDown(KEY_DOWN) || Game->Input->IsKeyHeld(KEY_DOWN)))
-			{
-				if(last_state < ANIM_MOVE_DOWN)
-					last_state = ANIM_MOVE_DOWN;
-				move(ANIM_MOVE_DOWN);
-			}
-			else if((AnimIter->first == ANIM_MOVE_UP) && (Game->Input->IsKeyHeld(KEY_UP) || Game->Input->IsKeyHeld(KEY_UP)))
-			{
-				if(last_state < ANIM_MOVE_UP)
-					last_state = ANIM_MOVE_UP;
-				move(ANIM_MOVE_UP);
+				// Анимация не найдена - двигаемся без анимации
+				move(move_type);
 			}
 		}
+		else
+		{
+			// Анимаций нет - двигаемся без анимации
+			move(move_type);
+		}
 	}
+
+
 	/*
 	if(sit_animation && (Game->Input->IsKeyDown(KEY_DOWN) || Game->Input->IsKeyHeld(KEY_DOWN)))
 	{
@@ -249,12 +310,9 @@ void hero::update()
 }
 void hero::render()
 {
-
-	// Можно сделать карту мувов и анимаций - возможно упростит программирование
-
 	bool moved = false;
 
-	if(!Anims.empty() || (last_state == MOVE_NONE))
+	if(!Anims.empty() && (last_state != MOVE_NONE))
 	{
 		AnimIter = Anims.begin();
 		while(AnimIter != Anims.end())
@@ -291,6 +349,14 @@ void hero::render()
 void hero::SetTexture(image *texture)
 {
 	static_texture = texture;
+	if(!static_anim_speed && texture)
+	{
+		SetStaticSpeed(texture->Width()/4);
+	}
+}
+void hero::SetStaticSpeed(int speed)
+{
+	static_anim_speed = speed;
 }
 void hero::LoadTexture(std::string file)
 {
@@ -383,7 +449,10 @@ PE_Rect hero::GetBox()
 {
 	return Box;
 }
-
+int hero::GetStaticSpeed()
+{
+	return static_anim_speed;
+}
 std::string hero::GetHeroName()
 {
 	return name;

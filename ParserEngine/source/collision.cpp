@@ -51,19 +51,6 @@ collision_OBB::~collision_OBB()
 
 //-----------------------------------------------------------------------
 
-collision_body::collision_body()
-{
-	Collision = 0;
-	CurrentLayers.clear();
-
-	BoundingVolumeType = COLLISION_OUTSIDE;
-	CollisionPass = COLLISION_UNPASSABLE;
-	CollisionType = COLLISION_AABB;
-
-}
-
-//-----------------------------------------------------------------------
-
 collision_body::collision_body(int ColPass, int ColType, int BVType)
 {
 	Collision = 0;
@@ -81,7 +68,10 @@ collision_body::~collision_body()
 {
 	if(!CurrentLayers.empty())
 	{
-
+		for( unsigned int loop = 0; loop < CurrentLayers.size(); ++loop)
+		{
+			CurrentLayers[loop]->EraseBody(this);
+		}
 	}
 
 	Collision = 0;
@@ -122,10 +112,18 @@ collision_layer::~collision_layer()
 		{
 			if(bodies[loop])
 			{
-				delete bodies[loop];
+				if(CheckBodyInLayer(bodies[loop]) == COLLISION_INSIDE)
+				{
+					delete bodies[loop];
+				}
 			}
 		}
 		bodies.clear();
+	}
+	if(Collision)
+	{
+		Collision->EraseCollisionLayer(this);
+		Collision = 0;
 	}
 }
 
@@ -472,13 +470,27 @@ void collision::EraseBodyFromLayer(collision_body *body, unsigned int LayerId)
 
 //-----------------------------------------------------------------------
 
-void collision::ClearCollisionLayer(unsigned int LayerId)
+void collision::EraseCollisionLayer(unsigned int LayerId)
 {
 	if(layers.size() >= LayerId)
 	{
-		if(layers[LayerId])
+		layers.erase(layers.begin() + LayerId);
+	}
+}
+
+//-----------------------------------------------------------------------
+
+void collision::EraseCollisionLayer(collision_layer *layer)
+{
+	if(!layers.empty())
+	{
+		for(unsigned int loop = 0; loop <= layers.size(); ++loop)
 		{
-			layers[LayerId]->bodies.clear();
+			if(layers[loop] == layer)
+			{
+				layers.erase(layers.begin() + loop);
+				return;
+			}
 		}
 	}
 }
