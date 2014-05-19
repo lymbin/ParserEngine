@@ -57,7 +57,7 @@ void game::render()
     	Section.Width = 1024;
     	Section.Heigth = 300;
 
-    	Mmenu.background->Draw(0.0, 0.0, 0.2);
+    	Mmenu.background->Draw(0.0, 100.0, 0.2);
     	//Mmenu.background->Draw(0, 300, &Section);
 
     	Section.X = 0;
@@ -79,8 +79,6 @@ void game::render()
 void game::MainLoop()
 {
 
-
-
 #ifdef DEBUG_SYS
 	cout << "Load textures" << endl;
 #endif
@@ -91,41 +89,118 @@ void game::MainLoop()
 
 	Graphics->ClearScreen();
 	Graphics->SetColor(0.f, 0.f, 0.f, 1.f);
-/*
-    if(Mmenu.background)
-    	//Mmenu.background->Draw(0.0, 0.0, 800, 600);
-    	Mmenu.background->Draw(500, 0);
-*/
-
 	Graphics->SwapBuffers();
 
 	fps.start();
+
+	text *help_text = new text("hlp", "data/fonts/non-free/Minecraftia.ttf", 16);
+
+#ifdef DEBUG_INFOS
+	font *fps_font = new font("data/fonts/non-free/Minecraftia.ttf", 18);
+	std::string fps_rate;
+	GLuint tex = 0;
+
+#endif
+
+	bool simple_menu = true;
 	//Главный цикл приложения
 	while(!game::quit)
 	{
-		//При каждом цикле сначала обрабатываем сигналы
-		while( SDL_PollEvent(&event))
+		Graphics->ClearScreen();
+		Graphics->SetColor(0.f, 0.f, 0.f, 1.f);
+
+		if(Input->Update() || Input->IsKeyDown(KEY_ESCAPE)|| Input->IsKeyHeld(KEY_ESCAPE))
 		{
-			//Ищем событие на закрытие окна
-			if( event.type == SDL_QUIT)
+			//Выходим
+			quit = true;
+			break;
+		}
+
+		if(simple_menu)
+		{
+			if(Input->IsKeyDown(KEY_1) || Input->IsKeyHeld(KEY_1))
+			{
+				// Входим в игру
+				simple_menu = false;
+			}
+			else if(Input->IsKeyDown(KEY_2)|| Input->IsKeyHeld(KEY_2))
 			{
 				//Выходим
 				quit = true;
 			}
 		}
-		//Здесь уже сама игра
-		update();
-		render();
-		Graphics->SwapBuffers();
-		SDL_Delay(100);
-
-		if(Mmenu.title)
+		else
 		{
-			delete Mmenu.title;
-			Mmenu.title = 0;
+			//Здесь уже сама игра
+			update();
+			render();
 		}
 
+		if(simple_menu)
+		{
+			help_text->ResizeText(20);
+			// Отрисовываем текст в центре
+			help_text->SetText("Press 1 to Play demo");
+			help_text->Write(Graphics->GetScreenWidth()/2 - help_text->GetFont()->CalcTextWidth(help_text->GetText())/2,
+							Graphics->GetScreenHeigth()/2 - help_text->GetFont()->CalcTextHeigth(help_text->GetText())/2);
+
+
+			// Отрисовываем текст чуть ниже центра
+			help_text->SetText("Press 2 to Exit demo");
+			help_text->Write(Graphics->GetScreenWidth()/2 - help_text->GetFont()->CalcTextWidth(help_text->GetText())/2,
+							Graphics->GetScreenHeigth()/2 - help_text->GetFont()->CalcTextHeigth(help_text->GetText())/2 + help_text->GetFont()->CalcTextHeigth(help_text->GetText()));
+
+		}
+		else
+		{
+			help_text->ResizeText(16);
+			// Отрисовываем текст в центре
+			help_text->SetText("Press ESC to Exit");
+			help_text->Write(Graphics->GetScreenWidth()/2 - help_text->GetFont()->CalcTextWidth(help_text->GetText())/2,
+							help_text->GetFont()->CalcTextHeigth(help_text->GetText()));
+
+			help_text->SetText("Press Arrows to Move");
+			help_text->Write(Graphics->GetScreenWidth()/2 - help_text->GetFont()->CalcTextWidth(help_text->GetText())/2,
+							help_text->GetFont()->CalcTextHeigth(help_text->GetText())*2);
+
+		}
+		std::stringstream sstream;
+		sstream << "PreAlpha ParserEngine Demo. Version " << SYS_TEST_VERSION << ".";
+		help_text->SetText(sstream.str());
+		help_text->Write(Graphics->GetScreenWidth() - help_text->GetFont()->CalcTextWidth(help_text->GetText()) - SYS_FRAME_PIXELS,
+						Graphics->GetScreenHeigth() - help_text->GetFont()->CalcTextHeigth(help_text->GetText()) - SYS_FRAME_PIXELS);
+		sstream.str(string());
+		// Выводим FPS поверх игры
+#ifdef DEBUG_INFOS
+		frame++;
+
+		if(tex)
+		{
+			glDeleteTextures(1, &tex);
+			tex = 0;
+		}
+		//std::stringstream sstream;
+
+		if(fps.get_ticks() > 1000)
+		{
+			// Обезопасим от деления на нуль
+			sstream << " FPS: " << frame / (fps.get_ticks() / 1000) ;
+		}
+		else
+		{
+			sstream << " FPS: 0";
+		}
+
+		fps_font->Write(sstream.str(), SYS_WIDTH - fps_font->CalcTextWidth(sstream.str()) - SYS_FRAME_PIXELS, 0 + SYS_FRAME_PIXELS, &tex);
+#endif
+
+		Graphics->SwapBuffers();
+		SDL_Delay(10);
 	}
+#ifdef DEBUG_INFOS
+	delete fps_font;
+#endif
+	delete help_text;
 	FreeTextures();
 }
 

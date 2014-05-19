@@ -14,7 +14,7 @@ int graphics::init()
 	// Инициализация основных компонентов графики
 
 	// Инициализация SDL-графики
-	screen = SDL_SetVideoMode(SYS_WIDTH, SYS_HEIGTH, SYS_BPP, SDL_OPENGL|SDL_RESIZABLE);
+	screen = SDL_SetVideoMode(ScreenWidth, ScreenHeigth, ScreenBpp, SDL_OPENGL|SDL_RESIZABLE);
 	if(!screen)
 	{
 #ifdef DEBUG_ERRORS
@@ -45,14 +45,14 @@ int graphics::init()
 int graphics::initGL()
 {
 	// Система координат - от точки (0,0) с размером SYS_WIDTHxSYS_HEIGTH
-	glViewport(0.0f, 0.0f, SYS_WIDTH, SYS_HEIGTH);
+	glViewport(0.0f, 0.0f, ScreenWidth, ScreenHeigth);
 
 	//Инициируем матрице проекции
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
 	// Устанавливаем максимум и минимум в системе координат по разным осям
-	glOrtho(0.0, SYS_WIDTH, SYS_HEIGTH, 0.0, -1.0, 1.0);
+	glOrtho(0.0, ScreenWidth, ScreenHeigth, 0.0, -1.0, 1.0);
 
 	//Инициирцуем матрицу вида
 	glMatrixMode(GL_MODELVIEW);
@@ -98,6 +98,10 @@ void graphics::CleanUp()
 	if(FontManager)
 		delete FontManager;
 
+	if(Camera)
+		delete Camera;
+
+	Camera = 0;
 	TextureManager = 0;
 	FontManager = 0;
 	CurrentTexture = 0;
@@ -123,7 +127,7 @@ void graphics::ResizeWin(int width, int heigth)
 	//Другая версия - пока тестовая
 	/*
 	if(!heigth) heigth = 1;
-	screen = SDL_SetVideoMode(SYS_WIDTH, SYS_HEIGTH, SYS_BPP, SDL_OPENGL|SDL_RESIZABLE);
+	screen = SDL_SetVideoMode(ScreenWidth, ScreenHeigth, ScreenBpp, SDL_OPENGL|SDL_RESIZABLE);
 	if(!screen)
 	{
 #ifdef DEBUG_ERRORS
@@ -245,8 +249,34 @@ void graphics::SetCurrentTexture(GLuint texture)
 {
 	CurrentTexture = texture;
 }
-graphics::graphics()
+SDL_Surface *graphics::Screen()
 {
+	return screen;
+}
+GLuint graphics::GetCurrentTexture()
+{
+	return CurrentTexture;
+}
+
+int graphics::GetScreenWidth()
+{
+	return ScreenWidth;
+}
+int graphics::GetScreenHeigth()
+{
+	return ScreenHeigth;
+}
+int graphics::GetScreenBpp()
+{
+	return ScreenBpp;
+}
+
+graphics::graphics(int W, int H, int BPP)
+{
+	ScreenWidth = W;
+	ScreenHeigth = H;
+	ScreenBpp = BPP;
+
 	FontManager = new font_manager();
 	FontManager->SetGraphics(this);
 
@@ -255,6 +285,9 @@ graphics::graphics()
 	FullScreen = SYS_FULLSCREEN;
 	CurrentTexture = 0;
 	screen = 0;
+
+	Camera = new camera();
+	Window = new window(this);
 }
 graphics::~graphics()
 {

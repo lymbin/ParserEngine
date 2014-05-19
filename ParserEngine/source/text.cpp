@@ -9,6 +9,9 @@
 
 using namespace std;
 
+
+//-----------------------------------------------------------------------
+
 void font_manager::ManageFont(font *managed_font)
 {
 	if(!managed_font)
@@ -22,6 +25,9 @@ void font_manager::ManageFont(font *managed_font)
 
 	Fonts.push_back(managed_font);
 }
+
+//-----------------------------------------------------------------------
+
 void font_manager::UnManageFont(font *managed_font)
 {
 	if(!managed_font)
@@ -56,17 +62,25 @@ void font_manager::UnManageFont(font *managed_font)
 		Fonts.erase( Fonts.begin() + place);
 	}
 }
+
+//-----------------------------------------------------------------------
+
 font_manager::font_manager()
 {
 	Graphics = 0;
 	if(!Fonts.empty())
 		Fonts.clear();
 }
+
+//-----------------------------------------------------------------------
+
 font_manager::~font_manager()
 {
 	DeleteFonts();
 	Fonts.clear();
 }
+
+//-----------------------------------------------------------------------
 
 // Инициализация TTF
 int font_manager::FontsInit()
@@ -95,6 +109,8 @@ int font_manager::FontsInit()
 	return 0;
 }
 
+//-----------------------------------------------------------------------
+
 // Удаляем шрифты из памяти
 void font_manager::DeleteFonts()
 {
@@ -104,11 +120,16 @@ void font_manager::DeleteFonts()
 	}
 }
 
+//-----------------------------------------------------------------------
+
 // Устанавливаем указатель на графику
 void font_manager::SetGraphics(graphics *setGraphics)
 {
 	Graphics = setGraphics;
 }
+
+//-----------------------------------------------------------------------
+
 void font::SetColor(Uint8 R, Uint8 G, Uint8 B, Uint8 A )
 {
 	// Устанавливаем цвет текста
@@ -117,6 +138,9 @@ void font::SetColor(Uint8 R, Uint8 G, Uint8 B, Uint8 A )
 	format.textcolor.b = B;
 	format.textcolor.unused = A;
 }
+
+//-----------------------------------------------------------------------
+
 void font::SetBGColor(Uint8 R, Uint8 G, Uint8 B)
 {
 	// Устанавливаем цвет заднего фона для текста
@@ -124,6 +148,9 @@ void font::SetBGColor(Uint8 R, Uint8 G, Uint8 B)
 	format.bgcolor.g = G;
 	format.bgcolor.b = B;
 }
+
+//-----------------------------------------------------------------------
+
 void font::SetStyle(bool bold, bool italic, bool underline)
 {
 	// Устанавливаем стиль для текста
@@ -148,6 +175,8 @@ void font::SetStyle(bool bold, bool italic, bool underline)
 	}
 }
 
+//-----------------------------------------------------------------------
+
 // Изменяем размер шрифта
 void font::Resize(int size)
 {
@@ -164,10 +193,16 @@ void font::Resize(int size)
 #endif
 	}
 }
+
+//-----------------------------------------------------------------------
+
 void font::SetStatic(bool static_font)
 {
 	StaticFont = static_font;
 }
+
+//-----------------------------------------------------------------------
+
 // Устанавливаем менеджер шрифтов для полуавтоматического управления памятью менеджером
 void font::SetTexManager(font_manager *FonManager)
 {
@@ -180,6 +215,8 @@ void font::SetTexManager(font_manager *FonManager)
 	// Добавляем в менеджер этот шрифт(даже если он там есть)
 	FontManager->ManageFont(this);
 }
+
+//-----------------------------------------------------------------------
 
 int font::GetHeigth()
 {
@@ -195,6 +232,9 @@ int font::GetHeigth()
 		return 0;
 	}
 }
+
+//-----------------------------------------------------------------------
+
 int font::CalcTextWidth(string text)
 {
 	if(ttf_font)
@@ -211,6 +251,9 @@ int font::CalcTextWidth(string text)
 		return 0;
 	}
 }
+
+//-----------------------------------------------------------------------
+
 int font::CalcTextHeigth(string text)
 {
 	if(ttf_font)
@@ -227,9 +270,12 @@ int font::CalcTextHeigth(string text)
 		return 0;
 	}
 }
+
+//-----------------------------------------------------------------------
+
+// Открываем шрифт из источника
 int font::Open(string source, int fontSize)
 {
-	// Открываем шрифт из источника
 	ttf_font = TTF_OpenFont(source.c_str(), fontSize);
 	if(!ttf_font)
 	{
@@ -243,10 +289,111 @@ int font::Open(string source, int fontSize)
 
 	return 0;
 }
-void font::Write(std::string text, GLuint tex, GLfloat x, GLfloat y)
+
+//-----------------------------------------------------------------------
+
+// Пишем текст без использования text класса
+void font::Write(std::string text, GLfloat x, GLfloat y, GLuint *tex, GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
-	// Пишем текст без использования text класса
+	if(!ttf_font)
+	{
+#ifdef DEBUG_ERRORS
+		cout << "Font can not be founded! " << endl;
+#endif
+		return;
+	}
+
+	// Получаем размеры текста данного шрифта
+	int w, h;
+	TTF_SizeUTF8(ttf_font, text.c_str(), &w, &h);
+
+	if(!*tex)
+	{
+		//TODO: Эта часть скопирована из Write класса text - подумать над изменением???
+		// Создаём текстуру для tex
+
+		SDL_Surface *temp = 0, *tempb = 0;
+
+		Uint32 rmask, gmask, bmask, amask;
+
+	#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+		rmask = 0xff000000;
+		gmask = 0x00ff0000;
+		bmask = 0x0000ff00;
+		amask = 0x000000ff;
+	#else
+		rmask = 0x000000ff;
+		gmask = 0x0000ff00;
+		bmask = 0x00ff0000;
+		amask = 0xff000000;
+	#endif
+
+		temp = TTF_RenderUTF8_Blended(ttf_font, text.c_str(), format.textcolor);
+
+		SDL_SetAlpha(temp, 0, 0);
+
+		tempb = SDL_CreateRGBSurface(0, w, h, SYS_TEXT_DEPTH, rmask, gmask, bmask, amask);
+		if(!tempb)
+		{
+	#ifdef DEBUG_ERRORS
+			cout << "Error create surface : "<< SDL_GetError() << endl;
+	#endif
+			SDL_FreeSurface(temp);
+			SDL_FreeSurface(tempb);
+			return;
+		}
+
+		SDL_Rect //src={0,0,0,0},
+				dest={0,0,0,0};
+
+		/*src.x = 0;
+		src.y = 0;
+		src.w = w;
+		src.h = h;
+		 */
+
+		dest.x = 0;
+		dest.y = 0;
+		//dest.w = w;
+		//dest.h = h;
+
+		SDL_BlitSurface(temp, NULL, tempb, &dest);
+		glGenTextures(1, tex);
+
+		glBindTexture(GL_TEXTURE_2D, *tex);
+
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tempb->w, tempb->h, 0, GL_BGRA,
+					GL_UNSIGNED_BYTE, tempb->pixels);
+
+		SDL_FreeSurface(temp);
+		SDL_FreeSurface(tempb);
+	}
+
+	// Эта часть скопирована из класса text
+	glBindTexture(GL_TEXTURE_2D, *tex);
+
+	glEnable(GL_TEXTURE_2D);
+	glLoadIdentity();
+	glTranslatef(x, y, 0);
+
+	//Рисуем текстуру
+	glBegin(GL_QUADS);
+		glColor4f( red, green, blue, alpha );
+		glTexCoord2i(0, 0); glVertex2f(0,  0);  //Верхний левый угол
+		glTexCoord2i(0, 1); glVertex2f(0,  h); //Нижний левый угол
+		glTexCoord2i(1, 1); glVertex2f(w, h); //Нижний правый угол
+		glTexCoord2i(1, 0); glVertex2f(w, 0);  //Верхний правый угол
+	glEnd();
+
+		glLoadIdentity();
+
 }
+
+//-----------------------------------------------------------------------
+
 font::font(string file, int fontSize)
 {
 	ttf_font = 0;
@@ -262,6 +409,9 @@ font::font(string file, int fontSize)
 	if(fileName != "")
 		Open(file, format.size);
 }
+
+//-----------------------------------------------------------------------
+
 font::~font()
 {
 	if(FontManager)
@@ -273,13 +423,19 @@ font::~font()
 		TTF_CloseFont(ttf_font);
 	ttf_font = 0;
 }
-text::text(string textStrings, font *textFonts)
+
+//-----------------------------------------------------------------------
+
+text::text(string textStrings, font *ExistFont)
 {
 	tex = 0;
-	textFont = textFonts;
+	textFont = ExistFont;
 	textString = textStrings;
 	x = y = 0;
 }
+
+//-----------------------------------------------------------------------
+
 text::text(string textStrings, string fontFile, int fontSize)
 {
 	tex = 0;
@@ -289,6 +445,9 @@ text::text(string textStrings, string fontFile, int fontSize)
 	if(fontFile != "")
 		textFont = new font(fontFile, fontSize);
 }
+
+//-----------------------------------------------------------------------
+
 text::~text()
 {
 	if(tex)
@@ -304,6 +463,9 @@ text::~text()
 	textString.clear();
 	x = y =0;
 }
+
+//-----------------------------------------------------------------------
+
 void text::ResizeText(int textSize)
 {
 	if(textFont)
@@ -317,11 +479,17 @@ void text::ResizeText(int textSize)
 		Write(x, y);
 	}
 }
+
+//-----------------------------------------------------------------------
+
 void text::SetCoordinates(GLfloat new_x, GLfloat new_y)
 {
 	x = new_x;
 	y = new_y;
 }
+
+//-----------------------------------------------------------------------
+
 void text::Draw(float x, float y, int size, GLfloat Rotation, int center,
 			GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
@@ -379,15 +547,23 @@ void text::Draw(float x, float y, int size, GLfloat Rotation, int center,
 	glLoadIdentity();
 }
 
+//-----------------------------------------------------------------------
+
 // Создаём текстуру
 void text::CreateTex()
 {
-	if(!textFont)
+	if(!textFont || !textFont->ttf_font)
 	{
 #ifdef DEBUG_ERRORS
 		cout << "Unable to CreateTex text with NULL font " << endl;
 #endif
 		return;
+	}
+
+	if(tex)
+	{
+		glDeleteTextures(1, &tex);
+		tex = 0;
 	}
 
 	SDL_Surface *temp = 0, *tempb = 0;
@@ -406,15 +582,6 @@ void text::CreateTex()
 	amask = 0xff000000;
 #endif
 
-	if(!textFont->ttf_font)
-	{
-	#ifdef DEBUG_ERRORS
-			cout << "Unable to CreateTex text with NULL font : "<< SDL_GetError() << endl;
-	#endif
-			SDL_FreeSurface(temp);
-			SDL_FreeSurface(tempb);
-			return;
-	}
 	TTF_SizeUTF8(textFont->ttf_font, textString.c_str(), &w, &h);
 	//temp = TTF_RenderUTF8_Solid(textFont->ttf_font, textString.c_str(), textFont->format.textcolor);
 	//TODO:test
@@ -470,11 +637,17 @@ void text::CreateTex()
 	SDL_FreeSurface(temp);
 	SDL_FreeSurface(tempb);
 }
+
+//-----------------------------------------------------------------------
+
 void text::Bind()
 {
 	if(tex)
 		glBindTexture(GL_TEXTURE_2D, tex);
 }
+
+//-----------------------------------------------------------------------
+
 void text::Write(GLfloat new_x, GLfloat new_y, int size, GLfloat Rotation, int center,
 		GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
@@ -498,10 +671,15 @@ void text::Write(GLfloat new_x, GLfloat new_y, int size, GLfloat Rotation, int c
 
 	Draw(x, y, size, Rotation, center, red, green, blue, alpha);
 }
+
+//-----------------------------------------------------------------------
+
 void text::SetText(std::string newText)
 {
 	textString = newText;
 }
+
+//-----------------------------------------------------------------------
 
 text_manager::text_manager()
 {
@@ -509,6 +687,9 @@ text_manager::text_manager()
 	if(!Texts.empty())
 		Texts.clear();
 }
+
+//-----------------------------------------------------------------------
+
 text_manager::~text_manager()
 {
 	DeleteText();
@@ -516,6 +697,9 @@ text_manager::~text_manager()
 		Texts.clear();
 	Graphics = 0;
 }
+
+//-----------------------------------------------------------------------
+
 // Получаем информацию по тексту
 text *text_manager::GetTextInfos(GLuint texture)
 {
@@ -529,6 +713,9 @@ text *text_manager::GetTextInfos(GLuint texture)
 	}
 	return 0;
 }
+
+//-----------------------------------------------------------------------
+
 //Удаляем текст
 void text_manager::DeleteText()
 {
@@ -537,6 +724,9 @@ void text_manager::DeleteText()
 		delete Texts[loop];
 	}
 }
+
+//-----------------------------------------------------------------------
+
 //Добавляем и удаляем из вектора управляющего текстом
 void text_manager::ManageText(text *managed_text)
 {
@@ -552,6 +742,9 @@ void text_manager::ManageText(text *managed_text)
 */
 	Texts.push_back(managed_text);
 }
+
+//-----------------------------------------------------------------------
+
 void text_manager::UnManageText(text *managed_text)
 {
 	// Удаляем текст из вектора управления
@@ -591,7 +784,11 @@ void text_manager::UnManageText(text *managed_text)
 	}
 }
 
+//-----------------------------------------------------------------------
+
 void text_manager::SetGraphics(graphics *setGraphics)
 {
 	Graphics = setGraphics;
 }
+
+//-----------------------------------------------------------------------

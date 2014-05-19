@@ -22,6 +22,7 @@ input::input()
 	KeyStates.clear();
 	MouseButtons.clear();
 	KeyHeldTime.clear();
+	Engine = 0;
 }
 
 //-----------------------------------------------------------------------
@@ -49,6 +50,7 @@ input::~input()
 
 int input::init()
 {
+	KeyStates[KEY_ESCAPE] = 'n';
 	return 0;
 }
 
@@ -56,9 +58,6 @@ int input::init()
 
 Uint32 input::TimeHeld(eKey Key)
 {
-	if(KeyHeldTime.size() < (unsigned int)Key)
-		return 0;
-
 	if(KeyStates[Key] != 'h')
 		return KeyHeldTime[Key];
 
@@ -69,9 +68,6 @@ Uint32 input::TimeHeld(eKey Key)
 
 bool input::IsKeyHeld(eKey Key)
 {
-	if(KeyStates.size() < (unsigned int)Key)
-		return false;
-
 	if(KeyStates[Key] == 'h')
 	{
 		return true;
@@ -83,9 +79,6 @@ bool input::IsKeyHeld(eKey Key)
 
 bool input::IsKeyDown(eKey Key)
 {
-	if(KeyStates.size() < (unsigned int)Key)
-		return false;
-
 	if(KeyStates[Key] == 'd')
 	{
 		return true;
@@ -97,9 +90,6 @@ bool input::IsKeyDown(eKey Key)
 
 bool input::IsKeyUp(eKey Key)
 {
-	if(KeyStates.size() < (unsigned int)Key)
-		return false;
-
 	if(KeyStates[Key] == 'u')
 	{
 		return true;
@@ -119,7 +109,7 @@ int input::Update()
 		switch(event.type)
 		{
 			case SDL_QUIT:
-				return true;
+				return 1;
 				break;
 			case SDL_KEYDOWN:
 				KeyStates[event.key.keysym.sym] = 'd';

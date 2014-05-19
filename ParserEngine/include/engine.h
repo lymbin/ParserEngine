@@ -14,6 +14,7 @@
 #ifdef DEBUGGING
 #define DEBUG_SYS
 #define DEBUG_ERRORS
+#define DEBUG_INFOS
 #endif
 
 
@@ -50,12 +51,17 @@
 
 ///////////////// MAIN SYSTEM CONSTANTS /////////////////
 
-const int 			SYS_AUDIO = 0; 		//без аудио
-const int			SYS_FULLSCREEN = 0;	//оконный режим
-const int			SYS_WIDTH = 1024;	//ширина
-const int			SYS_HEIGTH = 768;	//высота
-const int			SYS_BPP = 32;		//палитра
-const int			SYS_FPS = 60;		//FPS
+const int 			SYS_AUDIO = 0; 					//аудио(0 - отключено, !0 - включено)
+const int			SYS_FULLSCREEN = 0;				//оконный режим(0 - оконный режим, !0 - полноэкранны режим)
+const int			SYS_REGULATING_FRAME_RATE = 0;	//регулируем ли FPS(0 - нет, !0 - да)
+
+const int			SYS_WIDTH = 1024;				//ширина
+const int			SYS_HEIGTH = 768;				//высота
+const int			SYS_BPP = 32;					//палитра
+const int			SYS_FPS = 60;					//FPS
+
+const int			SYS_FRAME_PIXELS = 10;
+
 
 ///////////////// GRAPHIC SYSTEM CONSTANTS /////////////////
 
@@ -74,20 +80,23 @@ const int 			SYS_AUDIO_BUFFERS = 1024;
 
 ///////////////// VERSIONS CONSTANTS /////////////////
 
-const std::string 	SYS_VERSION = "0.0.0.0.31";
-const std::string 	SYS_BUILD = "000031";
-const std::string	SYS_TEST_VERSION = "0.0.31";
+const std::string 	SYS_VERSION = "0.0.0.0.32";
+const std::string 	SYS_BUILD = "000032";
+const std::string	SYS_TEST_VERSION = "0.0.32";
 
 
 
 class graphics;
+class camera;
 class audio;
+class window;
 
 class game;
 struct textureClass;
 //class texture;
 class image;
 class texture_manager;
+
 
 class font_manager;
 class font;
@@ -128,6 +137,9 @@ public:
 	//TODO: Всё что ниже к движку не относится - перенести в собственные системы
 	SDL_Event event; //перевести в отдельный компонент
 
+	// Храним количество отрисованных кадров
+	unsigned int frame;
+
 	//Таймер для подсчёта FPS
 	p_timer fps;
 
@@ -149,8 +161,15 @@ class graphics
 
 	int FullScreen;
 
+	int	ScreenWidth; 	//ширина
+	int	ScreenHeigth;	//высота
+	int	ScreenBpp;		//палитра
+
+	camera *Camera;
+	window *Window;
+
 public:
-	graphics();
+	graphics(int W = SYS_WIDTH, int H = SYS_HEIGTH, int BPP = SYS_BPP);
 	~graphics();
 
 	// Инициализируем все внутренние подсистемы
@@ -201,11 +220,40 @@ public:
 	// Устанавливаем текущую забинженную текстуру
 	void SetCurrentTexture(GLuint texture);
 
-	SDL_Surface *Screen() {return screen;}
-	GLuint GetCurrentTexture() {return CurrentTexture;}
+	SDL_Surface *Screen();
+	GLuint GetCurrentTexture();
+
+	int GetScreenWidth();
+	int GetScreenHeigth();
+	int GetScreenBpp();
+
 
 };
+class camera
+{
+	GLfloat gCameraX;
+	GLfloat gCameraY;
+public:
+	camera();
+	~camera();
 
+	void MoveTo(GLfloat x, GLfloat y);
+	void SetPosition(GLfloat x, GLfloat y);
+
+	GLfloat GetXposition();
+	GLfloat GetYposition();
+};
+class window
+{
+	graphics *Graphics;
+	bool windowed;
+public:
+	window(graphics *gfx = 0);
+
+	void handle_events();
+	void ToggleFullScreen();
+
+};
 class texture_manager
 {
 	// Менеджер текстур - управляет памятью.
@@ -409,7 +457,9 @@ public:
 	void SetTexManager(font_manager *FonManager);
 
 	// Пишем текст прямо из класса шрифт и вносим текст в менеджер текста
-	void Write(std::string text, GLuint tex, GLfloat x, GLfloat y);
+	// обязательно удалить tex после каждого кадра - иначе будет засорять память
+	void Write(std::string text, GLfloat x, GLfloat y, GLuint *tex,
+			GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
 
 	// Получаем высоту шрифта
 	int GetHeigth();
@@ -464,6 +514,11 @@ class text
 	void CreateTex();
 	void Bind();
 
+	// Отрисовка текста от точки, в определённом размере, с заданным углом поворота,
+	//		относительно центра или левого верхнего угла указанным цветом
+	void Draw(float x, float y, int size = -1, GLfloat Rotation = 0, int center = 0,
+			GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f) ;
+
 public:
 	text(std::string textStrings = "", std::string fontFile = "", int fontSize = SYS_TEXT_SIZE);
 	text(std::string textStrings, font	*textFont);
@@ -489,12 +544,6 @@ public:
 	// Меняем размер текста(шрифта)
 	// TODO: переделать - сделать изменение размера текста не зависимое от размера шрифта
 	void ResizeText(int textSize);
-
-	// Отрисовка текста от точки, в определённом размере, с заданным углом поворота,
-	//		относительно центра или левого верхнего угла указанным цветом
-	void Draw(float x, float y, int size = -1, GLfloat Rotation = 0, int center = 0,
-			GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f) ;
-
 };
 
 class sound
@@ -725,6 +774,7 @@ class input
 	int MouseY;
 
 	std::vector <char> MouseButtons;
+
 public:
 	input();
 	~input();
@@ -746,20 +796,8 @@ public:
 
 	// Обновить
 	int Update();
-};
-class camera
-{
-	GLfloat gCameraX;
-	GLfloat gCameraY;
-public:
-	camera();
-	~camera();
 
-	void MoveTo(GLfloat x, GLfloat y);
-	void SetPosition(GLfloat x, GLfloat y);
-
-	GLfloat GetXposition();
-	GLfloat GetYposition();
+	engine *Engine;
 };
 
 class collision_AABB
@@ -941,6 +979,17 @@ public:
 #endif
 };
 
+// Класс событий, которые должны обрабатывать разные классы
+// Например обрабатывать нажатие кнопок будет класс Input, класс Window будет обрабатывать изменения размеров окна
+class events
+{
+	SDL_Event event;
+public:
+	events();
+	~events();
+
+	int handle_events();
+};
 
 
 // TODO: нереализованные классы:

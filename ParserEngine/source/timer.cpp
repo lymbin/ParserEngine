@@ -41,7 +41,7 @@ void p_timer::stop()
 
 	paused = false;
 }
-int p_timer::get_ticks()
+unsigned int p_timer::get_ticks()
 {
 	//Получаем время таймера
 	if(started)

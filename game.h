@@ -58,13 +58,16 @@ class game: public engine
 	hero *Hero;
 
 public:
+	game();
+	~game();
+
 	int LoadTextures();
 	void FreeTextures();
 	void update();
 	void render();
 	void MainLoop();
-	game();
-	~game();
+
+
 };
 
 

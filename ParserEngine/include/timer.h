@@ -12,10 +12,10 @@ class p_timer
 {
 	//Класс таймера
 	//Начальное значение таймера
-	int startTicks;
+	unsigned int startTicks;
 
 	//Значение таймера при паузе
-	int pausedTicks;
+	unsigned int pausedTicks;
 
 	//Пауза
 	bool paused;
@@ -32,7 +32,7 @@ public:
 	void unpause();
 
 	//Получить текущее время
-	int get_ticks();
+	unsigned int get_ticks();
 
 	bool is_started() {return started;}
 	bool is_paused() {return paused;}

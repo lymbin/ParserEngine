@@ -34,9 +34,13 @@ int engine::init()
 	if(Input->init() < 0)
 		return -1;
 
+	Input->Engine = this;
+
 	Collision = new collision();
 	if(Collision->init() < 0)
 		return -1;
+
+	frame = 0;
 
 #ifdef DEBUG_SYS
 	cout << "All system initialization - success" << endl;
@@ -88,6 +92,7 @@ engine::engine()
 	//Другие компоненты
 	//
 	//
+	frame = 0;
 }
 engine::~engine()
 {
