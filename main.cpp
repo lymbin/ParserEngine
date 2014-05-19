@@ -136,6 +136,7 @@ void game::MainLoop()
 			render();
 		}
 
+
 		if(simple_menu)
 		{
 			help_text->ResizeText(20);
@@ -164,11 +165,13 @@ void game::MainLoop()
 							help_text->GetFont()->CalcTextHeigth(help_text->GetText())*2);
 
 		}
+
 		std::stringstream sstream;
 		sstream << "PreAlpha ParserEngine Demo. Version " << SYS_TEST_VERSION << ".";
 		help_text->SetText(sstream.str());
 		help_text->Write(Graphics->GetScreenWidth() - help_text->GetFont()->CalcTextWidth(help_text->GetText()) - SYS_FRAME_PIXELS,
 						Graphics->GetScreenHeigth() - help_text->GetFont()->CalcTextHeigth(help_text->GetText()) - SYS_FRAME_PIXELS);
+
 		sstream.str(string());
 		// Выводим FPS поверх игры
 #ifdef DEBUG_INFOS

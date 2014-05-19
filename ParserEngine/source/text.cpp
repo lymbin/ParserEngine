@@ -276,6 +276,9 @@ int font::CalcTextHeigth(string text)
 // Открываем шрифт из источника
 int font::Open(string source, int fontSize)
 {
+	if(ttf_font)
+		TTF_CloseFont(ttf_font);
+
 	ttf_font = TTF_OpenFont(source.c_str(), fontSize);
 	if(!ttf_font)
 	{
