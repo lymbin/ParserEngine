@@ -11,10 +11,28 @@ using namespace std;
 
 bool game::quit = false;
 
+somebox::somebox()
+{
+	body = new collision_body();
+}
+somebox::~somebox()
+{
+
+}
+
+collision_body *somebox::GetCollisionBody()
+{
+	return body;
+}
 
 void game::update()
 {
 	// Обновляем все координаты объектов, текстов и прочего
+
+	if(Hero)
+	{
+		Hero->update();
+	}
 }
 void game::render()
 {
@@ -30,7 +48,11 @@ void game::render()
     //Graphics->DrawFilledRectangle(10, 10, 200, 100, 0.0f, 0.0f, 1.0f, 1.0f);
    // Graphics->DrawFilledRectangle(10, 110, 200, 100, 1.0f, 0.0f, 0.0f, 1.0f);
 
-
+	if(Hero)
+	{
+		Hero->render();
+	}
+/*
     if(Mmenu.background)
     {
     	PE_Rect Section;
@@ -49,6 +71,7 @@ void game::render()
     	//Mmenu.background->Draw(0.0, 0.0);
     	//Mmenu.background->Draw(500, 200, &Section, 1.4, 180);
     }
+    */
 /*
     if(Mmenu.title)
     {
@@ -65,6 +88,10 @@ void game::MainLoop()
 	cout << "Load textures" << endl;
 #endif
 	LoadTextures();
+#ifdef DEBUG_SYS
+	cout << "Creating objects" << endl;
+#endif
+	CreatingObjects();
 #ifdef DEBUG_SYS
 	cout << "Game start!" << endl;
 #endif
@@ -198,11 +225,35 @@ void game::MainLoop()
 	FreeTextures();
 }
 
+int game::CreatingObjects()
+{
+	if(Collision)
+	{
+		layer = Collision->NewCollisionLayer(Graphics->GetScreenWidth(), Graphics->GetScreenHeigth(), 0, 0);
+	}
+
+	if(!Hero)
+	{
+		Hero = new hero();
+		Hero->SetTexture(Mmenu.background);
+		Hero->SetGame(this);
+		Hero->SetStaticSpeed(20);
+
+		if(layer)
+			layer->AddCollisionBody(Hero->GetCollisionBody());
+	}
+	if(!Gui)
+	{
+		Gui = new game_gui();
+	}
+
+	return 0;
+}
+
+//Загружаем текстуры для дальнейшей работы с ними
 int game::LoadTextures()
 {
-	//Загружаем текстуры для дальнейшей работы с ними
-
-	Mmenu.background = new image("data/graphics/test/test1.png");
+	Mmenu.background = new image("data/graphics/test/test.png");
 	//Mmenu.background = new image("foo.png");
 	Mmenu.title = new text("FireFly", "data/fonts/non-free/Minecraftia.ttf", 30);
 	//Mmenu.background->SetColorKey();
@@ -233,9 +284,22 @@ game::game()
 	Mmenu.title = 0;
 	Gui = 0;
 	Hero = 0;
+	layer = 0;
 }
 game::~game()
 {
+	if(Hero)
+	{
+		delete Hero;
+	}
+	if(Gui)
+	{
+		delete Gui;
+	}
+	if(layer)
+	{
+		delete layer;
+	}
 #ifdef DEBUG_SYS
 	cout << "Game clean up - success" << endl;
 #endif

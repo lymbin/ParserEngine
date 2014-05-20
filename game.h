@@ -33,6 +33,16 @@ struct MainMenu
 
 class hero;
 
+class somebox
+{
+	PE_Rect Box;
+	collision_body *body;
+public:
+	somebox();
+	~somebox();
+
+	collision_body *GetCollisionBody();
+};
 
 struct bottom_gui
 {
@@ -56,15 +66,28 @@ class game: public engine
 	MainMenu Mmenu;
 	game_gui *Gui;
 	hero *Hero;
+	collision_layer *layer;
 
 public:
 	game();
 	~game();
 
+	// Определяем объекты
+	int CreatingObjects();
+
+	// Загружаем текстуры
 	int LoadTextures();
+
+	// Освобождаем текстуры
 	void FreeTextures();
+
+	// Обновляем координаты текстур и объектов
 	void update();
+
+	// Отрисовываем текстуры и объекты
 	void render();
+
+	// Основной цикл
 	void MainLoop();
 
 

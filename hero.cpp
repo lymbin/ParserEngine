@@ -7,6 +7,7 @@
 
 #include "hero.h"
 
+using namespace std;
 
 hero::hero(std::string nam, int hp)
 {
@@ -24,7 +25,7 @@ hero::hero(std::string nam, int hp)
 	weapon.sub_classification = TEST_WEAPON_NONE;
 
 	static_texture = 0;
-	static_anim_speed = 0;
+	static_anim_speed = HERO_ANIM_SPEED;
 	/*
 	moveright_animation = 0;
 	moveleft_animation = 0;
@@ -43,6 +44,7 @@ hero::hero(std::string nam, int hp)
 	Box.Width = 0;
 
 	body = new collision_body();
+	//body->SetAABBBox(Box);
 
 	//jumped = false;
 
@@ -52,7 +54,6 @@ hero::~hero()
 {
 	if(static_texture)
 	{
-		delete static_texture;
 		static_texture = 0;
 	}
 	/*
@@ -95,6 +96,10 @@ hero::~hero()
 		body = 0;
 	}
 	Game = 0;
+
+#ifdef DEBUG_SYS
+	cout << "One hero deleted..." << endl;
+#endif
 }
 
 void hero::move(int direction, int animation, int animpos)
@@ -106,9 +111,23 @@ void hero::move(int direction, int animation, int animpos)
 		else if(direction == MOVE_LEFT)
 			Box.X-=static_anim_speed;
 		else if(direction == MOVE_UP)
-			Box.Y+=static_anim_speed;
-		else if(direction == MOVE_DOWN)
 			Box.Y-=static_anim_speed;
+		else if(direction == MOVE_DOWN)
+			Box.Y+=static_anim_speed;
+
+		// Пока блочим движение тела
+		// 	но в дальнейшем нужно менять камеру при движении
+		if(Game && Game->Graphics && static_texture)
+		{
+			if(Box.X > (Game->Graphics->GetScreenWidth()- static_texture->Width()))
+				Box.X-=static_anim_speed;
+			if(Box.X < 0)
+				Box.X+=static_anim_speed;
+			if(Box.Y > (Game->Graphics->GetScreenHeigth() - static_texture->Heigth()))
+				Box.Y-=static_anim_speed;
+			if(Box.Y < 0)
+				Box.Y+=static_anim_speed;
+		}
 	}
 	else
 	{
@@ -124,22 +143,25 @@ void hero::move(int direction, int animation, int animpos)
 					else if(animation == ANIM_MOVE_LEFT)
 						Box.X-=AnimIter->second.speed;
 					else if(animation == ANIM_MOVE_UP)
-						Box.Y+=AnimIter->second.speed;
-					else if(animation == ANIM_MOVE_DOWN)
 						Box.Y-=AnimIter->second.speed;
+					else if(animation == ANIM_MOVE_DOWN)
+						Box.Y+=AnimIter->second.speed;
 					else
 						break;
 
 					// Пока блочим движение тела
 					// 	но в дальнейшем нужно менять камеру при движении
-					if(Box.X > SYS_WIDTH)
-						Box.X-=AnimIter->second.speed;
-					else if(Box.X < 0)
-						Box.X+=AnimIter->second.speed;
-					if(Box.Y > SYS_HEIGTH)
-						Box.Y-=AnimIter->second.speed;
-					else if(Box.Y < 0)
-						Box.Y+=AnimIter->second.speed;
+					if(Game && Game->Graphics)
+					{
+						if(Box.X > Game->Graphics->GetScreenWidth())
+							Box.X-=AnimIter->second.speed;
+						if(Box.X < 0)
+							Box.X+=AnimIter->second.speed;
+						if(Box.Y > Game->Graphics->GetScreenHeigth())
+							Box.Y-=AnimIter->second.speed;
+						if(Box.Y < 0)
+							Box.Y+=AnimIter->second.speed;
+					}
 
 					AnimIter->second.pAnim->Update();
 					break;
@@ -154,9 +176,23 @@ void hero::move(int direction, int animation, int animpos)
 			else if(animation == ANIM_MOVE_LEFT)
 				Box.X-=Anims[animpos].speed;
 			else if(animation == ANIM_MOVE_UP)
-				Box.Y+=Anims[animpos].speed;
-			else if(animation == ANIM_MOVE_DOWN)
 				Box.Y-=Anims[animpos].speed;
+			else if(animation == ANIM_MOVE_DOWN)
+				Box.Y+=Anims[animpos].speed;
+
+			// Пока блочим движение тела
+			// 	но в дальнейшем нужно менять камеру при движении
+			if(Game && Game->Graphics)
+			{
+				if(Box.X > Game->Graphics->GetScreenWidth())
+					Box.X-=Anims[animpos].speed;
+				if(Box.X < 0)
+					Box.X+=Anims[animpos].speed;
+				if(Box.Y > Game->Graphics->GetScreenHeigth())
+					Box.Y-=Anims[animpos].speed;
+				if(Box.Y < 0)
+					Box.Y+=Anims[animpos].speed;
+			}
 		}
 	}
 }
@@ -209,6 +245,7 @@ void hero::update()
 	if((!Game)||(!Game->Input))
 		return;
 
+	PE_Rect OldBox = Box;
 	int move_type = MOVE_NONE;	// Необходимо для движения
 	last_state = MOVE_NONE;		// Необходимо для учёта порядка движений по приоритетам
 
@@ -307,6 +344,9 @@ void hero::update()
 		}
 	}
 	*/
+
+	//body->SetAABBBox(Box);
+	//body->
 }
 void hero::render()
 {
@@ -346,26 +386,19 @@ void hero::render()
 			static_texture->Draw(Box.X, Box.Y);
 	}
 }
+
+// Устанавливаем статик текстуру и скорость текстуры, как четверть ширины
 void hero::SetTexture(image *texture)
 {
 	static_texture = texture;
-	if(!static_anim_speed && texture)
-	{
-		SetStaticSpeed(texture->Width()/4);
-	}
 }
 void hero::SetStaticSpeed(int speed)
 {
 	static_anim_speed = speed;
 }
-void hero::LoadTexture(std::string file)
+void hero::SetGame(game *gm)
 {
-	if(static_texture)
-	{
-		delete static_texture;
-		static_texture = 0;
-	}
-	static_texture = new image(file);
+	Game = gm;
 }
 void hero::SetAnim(int AnimType, image *texture, std::vector< PE_Rect > frames)
 {
@@ -468,4 +501,8 @@ inventory_item hero::GetArmor()
 inventory_item hero::GetWeapon()
 {
 	return weapon;
+}
+collision_body *hero::GetCollisionBody()
+{
+	return body;
 }

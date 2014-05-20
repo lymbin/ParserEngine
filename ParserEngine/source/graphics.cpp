@@ -144,7 +144,6 @@ void graphics::CleanUp()
 // Изменяем рамер окна
 void graphics::ResizeWin(int width, int heigth)
 {
-
 	// Обезопасиваем от деления на ноль
 	if(!heigth) heigth = 1;
 
@@ -165,8 +164,7 @@ void graphics::ResizeWin(int width, int heigth)
 		exit(1);
 	}
 
-	// Cохраняем матрицу вида
-	glPushMatrix();
+	glPopMatrix();
 
 	// Система координат - от точки (0,0) с размером SYS_WIDTHxSYS_HEIGTH
 	glViewport(0.0f, 0.0f, ScreenWidth, ScreenHeigth);
@@ -183,15 +181,8 @@ void graphics::ResizeWin(int width, int heigth)
 	glEnable(GL_TEXTURE_2D);	// Включаем текстурирование
 	glLoadIdentity();
 
-	glPopMatrix();
-
-/*
-	//Перезагружаем все хранящиеся в памяти текстуры
-	 * из менеджера текстур
-	 * TODO: нужно переделать менеджер и задать его глобально или через синглетон
-	ReloadTextures();
- */
-
+	// Cохраняем матрицу вида
+	glPushMatrix();
 
 #ifdef DEBUG_SYS
 	cout << "Resizing successful! New size: " << width << ":" << heigth << endl;

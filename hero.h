@@ -11,6 +11,7 @@
 #include "game.h"
 #include "Inventory.h"
 
+const int HERO_ANIM_SPEED = 20;
 
 struct sAnim
 {
@@ -64,18 +65,20 @@ public:
 	void render();
 
 	void SetTexture(image 	*texture);
-	void LoadTexture(std::string file);
 
 	void SetStaticSpeed(int speed);
 
 	void SetAnim(int AnimType, image *texture, std::vector< PE_Rect > frames);
 	void SetAnimSpeed(int AnimType, int speed);
 
+	void SetGame(game *gm);
+
 	//void SetHeroName();
 
 	sAnim GetAnim(int AnimType);
 	image *GetTexture();
 	PE_Rect GetBox();
+	collision_body *GetCollisionBody();
 
 	int GetStaticSpeed();
 

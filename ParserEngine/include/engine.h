@@ -80,9 +80,9 @@ const int 			SYS_AUDIO_BUFFERS = 1024;
 
 ///////////////// VERSIONS CONSTANTS /////////////////
 
-const std::string 	SYS_VERSION = "0.0.0.0.34";
-const std::string 	SYS_BUILD = "000034";
-const std::string	SYS_TEST_VERSION = "0.0.34";
+const std::string 	SYS_VERSION = "0.0.0.0.35";
+const std::string 	SYS_BUILD = "000035";
+const std::string	SYS_TEST_VERSION = "0.1.0.35";
 
 
 
@@ -923,6 +923,8 @@ public:
 	// Проверяем где именно находится заданное тело, относительно слоя
 	int CheckBodyInLayer(collision_body *body);
 
+	bool CheckCollision(collision_body *body);
+
 	// Удаляем тело из слоя
 	void EraseBody(collision_body *body);
 
@@ -956,10 +958,10 @@ public:
 	int init();
 
 	// Добавляем новое тело в систему столкновений
-	void NewCollisionBody(unsigned int LayerId, int ColPass = COLLISION_UNPASSABLE, int ColType = COLLISION_OUTSIDE, int BVType = COLLISION_AABB);
+	collision_body *NewCollisionBody(unsigned int LayerId, int ColPass = COLLISION_UNPASSABLE, int ColType = COLLISION_OUTSIDE, int BVType = COLLISION_AABB);
 
 	// Добавляем новый слой в систему столкновений
-	void NewCollisionLayer(GLfloat W = SYS_WIDTH, GLfloat H = SYS_HEIGTH, GLfloat X = 0, GLfloat Y = 0);
+	collision_layer *NewCollisionLayer(GLfloat W = SYS_WIDTH, GLfloat H = SYS_HEIGTH, GLfloat X = 0, GLfloat Y = 0);
 
 	// Добавляем тело в слой с указанным id
 	void AddBodyToLayer(collision_body *body, unsigned int LayerId);

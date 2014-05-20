@@ -157,8 +157,6 @@ collision::~collision()
 
 bool collision_AABB::OverlapsAABB(collision_AABB aabb)
 {
-	// TODO: упростить с помощью векторов
-
 	return collision::CheckCollision(AABBBodyBox, aabb.AABBBodyBox);
 }
 
@@ -357,6 +355,24 @@ int collision_layer::CheckBodyInLayer(collision_body *body)
 
 //-----------------------------------------------------------------------
 
+bool collision_layer::CheckCollision(collision_body *body)
+{
+	if(!bodies.empty() && (CheckBodyInLayer(body)!=COLLISION_OUTSIDE))
+	{
+		for(unsigned int loop = 0; loop < bodies.size(); ++loop)
+		{
+			if(bodies[loop]!=body)
+			{
+				collision_AABB *AABBbody = body;
+				bodies[loop]->OverlapsAABB(*AABBbody);
+			}
+		}
+	}
+	return false;
+}
+
+//-----------------------------------------------------------------------
+
 void collision_layer::EraseBody(collision_body *body)
 {
 	if(!bodies.empty())
@@ -428,18 +444,20 @@ int collision::init()
 
 //-----------------------------------------------------------------------
 
-void collision::NewCollisionBody(unsigned int LayerId, int ColPass, int ColType, int BVType)
+collision_body *collision::NewCollisionBody(unsigned int LayerId, int ColPass, int ColType, int BVType)
 {
 	collision_body *NewCollisionBody = new collision_body(ColPass, ColType, BVType);
 	layers[LayerId]->bodies.push_back(NewCollisionBody);
+	return NewCollisionBody;
 }
 
 //-----------------------------------------------------------------------
 
-void collision::NewCollisionLayer(GLfloat W, GLfloat H, GLfloat X, GLfloat Y)
+collision_layer *collision::NewCollisionLayer(GLfloat W, GLfloat H, GLfloat X, GLfloat Y)
 {
 	collision_layer *NewLayer = new collision_layer(W, H, X, Y);
 	layers.push_back(NewLayer);
+	return NewLayer;
 }
 
 //-----------------------------------------------------------------------
