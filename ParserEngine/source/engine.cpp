@@ -40,6 +40,10 @@ int engine::init()
 	if(Collision->init() < 0)
 		return -1;
 
+	Events = new events(Input, Graphics->GetWindow());
+	if(Events->init() < 0)
+		return -1;
+
 	frame = 0;
 
 #ifdef DEBUG_SYS
@@ -71,6 +75,11 @@ void engine::CleanUp()
 		delete Collision;
 		Collision = 0;
 	}
+	if(Events)
+	{
+		delete Events;
+		Events = 0;
+	}
 #ifdef DEBUG_SYS
 	cout << "Engine clean up - success" << endl;
 #endif
@@ -89,6 +98,7 @@ engine::engine()
 	Audio = 0;
 	Input = 0;
 	Collision = 0;
+	Events = 0;
 	//Другие компоненты
 	//
 	//

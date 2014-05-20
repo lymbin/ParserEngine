@@ -80,9 +80,9 @@ const int 			SYS_AUDIO_BUFFERS = 1024;
 
 ///////////////// VERSIONS CONSTANTS /////////////////
 
-const std::string 	SYS_VERSION = "0.0.0.0.33";
-const std::string 	SYS_BUILD = "000033";
-const std::string	SYS_TEST_VERSION = "0.0.33";
+const std::string 	SYS_VERSION = "0.0.0.0.34";
+const std::string 	SYS_BUILD = "000034";
+const std::string	SYS_TEST_VERSION = "0.0.34";
 
 
 
@@ -105,6 +105,7 @@ class text;
 class animation;
 
 class input;
+class events;
 
 class collision_AABB;
 class collision_OBB;
@@ -130,12 +131,12 @@ public:
 	audio *Audio;
 	input *Input;
 	collision *Collision;
+	events *Events;
 	//textures
 	//animation
 	//timer
 
 	//TODO: Всё что ниже к движку не относится - перенести в собственные системы
-	SDL_Event event; //перевести в отдельный компонент
 
 	// Храним количество отрисованных кадров
 	unsigned int frame;
@@ -227,7 +228,8 @@ public:
 	int GetScreenHeigth();
 	int GetScreenBpp();
 
-
+	camera *GetCamera();
+	window *GetWindow();
 };
 class camera
 {
@@ -250,7 +252,7 @@ class window
 public:
 	window(graphics *gfx = 0);
 
-	void handle_events();
+	int handle_event(SDL_Event event);
 	void ToggleFullScreen();
 
 };
@@ -797,6 +799,8 @@ public:
 	// Обновить
 	int Update();
 
+	int handle_event(SDL_Event event);
+
 	engine *Engine;
 };
 
@@ -984,11 +988,17 @@ public:
 class events
 {
 	SDL_Event event;
+
 public:
-	events();
+	events(input *In = 0, window *Win = 0);
 	~events();
 
+	int init();
+
 	int handle_events();
+
+	input *Input;
+	window *Window;
 };
 
 

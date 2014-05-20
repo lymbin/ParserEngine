@@ -9,6 +9,34 @@
 
 using namespace std;
 
+
+graphics::graphics(int W, int H, int BPP)
+{
+	ScreenWidth = W;
+	ScreenHeigth = H;
+	ScreenBpp = BPP;
+
+	FontManager = new font_manager();
+	FontManager->SetGraphics(this);
+
+	TextureManager = new texture_manager();
+	TextureManager->SetGraphics(this);
+	FullScreen = SYS_FULLSCREEN;
+	CurrentTexture = 0;
+	screen = 0;
+
+	Camera = new camera();
+	Window = new window(this);
+}
+graphics::~graphics()
+{
+	CleanUp();
+
+#ifdef DEBUG_SYS
+	cout << "Graphics clean up - success" << endl;
+#endif
+}
+
 int graphics::init()
 {
 	// Инициализация основных компонентов графики
@@ -44,6 +72,7 @@ int graphics::init()
 }
 int graphics::initGL()
 {
+	ClearScreen();
 	// Система координат - от точки (0,0) с размером SYS_WIDTHxSYS_HEIGTH
 	glViewport(0.0f, 0.0f, ScreenWidth, ScreenHeigth);
 
@@ -65,9 +94,13 @@ int graphics::initGL()
 	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
 	glClearDepth(1.0f);
 
+
 	//Включаем альфа-канал и блендинг
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	glEnable( GL_BLEND );
+
+	glDisable(GL_LIGHTING);
+
 
 	//Проверка на ошибки
 	GLenum error = glGetError();
@@ -78,9 +111,11 @@ int graphics::initGL()
 #endif
 		return -1;
 	}
+
 #ifdef DEBUG_SYS
 	cout << "Graphics initialization - success" << endl;
 #endif
+
 	return 0;
 }
 void graphics::CleanUp()
@@ -106,28 +141,22 @@ void graphics::CleanUp()
 	FontManager = 0;
 	CurrentTexture = 0;
 }
-
+// Изменяем рамер окна
 void graphics::ResizeWin(int width, int heigth)
 {
-	//Изменяем рамер окна
-	//TODO: доделать тут
-	GLfloat ratio;
+
+	// Обезопасиваем от деления на ноль
 	if(!heigth) heigth = 1;
 
-	ratio = (GLfloat) width/(GLfloat)heigth;
-	glViewport(0, 0, (GLsizei) width, (GLsizei) heigth);
+	// Устанавливаем новые параметры окна
+	ScreenWidth = width;
+	ScreenHeigth = heigth;
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(45.5f, ratio, 0.1f, 10.0f);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
-	//Другая версия - пока тестовая
-	/*
-	if(!heigth) heigth = 1;
+	// Устанавливаем новый видео режим
 	screen = SDL_SetVideoMode(ScreenWidth, ScreenHeigth, ScreenBpp, SDL_OPENGL|SDL_RESIZABLE);
+	ClearScreen();
+
+	// Выходим из программы, если не можем изменить размеры окна
 	if(!screen)
 	{
 #ifdef DEBUG_ERRORS
@@ -136,16 +165,38 @@ void graphics::ResizeWin(int width, int heigth)
 		exit(1);
 	}
 
-	//Инициализация всех возможностей OpenGL
-	InitGL();
+	// Cохраняем матрицу вида
+	glPushMatrix();
 
+	// Система координат - от точки (0,0) с размером SYS_WIDTHxSYS_HEIGTH
+	glViewport(0.0f, 0.0f, ScreenWidth, ScreenHeigth);
+
+	//Инициируем матрице проекции
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	// Устанавливаем максимум и минимум в системе координат по разным осям
+	glOrtho(0.0, ScreenWidth, ScreenHeigth, 0.0, -1.0, 1.0);
+
+	//Инициирцуем матрицу вида
+	glMatrixMode(GL_MODELVIEW);
+	glEnable(GL_TEXTURE_2D);	// Включаем текстурирование
+	glLoadIdentity();
+
+	glPopMatrix();
+
+/*
 	//Перезагружаем все хранящиеся в памяти текстуры
 	 * из менеджера текстур
 	 * TODO: нужно переделать менеджер и задать его глобально или через синглетон
 	ReloadTextures();
+ */
 
 
-	 */
+#ifdef DEBUG_SYS
+	cout << "Resizing successful! New size: " << width << ":" << heigth << endl;
+#endif
+
 }
 // Очистка экрана
 void graphics::ClearScreen()
@@ -195,6 +246,7 @@ void graphics::ToggleFullScreen()
 void graphics::DrawRectangle(GLfloat x, GLfloat y, GLfloat width, GLfloat height,
 								GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
+	glPushMatrix();
 	//TODO: доделать работу с камерой
 	glLoadIdentity();
 
@@ -208,6 +260,8 @@ void graphics::DrawRectangle(GLfloat x, GLfloat y, GLfloat width, GLfloat height
 	glEnd();
 
 	glLoadIdentity();
+
+	glPopMatrix();
 }
 
 // Рисуем заполненный цветом прямоугольник
@@ -270,31 +324,11 @@ int graphics::GetScreenBpp()
 {
 	return ScreenBpp;
 }
-
-graphics::graphics(int W, int H, int BPP)
+camera *graphics::GetCamera()
 {
-	ScreenWidth = W;
-	ScreenHeigth = H;
-	ScreenBpp = BPP;
-
-	FontManager = new font_manager();
-	FontManager->SetGraphics(this);
-
-	TextureManager = new texture_manager();
-	TextureManager->SetGraphics(this);
-	FullScreen = SYS_FULLSCREEN;
-	CurrentTexture = 0;
-	screen = 0;
-
-	Camera = new camera();
-	Window = new window(this);
+	return Camera;
 }
-graphics::~graphics()
+window *graphics::GetWindow()
 {
-	CleanUp();
-
-#ifdef DEBUG_SYS
-	cout << "Graphics clean up - success" << endl;
-#endif
+	return Window;
 }
-

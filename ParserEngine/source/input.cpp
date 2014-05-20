@@ -99,38 +99,42 @@ bool input::IsKeyUp(eKey Key)
 
 //-----------------------------------------------------------------------
 
+int input::handle_event(SDL_Event event)
+{
+	std::vector< eKey> keys;
+	switch(event.type)
+	{
+		case SDL_KEYDOWN:
+			KeyStates[event.key.keysym.sym] = 'd';
+			keys.push_back((eKey)event.key.keysym.sym);
+			return 1;
+			break;
+		case SDL_KEYUP:
+			KeyStates[event.key.keysym.sym] = 'u';
+			keys.push_back((eKey)event.key.keysym.sym);
+			return 1;
+			break;
+		case SDL_MOUSEMOTION:
+			MouseX = event.motion.x;
+			MouseY = event.motion.y;
+			return 1;
+			break;
+		case SDL_MOUSEBUTTONDOWN:
+			return 1;
+			break;
+		case SDL_MOUSEBUTTONUP:
+			return 1;
+			break;
+	}
+
+	return 0;
+}
+
+//-----------------------------------------------------------------------
+
 int input::Update()
 {
-	SDL_Event event;
 	std::vector< eKey> keys;
-
-	while( SDL_PollEvent(&event))
-	{
-		switch(event.type)
-		{
-			case SDL_QUIT:
-				return 1;
-				break;
-			case SDL_KEYDOWN:
-				KeyStates[event.key.keysym.sym] = 'd';
-				keys.push_back((eKey)event.key.keysym.sym);
-				break;
-			case SDL_KEYUP:
-				KeyStates[event.key.keysym.sym] = 'u';
-				keys.push_back((eKey)event.key.keysym.sym);
-				break;
-			case SDL_MOUSEMOTION:
-				MouseX = event.motion.x;
-				MouseY = event.motion.y;
-				break;
-			case SDL_MOUSEBUTTONDOWN:
-				break;
-			case SDL_MOUSEBUTTONUP:
-				break;
-			default:
-				break;
-		}
-	}
 
 	for(std::map<int, char>::iterator it = KeyStates.begin(); it != KeyStates.end(); it++)
 	{

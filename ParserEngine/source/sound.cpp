@@ -156,8 +156,8 @@ audio::~audio()
 	DeleteAllSounds();
 	DeleteAllMusic();
 
-	Mix_Quit();
 	Mix_CloseAudio();
+	Mix_Quit();
 
 #ifdef DEBUG_SYS
 	cout << "Audio clean up - success" << endl;
