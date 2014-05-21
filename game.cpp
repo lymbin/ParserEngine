@@ -83,18 +83,8 @@ void game::render()
 }
 void game::MainLoop()
 {
-
-#ifdef DEBUG_SYS
-	cout << "Load textures" << endl;
-#endif
 	LoadTextures();
-#ifdef DEBUG_SYS
-	cout << "Creating objects" << endl;
-#endif
 	CreatingObjects();
-#ifdef DEBUG_SYS
-	cout << "Game start!" << endl;
-#endif
 
 	Graphics->ClearScreen();
 	Graphics->SetColor(0.f, 0.f, 0.f, 1.f);
@@ -102,10 +92,14 @@ void game::MainLoop()
 
 	fps.start();
 
+#ifdef DEBUG_SYS
+	cout << "Game start!" << endl;
+#endif
+
 	text *help_text = new text("hlp", "data/fonts/non-free/Minecraftia.ttf", 16);
 
 #ifdef DEBUG_INFOS
-	font *fps_font = new font("data/fonts/non-free/Minecraftia.ttf", 18);
+	font *fps_font = new font("data/fonts/non-free/Minecraftia.ttf", 16);
 	std::string fps_rate;
 	GLuint tex = 0;
 
@@ -158,7 +152,7 @@ void game::MainLoop()
 
 		if(simple_menu)
 		{
-			help_text->ResizeText(20);
+			help_text->ResizeText(18);
 			// Отрисовываем текст в центре
 			help_text->SetText("Press 1 to Play demo");
 			help_text->Write(Graphics->GetScreenWidth()/2 - help_text->GetFont()->CalcTextWidth(help_text->GetText())/2,
@@ -223,10 +217,15 @@ void game::MainLoop()
 #endif
 	delete help_text;
 	FreeTextures();
+	FreeObjects();
 }
 
 int game::CreatingObjects()
 {
+#ifdef DEBUG_SYS
+	cout << "Creating objects" << endl;
+#endif
+
 	if(Collision)
 	{
 		layer = Collision->NewCollisionLayer(Graphics->GetScreenWidth(), Graphics->GetScreenHeigth(), 0, 0);
@@ -240,7 +239,10 @@ int game::CreatingObjects()
 		Hero->SetStaticSpeed(20);
 
 		if(layer)
+		{
 			layer->AddCollisionBody(Hero->GetCollisionBody());
+			Hero->GetCollisionBody()->AddNewLayer(layer);
+		}
 	}
 	if(!Gui)
 	{
@@ -253,6 +255,9 @@ int game::CreatingObjects()
 //Загружаем текстуры для дальнейшей работы с ними
 int game::LoadTextures()
 {
+#ifdef DEBUG_SYS
+	cout << "Load textures" << endl;
+#endif
 	Mmenu.background = new image("data/graphics/test/test.png");
 	//Mmenu.background = new image("foo.png");
 	Mmenu.title = new text("FireFly", "data/fonts/non-free/Minecraftia.ttf", 30);
@@ -278,16 +283,11 @@ void game::FreeTextures()
 		delete Mmenu.title;
 	Mmenu.title = 0;
 }
-game::game()
+void game::FreeObjects()
 {
-	Mmenu.background = 0;
-	Mmenu.title = 0;
-	Gui = 0;
-	Hero = 0;
-	layer = 0;
-}
-game::~game()
-{
+#ifdef DEBUG_SYS
+	cout << "Freeing objects" << endl;
+#endif
 	if(Hero)
 	{
 		delete Hero;
@@ -300,6 +300,17 @@ game::~game()
 	{
 		delete layer;
 	}
+}
+game::game()
+{
+	Mmenu.background = 0;
+	Mmenu.title = 0;
+	Gui = 0;
+	Hero = 0;
+	layer = 0;
+}
+game::~game()
+{
 #ifdef DEBUG_SYS
 	cout << "Game clean up - success" << endl;
 #endif

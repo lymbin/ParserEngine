@@ -233,7 +233,7 @@ void collision_body::RemoveLayer(unsigned int LayerID)
 
 //-----------------------------------------------------------------------
 
-void collision_body::CheckInLayers()
+void collision_body::UpdateLayers()
 {
 	if(!CurrentLayers.empty())
 	{
@@ -247,6 +247,26 @@ void collision_body::CheckInLayers()
 			}
 		}
 	}
+}
+
+//-----------------------------------------------------------------------
+
+bool collision_body::CheckCollision()
+{
+	UpdateLayers();
+
+	if(!CurrentLayers.empty())
+	{
+		for(unsigned int loop = 0; loop < CurrentLayers.size(); ++loop)
+		{
+			if(CurrentLayers[loop])
+			{
+				CurrentLayers[loop]->CheckCollision(this);
+			}
+		}
+	}
+
+	return false;
 }
 
 //-----------------------------------------------------------------------
@@ -357,14 +377,29 @@ int collision_layer::CheckBodyInLayer(collision_body *body)
 
 bool collision_layer::CheckCollision(collision_body *body)
 {
-	if(!bodies.empty() && (CheckBodyInLayer(body)!=COLLISION_OUTSIDE))
+	if(!bodies.empty())
 	{
 		for(unsigned int loop = 0; loop < bodies.size(); ++loop)
 		{
 			if(bodies[loop]!=body)
 			{
-				collision_AABB *AABBbody = body;
-				bodies[loop]->OverlapsAABB(*AABBbody);
+				switch (body->GetBoundingVolumeType()) {
+					case COLLISION_AABB:
+						collision_AABB *AABBbody;
+						AABBbody = body;
+						bodies[loop]->OverlapsAABB(*AABBbody);
+						break;
+					case COLLISION_AABB_OBB:
+						//collision_AABB *AABBbody = body;
+						bodies[loop]->OverlapsAABB(*AABBbody);
+						// TODO: Доделать OBB
+						break;
+					case COLLISION_OBB:
+						// TODO: Доделать OBB
+						break;
+					default:
+						break;
+				}
 			}
 		}
 	}
@@ -448,6 +483,8 @@ collision_body *collision::NewCollisionBody(unsigned int LayerId, int ColPass, i
 {
 	collision_body *NewCollisionBody = new collision_body(ColPass, ColType, BVType);
 	layers[LayerId]->bodies.push_back(NewCollisionBody);
+	NewCollisionBody->Collision = this;
+	NewCollisionBody->AddNewLayer(layers[LayerId]);
 	return NewCollisionBody;
 }
 
@@ -457,6 +494,7 @@ collision_layer *collision::NewCollisionLayer(GLfloat W, GLfloat H, GLfloat X, G
 {
 	collision_layer *NewLayer = new collision_layer(W, H, X, Y);
 	layers.push_back(NewLayer);
+	NewLayer->Collision = this;
 	return NewLayer;
 }
 

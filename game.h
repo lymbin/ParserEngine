@@ -81,6 +81,9 @@ public:
 	// Освобождаем текстуры
 	void FreeTextures();
 
+	// Освобождаем объекты
+	void FreeObjects();
+
 	// Обновляем координаты текстур и объектов
 	void update();
 
@@ -92,7 +95,5 @@ public:
 
 
 };
-
-
 
 #endif /* GAME_H_ */
