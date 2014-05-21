@@ -651,11 +651,16 @@ void text::Bind()
 
 //-----------------------------------------------------------------------
 
-void text::Write(GLfloat new_x, GLfloat new_y, int size, GLfloat Rotation, int center,
+void text::Write(GLfloat new_x, GLfloat new_y, std::string text, int size, GLfloat Rotation, int center,
 		GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
 	//TODO: добавить посимвольную отрисовку текста с определением интервала между буквами и
 	//размером текста, независящим от размера шрифта
+
+	if(text!="")
+	{
+		SetText(text);
+	}
 
 	if(!textString.length())
 	{

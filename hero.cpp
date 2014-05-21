@@ -25,9 +25,11 @@ hero::hero(std::string nam, int hp)
 	weapon.sub_classification = TEST_WEAPON_NONE;
 
 	StaticTexture.texture = 0;
-	StaticTexture.static_anim_speed = HERO_ANIM_SPEED;
+	StaticTexture.static_anim_speed = 0;
 	StaticTexture.rotate_degrees = 0;
 	StaticTexture.scaled_multiplier = 1;
+
+	hero_speed = 0;
 
 	/*
 	moveright_animation = 0;
@@ -268,6 +270,25 @@ void hero::update()
 		}
 	}
 	*/
+
+	if(Game->Input->IsKeyDown(KEY_EQUALS) || Game->Input->IsKeyHeld(KEY_EQUALS))
+	{
+		int speed = GetStaticSpeed();
+		if(speed < MAX_HERO_ANIM_SPEED)
+		{
+			speed+=1;
+			SetStaticSpeed(speed);
+		}
+	}
+	else if(Game->Input->IsKeyDown(KEY_MINUS) || Game->Input->IsKeyHeld(KEY_MINUS))
+	{
+		int speed = GetStaticSpeed();
+		if(speed > 1)
+		{
+			speed-=1;
+			SetStaticSpeed(speed);
+		}
+	}
 
 	// Сначала проверяем нажате клавиш и забиваем переменную last_state
 	if(Game->Input->IsKeyDown(KEY_RIGHT) || Game->Input->IsKeyHeld(KEY_RIGHT))

@@ -75,6 +75,8 @@ class game: public engine
 	hero *Hero;
 	collision_layer *layer;
 
+	text *dynamic_text;
+
 public:
 	game();
 	~game();

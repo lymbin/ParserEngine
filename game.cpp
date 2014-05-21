@@ -65,6 +65,13 @@ void game::update()
 	if(Hero)
 	{
 		Hero->update();
+
+		if(dynamic_text)
+		{
+			std::stringstream sstream;
+			sstream << "Hero Speed: " << Hero->GetStaticSpeed();
+			dynamic_text->SetText(sstream.str());
+		}
 	}
 }
 void game::render()
@@ -84,6 +91,10 @@ void game::render()
 	if(Hero)
 	{
 		Hero->render();
+	}
+	if(dynamic_text)
+	{
+		dynamic_text->Write(SYS_FRAME_PIXELS, Graphics->GetScreenHeigth() - dynamic_text->GetFont()->CalcTextHeigth(dynamic_text->GetText()));
 	}
 /*
     if(Mmenu.background)
@@ -285,6 +296,10 @@ int game::CreatingObjects()
 	{
 		Gui = new game_gui();
 	}
+	if(!dynamic_text)
+	{
+		dynamic_text = new text("123", "data/fonts/non-free/Minecraftia.ttf", 14);
+	}
 
 	return 0;
 }
@@ -345,6 +360,7 @@ game::game()
 	Gui = 0;
 	Hero = 0;
 	layer = 0;
+	dynamic_text = 0;
 }
 game::~game()
 {

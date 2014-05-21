@@ -11,12 +11,12 @@
 #include "game.h"
 #include "Inventory.h"
 
-const int HERO_ANIM_SPEED = 20;
+const int MAX_HERO_ANIM_SPEED = 30;
 
 struct sAnim
 {
 	animation *pAnim;
-	int speed;
+	unsigned int speed;
 
 	float scaled_multiplier;
 	float rotate_degrees;
@@ -24,7 +24,7 @@ struct sAnim
 struct sStaticTexture
 {
 	image 		*texture;
-	int 		static_anim_speed;
+	unsigned int static_anim_speed;
 
 	float scaled_multiplier;
 	float rotate_degrees;
@@ -37,6 +37,7 @@ class hero
 	game 		*Game;
 
 	sStaticTexture StaticTexture;
+	unsigned int hero_speed;
 
 	std::map <int, sAnim > Anims;
 	std::map <int, sAnim >::iterator AnimIter;

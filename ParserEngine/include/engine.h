@@ -80,9 +80,9 @@ const int 			SYS_AUDIO_BUFFERS = 1024;
 
 ///////////////// VERSIONS CONSTANTS /////////////////
 
-const std::string 	SYS_VERSION = "0.0.0.0.37";
-const std::string 	SYS_BUILD = "000037";
-const std::string	SYS_TEST_VERSION = "0.1.2.37";
+const std::string 	SYS_VERSION = "0.0.0.0.38";
+const std::string 	SYS_BUILD = "000038";
+const std::string	SYS_TEST_VERSION = "0.1.3.38";
 
 
 
@@ -530,7 +530,7 @@ public:
 	font		*GetFont() {return textFont;}
 	std::string GetText() { return textString;}
 
-	void Write(GLfloat new_x, GLfloat new_y, int size = -1, GLfloat Rotation = 0, int center = 0,
+	void Write(GLfloat new_x, GLfloat new_y, std::string text = "", int size = -1, GLfloat Rotation = 0, int center = 0,
 			GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
 
 	// Устанавливаем текст для отрисовки
