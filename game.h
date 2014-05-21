@@ -37,9 +37,16 @@ class somebox
 {
 	PE_Rect Box;
 	collision_body *body;
+	game 		*Game;
 public:
-	somebox();
+	somebox(GLfloat W = 0, GLfloat H = 0, GLfloat X = 0, GLfloat Y = 0);
 	~somebox();
+
+	void update();
+	void render();
+
+	void SetBox(PE_Rect NewBox);
+	void SetGame(game *gm);
 
 	collision_body *GetCollisionBody();
 };

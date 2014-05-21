@@ -80,9 +80,9 @@ const int 			SYS_AUDIO_BUFFERS = 1024;
 
 ///////////////// VERSIONS CONSTANTS /////////////////
 
-const std::string 	SYS_VERSION = "0.0.0.0.36";
-const std::string 	SYS_BUILD = "000036";
-const std::string	SYS_TEST_VERSION = "0.1.1.36";
+const std::string 	SYS_VERSION = "0.0.0.0.37";
+const std::string 	SYS_BUILD = "000037";
+const std::string	SYS_TEST_VERSION = "0.1.2.37";
 
 
 
@@ -323,7 +323,6 @@ public:
 	// Вывод реальных размеров изображения
 	float Width();
 	float Heigth();
-
 
 	// Различные функции отрисовки
 	void DrawTransform(float x, float y, PE_Rect *Box,
@@ -815,7 +814,7 @@ public:
 	bool OverlapsAABB(collision_AABB aabb);
 	bool OverlapsOBB(collision_OBB obb);
 
-	void SetAABBBox(PE_Rect AABBBodyBox);
+	void SetAABBBox(PE_Rect NewBox);
 
 	// Положение тела
 	PE_Rect AABBBodyBox;
@@ -866,6 +865,9 @@ public:
 
 	// Удаляем слой
 	void RemoveLayer(unsigned int LayerID = -1);
+
+	// Удаляем все слои
+	void ClearLayers();
 
 	// Проверяем содержание в слоях
 	void UpdateLayers();
@@ -978,6 +980,9 @@ public:
 
 	// Общая функция проверки столкновений двух прямоугольников - является базовой для многих функций проверки столкновений в других классах системы
 	static bool CheckCollision(PE_Rect A, PE_Rect B);
+
+	// Ищем слои для тела и добавляем их
+	void NewLayersInBody(collision_body *body);
 
 	// Удаление столкновений из системы
 	void DeleteAll();

@@ -17,13 +17,26 @@ struct sAnim
 {
 	animation *pAnim;
 	int speed;
+
+	float scaled_multiplier;
+	float rotate_degrees;
+};
+struct sStaticTexture
+{
+	image 		*texture;
+	int 		static_anim_speed;
+
+	float scaled_multiplier;
+	float rotate_degrees;
+
+	float GetRealWidth();
+	float GetRealHeigth();
 };
 class hero
 {
 	game 		*Game;
 
-	image 		*static_texture;
-	int 		static_anim_speed;
+	sStaticTexture StaticTexture;
 
 	std::map <int, sAnim > Anims;
 	std::map <int, sAnim >::iterator AnimIter;
@@ -68,6 +81,10 @@ public:
 
 	void SetStaticSpeed(int speed);
 
+	void SetScaledAndRotate(float Scaled = 1, float Rotate = 0);
+
+	void SetBox(float W = 0, float H = 0, float X = 0, float Y = 0);
+
 	void SetAnim(int AnimType, image *texture, std::vector< PE_Rect > frames);
 	void SetAnimSpeed(int AnimType, int speed);
 
@@ -81,6 +98,9 @@ public:
 	collision_body *GetCollisionBody();
 
 	int GetStaticSpeed();
+
+	float GetScaledMultiplier();
+	float GetRotateDegrees();
 
 	std::string GetHeroName();
 	int	GetHealth();

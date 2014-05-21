@@ -156,6 +156,7 @@ void image::Draw(float x, float y, GLfloat Scale, GLfloat Rotation,
 
 	DrawTransform(x, y, &Box, Scale, Rotation);
 
+
 	//Рисуем текстуру
 	glBegin(GL_QUADS);
 		glColor4f(red, green, blue, alpha); // Устанавливаем цвет
@@ -190,7 +191,10 @@ void image::Draw(float x, float y, PE_Rect *Box,
 	dy = Box->Heigth;
 
 	glEnable(GL_TEXTURE_2D);
+
 	DrawTransform(x, y, Box, Scale, Rotation);
+
+
 
 	// Отрисовываем текстуру
 	glBegin(GL_QUADS);

@@ -24,8 +24,11 @@ hero::hero(std::string nam, int hp)
 	weapon.main_classification = TEST_WEAPON;
 	weapon.sub_classification = TEST_WEAPON_NONE;
 
-	static_texture = 0;
-	static_anim_speed = HERO_ANIM_SPEED;
+	StaticTexture.texture = 0;
+	StaticTexture.static_anim_speed = HERO_ANIM_SPEED;
+	StaticTexture.rotate_degrees = 0;
+	StaticTexture.scaled_multiplier = 1;
+
 	/*
 	moveright_animation = 0;
 	moveleft_animation = 0;
@@ -44,7 +47,7 @@ hero::hero(std::string nam, int hp)
 	Box.Width = 0;
 
 	body = new collision_body();
-	//body->SetAABBBox(Box);
+	body->SetAABBBox(Box);
 
 	//jumped = false;
 
@@ -52,9 +55,9 @@ hero::hero(std::string nam, int hp)
 }
 hero::~hero()
 {
-	if(static_texture)
+	if(StaticTexture.texture)
 	{
-		static_texture = 0;
+		StaticTexture.texture = 0;
 	}
 	/*
 	if(moveright_animation)
@@ -107,26 +110,26 @@ void hero::move(int direction, int animation, int animpos)
 	if((animation == ANIM_UNKNOWN)||(Anims.empty()))
 	{
 		if(direction == MOVE_RIGHT)
-			Box.X+=	static_anim_speed;
+			Box.X+=StaticTexture.static_anim_speed;
 		else if(direction == MOVE_LEFT)
-			Box.X-=static_anim_speed;
+			Box.X-=StaticTexture.static_anim_speed;
 		else if(direction == MOVE_UP)
-			Box.Y-=static_anim_speed;
+			Box.Y-=StaticTexture.static_anim_speed;
 		else if(direction == MOVE_DOWN)
-			Box.Y+=static_anim_speed;
+			Box.Y+=StaticTexture.static_anim_speed;
 
 		// Пока блочим движение тела
 		// 	но в дальнейшем нужно менять камеру при движении
-		if(Game && Game->Graphics && static_texture)
+		if(Game && Game->Graphics && StaticTexture.texture)
 		{
-			if(Box.X > (Game->Graphics->GetScreenWidth()- static_texture->Width()))
-				Box.X-=static_anim_speed;
+			if(Box.X > (Game->Graphics->GetScreenWidth()- StaticTexture.texture->Width()*StaticTexture.scaled_multiplier))
+				Box.X-=StaticTexture.static_anim_speed;
 			if(Box.X < 0)
-				Box.X+=static_anim_speed;
-			if(Box.Y > (Game->Graphics->GetScreenHeigth() - static_texture->Heigth()))
-				Box.Y-=static_anim_speed;
+				Box.X+=StaticTexture.static_anim_speed;
+			if(Box.Y > (Game->Graphics->GetScreenHeigth() - StaticTexture.texture->Heigth()*StaticTexture.scaled_multiplier))
+				Box.Y-=StaticTexture.static_anim_speed;
 			if(Box.Y < 0)
-				Box.Y+=static_anim_speed;
+				Box.Y+=StaticTexture.static_anim_speed;
 		}
 	}
 	else
@@ -366,8 +369,8 @@ void hero::render()
 						AnimIter->second.pAnim->Draw(Box.X, Box.Y);
 					else
 					{
-						if(static_texture)
-							static_texture->Draw(Box.X, Box.Y);
+						if(StaticTexture.texture)
+							StaticTexture.texture->Draw(Box.X, Box.Y, StaticTexture.scaled_multiplier, StaticTexture.rotate_degrees);
 					}
 
 					moved = true;
@@ -382,19 +385,49 @@ void hero::render()
 	}
 	else
 	{
-		if(static_texture)
-			static_texture->Draw(Box.X, Box.Y);
+		if(StaticTexture.texture)
+			StaticTexture.texture->Draw(Box.X, Box.Y, StaticTexture.scaled_multiplier, StaticTexture.rotate_degrees);
 	}
 }
 
 // Устанавливаем статик текстуру и скорость текстуры, как четверть ширины
 void hero::SetTexture(image *texture)
 {
-	static_texture = texture;
+	StaticTexture.texture = texture;
 }
 void hero::SetStaticSpeed(int speed)
 {
-	static_anim_speed = speed;
+	StaticTexture.static_anim_speed = speed;
+}
+void hero::SetScaledAndRotate(float Scaled, float Rotate)
+{
+	StaticTexture.scaled_multiplier = Scaled;
+
+	if(Rotate >= 360)
+	{
+		do
+		{
+			Rotate-=360;
+		}while(Rotate >= 360);
+	}
+	else if(Rotate <= -360)
+	{
+		do
+		{
+			Rotate+=360;
+		}while(Rotate <= -360);
+	}
+
+	StaticTexture.rotate_degrees = Rotate;
+}
+void hero::SetBox(float W, float H, float X, float Y)
+{
+	Box.Heigth = H;
+	Box.Width = W;
+	Box.X = X;
+	Box.Y = Y;
+
+	body->SetAABBBox(Box);
 }
 void hero::SetGame(game *gm)
 {
@@ -476,7 +509,7 @@ sAnim hero::GetAnim(int AnimType)
 }
 image *hero::GetTexture()
 {
-	return static_texture;
+	return StaticTexture.texture;
 }
 PE_Rect hero::GetBox()
 {
@@ -484,7 +517,15 @@ PE_Rect hero::GetBox()
 }
 int hero::GetStaticSpeed()
 {
-	return static_anim_speed;
+	return StaticTexture.static_anim_speed;
+}
+float hero::GetScaledMultiplier()
+{
+	return StaticTexture.scaled_multiplier;
+}
+float hero::GetRotateDegrees()
+{
+	return StaticTexture.rotate_degrees;
 }
 std::string hero::GetHeroName()
 {
@@ -505,4 +546,17 @@ inventory_item hero::GetWeapon()
 collision_body *hero::GetCollisionBody()
 {
 	return body;
+}
+
+float sStaticTexture::GetRealWidth()
+{
+	float result = texture->Width()*scaled_multiplier;
+	// TODO: манипуляции с rotate_degrees
+	return result;
+}
+float sStaticTexture::GetRealHeigth()
+{
+	float result = texture->Heigth()*scaled_multiplier;
+	// TODO: манипуляции с rotate_degrees
+	return result;
 }

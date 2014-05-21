@@ -169,6 +169,17 @@ bool collision_AABB::OverlapsOBB(collision_OBB obb)
 }
 
 //-----------------------------------------------------------------------
+
+void collision_AABB::SetAABBBox(PE_Rect NewBox)
+{
+	AABBBodyBox.Heigth = NewBox.Heigth;
+	AABBBodyBox.Width = NewBox.Width;
+	AABBBodyBox.X = NewBox.X;
+	AABBBodyBox.Y = NewBox.Y;
+}
+
+//-----------------------------------------------------------------------
+
 /*
 bool collision_OBB::OverlapsAABB(collision_AABB aabb)
 {
@@ -214,6 +225,20 @@ void collision_body::AddNewLayer(collision_layer *layer)
 
 //-----------------------------------------------------------------------
 
+void collision_body::ClearLayers()
+{
+	if(!CurrentLayers.empty())
+	{
+		for(unsigned int loop = 0; loop < CurrentLayers.size(); ++loop)
+		{
+			CurrentLayers[loop]->EraseBody(this);
+		}
+		CurrentLayers.clear();
+	}
+}
+
+//-----------------------------------------------------------------------
+
 void collision_body::RemoveLayer(unsigned int LayerID)
 {
 	if(CurrentLayers.empty())
@@ -223,10 +248,12 @@ void collision_body::RemoveLayer(unsigned int LayerID)
 
 	if(LayerID < 0)
 	{
+		CurrentLayers[CurrentLayers.size()-1]->EraseBody(this);
 		CurrentLayers.pop_back();
 	}
 	else
 	{
+		CurrentLayers[LayerID]->EraseBody(this);
 		CurrentLayers.erase(CurrentLayers.begin() + LayerID);
 	}
 }
@@ -235,15 +262,37 @@ void collision_body::RemoveLayer(unsigned int LayerID)
 
 void collision_body::UpdateLayers()
 {
-	if(!CurrentLayers.empty())
+	// Если указатель на collision указан, то указываем новые слоя для тела, а старые удаляем
+	//	Если не указан, то проверяем содержание в текужих слоях(удалить этот бред, потому что нам обязательно нужно проверять все слои, а не только те что храним в body)
+	if(Collision)
 	{
-		for(unsigned int loop = 0; loop < CurrentLayers.size(); ++loop)
+		// Очищаем массив слоёв и обнуляем тело внутри них
+		ClearLayers();
+
+		// Добавляем новые слои в тело
+		Collision->NewLayersInBody(this);
+
+		// Добавляем тело к слоям
+		if(!CurrentLayers.empty())
 		{
-			int result = CurrentLayers[loop]->CheckBodyInLayer(this);
-			if(result == COLLISION_OUTSIDE)
+			for(unsigned int loop = 0; loop < CurrentLayers.size(); ++loop)
 			{
-				RemoveLayer(loop);
-				--loop;
+				CurrentLayers[loop]->AddCollisionBody(this);
+			}
+		}
+	}
+	else
+	{
+		if(!CurrentLayers.empty())
+		{
+			for(unsigned int loop = 0; loop < CurrentLayers.size(); ++loop)
+			{
+				int result = CurrentLayers[loop]->CheckBodyInLayer(this);
+				if(result == COLLISION_OUTSIDE)
+				{
+					RemoveLayer(loop);
+					--loop;
+				}
 			}
 		}
 	}
@@ -312,15 +361,12 @@ int collision_body::GetLayersSize()
 }
 
 //-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 
 void collision_layer::AddCollisionBody(collision_body *body)
 {
-	int BVPos = CheckBodyInLayer(body);
-
-	if((BVPos == COLLISION_INSIDE) || (BVPos == COLLISION_INTERSECT))
-	{
-		bodies.push_back(body);
-	}
+	bodies.push_back(body);
 }
 
 //-----------------------------------------------------------------------
@@ -471,6 +517,8 @@ PE_Rect collision_layer::GetLayerBorder()
 }
 
 //-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 
 int collision::init()
 {
@@ -591,6 +639,23 @@ bool collision::CheckCollision(PE_Rect A, PE_Rect B)
 	}
 
 	return true;
+}
+
+//-----------------------------------------------------------------------
+
+void collision::NewLayersInBody(collision_body *body)
+{
+	if(!layers.empty())
+	{
+		for(unsigned int loop = 0; loop < layers.size(); ++loop)
+		{
+			int result = layers[loop]->CheckBodyInLayer(body);
+			if(result == COLLISION_INSIDE || result == COLLISION_INTERSECT)
+			{
+				body->AddNewLayer(layers[loop]);
+			}
+		}
+	}
 }
 
 //-----------------------------------------------------------------------
