@@ -80,9 +80,9 @@ const int 			SYS_AUDIO_BUFFERS = 1024;
 
 ///////////////// VERSIONS CONSTANTS /////////////////
 
-const std::string 	SYS_VERSION = "0.0.0.0.38";
-const std::string 	SYS_BUILD = "000038";
-const std::string	SYS_TEST_VERSION = "0.1.3.38";
+const std::string 	SYS_VERSION = "0.0.0.0.39";
+const std::string 	SYS_BUILD = "000039";
+const std::string	SYS_TEST_VERSION = "0.1.4.39";
 
 
 
@@ -256,6 +256,10 @@ public:
 	void ToggleFullScreen();
 
 };
+
+//typedef std::vector<image *>
+
+
 class texture_manager
 {
 	// Менеджер текстур - управляет памятью.
@@ -292,7 +296,7 @@ public:
 
 };
 
-struct textureClass
+struct iTexture
 {
 	//Содержит саму OpenGL текстуру изображения и всевозможные данные о ней
 	GLuint tex;
@@ -306,7 +310,7 @@ class image
 {
 	friend texture_manager;
 	friend animation;
-	textureClass texture;
+	iTexture texture;
 	texture_manager *TextureManager; // TODO:в глобал или в синглтон
 
 	//TODO: протестировать
@@ -318,7 +322,7 @@ public:
 
 	void SetTexManager(texture_manager *TextureManager);
 
-	textureClass GetTXT();
+	iTexture GetTXT();
 
 	// Вывод реальных размеров изображения
 	float Width();
@@ -794,6 +798,12 @@ public:
 
 	// Клавиша отпущена
 	bool IsKeyUp(eKey key);
+
+	bool IsButtonDown(eButton button);
+
+	bool IsButtonUp(eButton button);
+
+	bool IsButtonHeld(eButton button);
 
 	// Обновить
 	int Update();

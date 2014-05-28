@@ -308,7 +308,7 @@ float image::Heigth()
 {
 	return texture.pxh;
 }
-textureClass image::GetTXT()
+iTexture image::GetTXT()
 {
 	return texture;
 }

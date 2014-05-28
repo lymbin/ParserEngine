@@ -51,6 +51,10 @@ input::~input()
 int input::init()
 {
 	KeyStates[KEY_ESCAPE] = 'n';
+	for(int loop = 0; loop <= BUTTON_LASTENUM; loop++)
+	{
+		MouseButtons.push_back('n');
+	}
 	return 0;
 }
 
@@ -99,6 +103,39 @@ bool input::IsKeyUp(eKey Key)
 
 //-----------------------------------------------------------------------
 
+bool input::IsButtonDown(eButton button)
+{
+	if(MouseButtons[button] == 'd')
+	{
+		return true;
+	}
+	return false;
+}
+
+//-----------------------------------------------------------------------
+
+bool input::IsButtonUp(eButton button)
+{
+	if(MouseButtons[button] == 'u')
+	{
+		return true;
+	}
+	return false;
+}
+
+//-----------------------------------------------------------------------
+
+bool input::IsButtonHeld(eButton button)
+{
+	if(MouseButtons[button] == 'h')
+	{
+		return true;
+	}
+	return false;
+}
+
+//-----------------------------------------------------------------------
+
 int input::handle_event(SDL_Event event)
 {
 	std::vector< eKey> keys;
@@ -120,10 +157,10 @@ int input::handle_event(SDL_Event event)
 			return 1;
 			break;
 		case SDL_MOUSEBUTTONDOWN:
-			return 1;
+			MouseButtons[event.button.button] = 'd';
 			break;
 		case SDL_MOUSEBUTTONUP:
-			return 1;
+			MouseButtons[event.button.button] = 'u';
 			break;
 	}
 
@@ -169,6 +206,34 @@ int input::Update()
 			{
 				KeyHeldTime[it->first] = SDL_GetTicks();
 				it->second = 'h';
+			}
+		}
+	}
+
+	static int stMouse = 0;
+
+	for(std::vector <char>::iterator it = MouseButtons.begin(); it != MouseButtons.end(); ++it)
+	{
+		if((*it) == 'u')
+		{
+			if(stMouse == 1)
+			{
+				stMouse--;
+			}
+			else
+			{
+				(*it) = 'n';
+			}
+		}
+		else if((*it) == 'd')
+		{
+			if(stMouse == 0)
+			{
+				stMouse++;
+			}
+			if(stMouse == 1)
+			{
+				(*it) = 'h';
 			}
 		}
 	}
