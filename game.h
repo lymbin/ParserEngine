@@ -8,7 +8,7 @@
 #ifndef GAME_H_
 #define GAME_H_
 
-#include "engine.h"
+#include "PE.h"
 #include "GameTypes.h"
 #include "Inventory.h"
 #include "hero.h"

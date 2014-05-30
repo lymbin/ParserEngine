@@ -5,7 +5,7 @@
  *      Author: dmitry
  */
 
-#include "engine.h"
+#include "Graphics.h"
 
 camera::camera()
 {
