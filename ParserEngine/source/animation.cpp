@@ -262,7 +262,7 @@ void animation::Update()
 void animation::Draw(float x, float y, GLfloat Scale, GLfloat Rotation,
 		GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
-	CurrentTexture->Draw(x, y, &frames[CurrentFrame], Scale, Rotation, red, green, blue, alpha);
+	CurrentTexture->Draw(x, y, &frames[CurrentFrame],Scale, Rotation, cColor(red, green, blue, alpha));
 }
 
 //-----------------------------------------------------------------------
@@ -276,7 +276,7 @@ void animation::ClearFrames()
 
 //-----------------------------------------------------------------------
 
-void animation::SetTexture(image *Texture)
+void animation::SetTexture(cTexture *Texture)
 {
 	CurrentTexture = Texture;
 }
@@ -353,7 +353,7 @@ bool animation::IsOver()
 //-----------------------------------------------------------------------
 
 // Получаем главную текстуру
-image *animation::GetTexture()
+cTexture *animation::GetTexture()
 {
 	return CurrentTexture;
 }

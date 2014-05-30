@@ -54,7 +54,7 @@ void somebox::render()
 	if(!Game && !Game->Graphics)
 		return;
 
-	Game->Graphics->DrawFilledRectangle(Box.X, Box.Y, Box.Width, Box.Heigth, 1.0f, 1.0f, 1.0f, 1.0f);
+	Game->Graphics->DrawFilledRectangle(Box.X, Box.Y, Box.Width, Box.Heigth, cColor(1.0f, 1.0f));
 }
 
 
@@ -64,12 +64,12 @@ void game::update()
 
 	if(Hero)
 	{
-		Hero->update();
+		Hero->Update();
 
 		if(dynamic_text)
 		{
 			std::stringstream sstream;
-			sstream << "Hero Speed: " << Hero->GetStaticSpeed();
+			sstream << "Hero Speed: " << Hero->GetVelocity();
 			dynamic_text->SetText(sstream.str());
 		}
 	}
@@ -90,7 +90,7 @@ void game::render()
 
 	if(Hero)
 	{
-		Hero->render();
+		Hero->Render();
 	}
 	if(dynamic_text)
 	{
@@ -131,7 +131,7 @@ void game::MainLoop()
 	CreatingObjects();
 
 	Graphics->ClearScreen();
-	Graphics->SetColor(0.f, 0.f, 0.f, 1.f);
+	Graphics->SetClearColor(cColor());
 	Graphics->SwapBuffers();
 
 	fps.start();
@@ -155,7 +155,7 @@ void game::MainLoop()
 	{
 		sstream.str(string());
 		Graphics->ClearScreen();
-		Graphics->SetColor(0.f, 0.f, 0.f, 1.f);
+		Graphics->SetClearColor(cColor());
 
 		if(Events->handle_events())
 		{
@@ -278,13 +278,13 @@ int game::CreatingObjects()
 	if(!Hero)
 	{
 		Hero = new hero();
-		Hero->SetTexture(Mmenu.background);
+		Hero->SetStaticTexture(Mmenu.background);
 		Hero->SetGame(this);
-		Hero->SetStaticSpeed(20);
+		Hero->SetVelocity(20);
 		Hero->SetScaledAndRotate(0.3, 0);
 
 		if(Hero->GetTexture())
-			Hero->SetBox(Hero->GetTexture()->Width()*Hero->GetScaledMultiplier(), Hero->GetTexture()->Heigth()*Hero->GetScaledMultiplier(), 0, 100);
+			Hero->SetBox(Hero->GetTexture()->GetWidth()*Hero->GetScaledMultiplier(), Hero->GetTexture()->GetHeigth()*Hero->GetScaledMultiplier(), 0, 100);
 
 		if(layer)
 		{
@@ -310,7 +310,7 @@ int game::LoadTextures()
 #ifdef DEBUG_SYS
 	cout << "Load textures" << endl;
 #endif
-	Mmenu.background = new image("data/graphics/test/test.png");
+	Mmenu.background = new cTexture("data/graphics/test/test.png");
 	//Mmenu.background = new image("foo.png");
 	Mmenu.title = new text("FireFly", "data/fonts/non-free/Minecraftia.ttf", 30);
 	//Mmenu.background->SetColorKey();

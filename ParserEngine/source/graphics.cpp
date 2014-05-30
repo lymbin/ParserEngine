@@ -9,19 +9,19 @@
 
 using namespace std;
 
-
-graphics::graphics(int W, int H, int BPP)
+graphics::graphics()
 {
-	ScreenWidth = W;
-	ScreenHeigth = H;
-	ScreenBpp = BPP;
+	mlScreenWidth = 0;
+	mlScreenHeigth = 0;
+	mlScreenBpp = 0;
+	mbFullScreen = 0;
 
 	FontManager = new font_manager();
 	FontManager->SetGraphics(this);
 
 	TextureManager = new texture_manager();
 	TextureManager->SetGraphics(this);
-	FullScreen = SYS_FULLSCREEN;
+
 	CurrentTexture = 0;
 	screen = 0;
 
@@ -37,12 +37,16 @@ graphics::~graphics()
 #endif
 }
 
-int graphics::init()
+int graphics::Init(int W, int H, int BPP, int abFullScreen)
 {
 	// Инициализация основных компонентов графики
+	mlScreenWidth = W;
+	mlScreenHeigth = H;
+	mlScreenBpp = BPP;
+	mbFullScreen = abFullScreen;
 
 	// Инициализация SDL-графики
-	screen = SDL_SetVideoMode(ScreenWidth, ScreenHeigth, ScreenBpp, SDL_OPENGL|SDL_RESIZABLE);
+	screen = SDL_SetVideoMode(mlScreenWidth, mlScreenHeigth, mlScreenBpp, SDL_OPENGL|SDL_RESIZABLE);
 	if(!screen)
 	{
 #ifdef DEBUG_ERRORS
@@ -65,23 +69,23 @@ int graphics::init()
 		return -1;
 
 	// Инициализация OpenGL
-	if(initGL() < 0)
+	if(InitGL() < 0)
 		return -1;
 
 	return 0;
 }
-int graphics::initGL()
+int graphics::InitGL()
 {
 	ClearScreen();
 	// Система координат - от точки (0,0) с размером SYS_WIDTHxSYS_HEIGTH
-	glViewport(0.0f, 0.0f, ScreenWidth, ScreenHeigth);
+	glViewport(0.0f, 0.0f, mlScreenWidth, mlScreenHeigth);
 
 	//Инициируем матрице проекции
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
 	// Устанавливаем максимум и минимум в системе координат по разным осям
-	glOrtho(0.0, ScreenWidth, ScreenHeigth, 0.0, -1.0, 1.0);
+	glOrtho(0.0, mlScreenWidth, mlScreenHeigth, 0.0, -1.0, 1.0);
 
 	//Инициирцуем матрицу вида
 	glMatrixMode(GL_MODELVIEW);
@@ -148,11 +152,11 @@ void graphics::ResizeWin(int width, int heigth)
 	if(!heigth) heigth = 1;
 
 	// Устанавливаем новые параметры окна
-	ScreenWidth = width;
-	ScreenHeigth = heigth;
+	mlScreenWidth = width;
+	mlScreenHeigth = heigth;
 
 	// Устанавливаем новый видео режим
-	screen = SDL_SetVideoMode(ScreenWidth, ScreenHeigth, ScreenBpp, SDL_OPENGL|SDL_RESIZABLE);
+	screen = SDL_SetVideoMode(mlScreenWidth, mlScreenHeigth, mlScreenBpp, SDL_OPENGL|SDL_RESIZABLE);
 	ClearScreen();
 
 	// Выходим из программы, если не можем изменить размеры окна
@@ -167,14 +171,14 @@ void graphics::ResizeWin(int width, int heigth)
 	glPopMatrix();
 
 	// Система координат - от точки (0,0) с размером SYS_WIDTHxSYS_HEIGTH
-	glViewport(0.0f, 0.0f, ScreenWidth, ScreenHeigth);
+	glViewport(0.0f, 0.0f, mlScreenWidth, mlScreenHeigth);
 
 	//Инициируем матрице проекции
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
 	// Устанавливаем максимум и минимум в системе координат по разным осям
-	glOrtho(0.0, ScreenWidth, ScreenHeigth, 0.0, -1.0, 1.0);
+	glOrtho(0.0, mlScreenWidth, mlScreenHeigth, 0.0, -1.0, 1.0);
 
 	//Инициирцуем матрицу вида
 	glMatrixMode(GL_MODELVIEW);
@@ -198,12 +202,20 @@ void graphics::ClearScreen()
 // Очищаем цвет
 void graphics::ClearColor()
 {
-	SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+	SetClearColor(cColor(1.0f, 1.0f));
 }
 // Устанавливаем цвет OpenGL
-void graphics::SetColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
+void graphics::SetClearColor(cColor aCol)
 {
-	glColor4f(red, green, blue, alpha);
+	glColor4f(aCol.r, aCol.g, aCol.b, aCol.a);
+}
+void graphics::PushMatrix()
+{
+	glPushMatrix();
+}
+void graphics::PopMatrix()
+{
+	glPopMatrix();
 }
 // Отрисовываем буферы на экране
 void graphics::SwapBuffers()
@@ -214,7 +226,7 @@ void graphics::ToggleFullScreen()
 {
 	// Переключаем полноэкранный режим и включаем мышь
 	// TODO: работает но с натягом - доделать
-	FullScreen = !FullScreen;
+	mbFullScreen = !mbFullScreen;
 	if(screen)
 	{
 		if(!SDL_WM_ToggleFullScreen(screen))
@@ -224,7 +236,7 @@ void graphics::ToggleFullScreen()
 #endif
 			return;
 		}
-		if(!FullScreen)
+		if(!mbFullScreen)
 			SDL_ShowCursor(SDL_ENABLE);
 		else
 			SDL_ShowCursor(SDL_DISABLE);
@@ -232,63 +244,6 @@ void graphics::ToggleFullScreen()
 	}
 	// TODO: записывать изменения в файл с настройками
 }
-
-// Рисуем каркас прямоугольника цветными линиями
-void graphics::DrawRectangle(GLfloat x, GLfloat y, GLfloat width, GLfloat height,
-								GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
-{
-	glPushMatrix();
-	//TODO: доделать работу с камерой
-	glLoadIdentity();
-
-	SetColor(red, green, blue, alpha);
-
-	glBegin(GL_LINE_LOOP);
-		glVertex2f(x, y);
-		glVertex2f(x + width, y);
-		glVertex2f(x + width, y + height);
-		glVertex2f(x, y + height);
-	glEnd();
-
-	glLoadIdentity();
-
-	glPopMatrix();
-}
-
-// Рисуем заполненный цветом прямоугольник
-void graphics::DrawFilledRectangle(GLfloat x, GLfloat y, GLfloat width, GLfloat height,
-									GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
-{
-	glLoadIdentity();
-
-	SetColor(red, green, blue, alpha);
-
-	glBegin(GL_QUADS);
-		glVertex3f(x, y, 0);
-		glVertex3f(x + width, y, 0);
-		glVertex3f(x + width, y + height, 0);
-        glVertex3f(x, y + height, 0);
-    glEnd();
-
-    glLoadIdentity();
-}
-
-// Рисуем линию
-void graphics::DrawLine(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2,
-						GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
-{
-	glLoadIdentity();
-
-	SetColor(red, green, blue, alpha);
-
-	glBegin(GL_LINES);
-		glVertex2f(x1, y1);
-		glVertex2f(x2, y2);
-	glEnd();
-
-	glLoadIdentity();
-}
-
 // Устанавливаем текущую забинженную текстуру
 void graphics::SetCurrentTexture(GLuint texture)
 {
@@ -305,15 +260,15 @@ GLuint graphics::GetCurrentTexture()
 
 int graphics::GetScreenWidth()
 {
-	return ScreenWidth;
+	return mlScreenWidth;
 }
 int graphics::GetScreenHeigth()
 {
-	return ScreenHeigth;
+	return mlScreenHeigth;
 }
 int graphics::GetScreenBpp()
 {
-	return ScreenBpp;
+	return mlScreenBpp;
 }
 camera *graphics::GetCamera()
 {

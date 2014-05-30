@@ -25,10 +25,10 @@ const std::string GAME_HERO_NAME = "Timmi";
 
 struct MainMenu
 {
-	image 	*background;
-	text 	*title;
-	//image *button_start;
-	//image *button_exit;
+	cTexture	*background;
+	text 		*title;
+	//image 	*button_start;
+	//image 	*button_exit;
 };
 
 class hero;
@@ -53,9 +53,9 @@ public:
 
 struct bottom_gui
 {
-	image *texture;
-	text *static_text;
-	text *dynamic_text;
+	cTexture 	*texture;
+	text 		*static_text;
+	text 		*dynamic_text;
 };
 class game_gui
 {

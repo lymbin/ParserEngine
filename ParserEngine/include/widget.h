@@ -199,13 +199,13 @@ public:
 class cButton: public cWidget
 {
 	bool mbPressed;
-	image *mpTexture;
+	cTexture *mpTexture;
 
 public:
 	cButton(float W, float H, float X, float Y);
 	~cButton();
 
-	void SetImage(image *aTexture);
+	void SetImage(cTexture *aTexture);
 
 	void OnInit();
 	void OnDraw();

@@ -1,5 +1,5 @@
 /*
- * image.cpp
+ * texture.cpp
  *
  *  Created on: 21.04.2014
  *      Author: dmitry
@@ -10,7 +10,37 @@
 using namespace std;
 
 
-int image::Open(std::string source, GLint filter)
+iLowLevelTexture::iLowLevelTexture()
+{
+
+}
+iLowLevelTexture::~iLowLevelTexture()
+{
+
+}
+
+// Вывод реальных размеров изображения
+float iLowLevelTexture::GetWidth()
+{
+	return mfPxWidth;
+}
+float iLowLevelTexture::GetHeigth()
+{
+	return mfPxHeight;
+}
+
+std::string iLowLevelTexture::GetPath()
+{
+	return msPath;
+}
+
+void iLowLevelTexture::SetPath(std::string asPath)
+{
+	msPath = asPath;
+}
+
+
+int cTexture::Open(std::string source, GLint filter)
 {
 	// Открываем текстуру из файла
 	SDL_Surface *temp_surface = 0;
@@ -22,7 +52,7 @@ int image::Open(std::string source, GLint filter)
 	if(!temp_surface)
 	{
 #ifdef DEBUG_ERRORS
-		cout << "Image manager error: " << texture.fileName << " : " << SDL_GetError() << endl;
+		cout << "Image manager error: " << GetPath() << " : " << SDL_GetError() << endl;
 #endif
 		return -1;
 	}
@@ -52,7 +82,7 @@ int image::Open(std::string source, GLint filter)
 	}
 	return 0;
 }
-int image::OpenFromZip(string source, GLint filter)
+int cTexture::OpenFromZip(string source, GLint filter)
 {
 	// Открываем текстуру из zip архива с файлом
 	// TODO: пока никак не работает функция - доделать
@@ -62,11 +92,11 @@ int image::OpenFromZip(string source, GLint filter)
 	else
 		return -1;
 }
-void image::MakeTexture(SDL_Surface *Surface, GLint filter, bool LoadPixels)
+void cTexture::MakeTexture(SDL_Surface *Surface, GLint filter, bool LoadPixels)
 {
 	// Создаём текстуру из сурфейса(бывшая часть функции Open)
-	glGenTextures(1, &texture.tex);
-	glBindTexture(GL_TEXTURE_2D, texture.tex);
+	glGenTextures(1, &mTexture);
+	glBindTexture(GL_TEXTURE_2D, mTexture);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
@@ -82,10 +112,10 @@ void image::MakeTexture(SDL_Surface *Surface, GLint filter, bool LoadPixels)
 
 	glTexImage2D(GL_TEXTURE_2D, 0, glFormat, Surface->w, Surface->h, 0, glFormat, GL_UNSIGNED_BYTE, Surface->pixels);
 
-	texture.pxw = Surface->w;
-	texture.pxh = Surface->h;
+	mfPxWidth = Surface->w;
+	mfPxHeight = Surface->h;
 }
-void image::DrawTransform(float x, float y, PE_Rect *Box, GLfloat Scale, GLfloat Rotation)
+void cTexture::DrawTransform(float x, float y, PE_Rect *Box, GLfloat Scale, GLfloat Rotation)
 {
 	// Трансформируем расположение текстуры на экране
 	// Доступно: 	изменение позиции на экране
@@ -94,13 +124,13 @@ void image::DrawTransform(float x, float y, PE_Rect *Box, GLfloat Scale, GLfloat
 
 	float dx, dy;
 
-	if(Box->Width >= texture.pxw)
-		dx = texture.pxw;
+	if(Box->Width >= mfPxWidth)
+		dx = mfPxWidth;
 	else
 		dx = Box->Width;
 
-	if(Box->Heigth >= texture.pxh)
-		dy = texture.pxh;
+	if(Box->Heigth >= mfPxHeight)
+		dy = mfPxHeight;
 	else
 		dy = Box->Heigth;
 
@@ -137,8 +167,7 @@ void image::DrawTransform(float x, float y, PE_Rect *Box, GLfloat Scale, GLfloat
 	// Изменение размера текстуры
 	glScaled(Scale, Scale, 0);
 }
-void image::Draw(float x, float y, GLfloat Scale, GLfloat Rotation,
-	GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
+void cTexture::Draw(float x, float y, GLfloat Scale, GLfloat Rotation, cColor aCol)
 {
 	// Отрисовываем текстуру от точки (x, y)
 	// 	полного размера
@@ -159,20 +188,19 @@ void image::Draw(float x, float y, GLfloat Scale, GLfloat Rotation,
 
 	//Рисуем текстуру
 	glBegin(GL_QUADS);
-		glColor4f(red, green, blue, alpha); // Устанавливаем цвет
+		glColor4f(aCol.r, aCol.g, aCol.b, aCol.a); // Устанавливаем цвет
 
 		glTexCoord2i(0, 0); glVertex2f(0,  			0);  			//Верхний левый угол
-		glTexCoord2i(0, 1); glVertex2f(0,  			texture.pxh); 	//Нижний левый угол
-		glTexCoord2i(1, 1); glVertex2f(texture.pxw, texture.pxh); 	//Нижний правый угол
-		glTexCoord2i(1, 0); glVertex2f(texture.pxw, 0);  			//Верхний правый угол
+		glTexCoord2i(0, 1); glVertex2f(0,  			GetHeigth()); 	//Нижний левый угол
+		glTexCoord2i(1, 1); glVertex2f(GetWidth(), GetHeigth()); 	//Нижний правый угол
+		glTexCoord2i(1, 0); glVertex2f(GetWidth(), 0);  			//Верхний правый угол
 	glEnd();
 
 	glLoadIdentity();
 
 }
-void image::Draw(float x, float y, PE_Rect *Box,
-			GLfloat Scale, GLfloat Rotation,
-			GLfloat red, GLfloat green , GLfloat blue, GLfloat alpha)
+void cTexture::Draw(float x, float y, PE_Rect *Box,
+		GLfloat Scale, GLfloat Rotation, cColor aCol)
 {
 	/*Отрисовка куска текстуры в точке (x, y)
 	 *  с параметрами куска - (top_x, top_y) (dx, dy)
@@ -198,11 +226,11 @@ void image::Draw(float x, float y, PE_Rect *Box,
 
 	// Отрисовываем текстуру
 	glBegin(GL_QUADS);
-		glColor4f(red, green, blue, alpha); // Устанавливаем цвет
-		glTexCoord2f((top_x/texture.pxw),		(top_y/texture.pxh));		glVertex2f(0, 0); //Верхний левый угол
-		glTexCoord2f((top_x/texture.pxw),		((top_y+dy)/texture.pxh));	glVertex2f(0, dy);//Нижний левый угол
-		glTexCoord2f(((top_x+dx)/texture.pxw),	((top_y+dy)/texture.pxh)); 	glVertex2f(dx,dy);//Нижний правый угол
-		glTexCoord2f(((top_x+dx)/texture.pxw),	(top_y/texture.pxh));		glVertex2f(dx, 0);//Верхний правый угол
+		glColor4f(aCol.r, aCol.g, aCol.b, aCol.a); // Устанавливаем цвет
+		glTexCoord2f((top_x/GetWidth()),		(top_y/GetHeigth()));		glVertex2f(0, 0); //Верхний левый угол
+		glTexCoord2f((top_x/GetWidth()),		((top_y+dy)/GetHeigth()));	glVertex2f(0, dy);//Нижний левый угол
+		glTexCoord2f(((top_x+dx)/GetWidth()),	((top_y+dy)/GetHeigth())); 	glVertex2f(dx,dy);//Нижний правый угол
+		glTexCoord2f(((top_x+dx)/GetWidth()),	(top_y/GetHeigth()));		glVertex2f(dx, 0);//Верхний правый угол
 	glEnd();
 	glLoadIdentity();
 
@@ -210,39 +238,39 @@ void image::Draw(float x, float y, PE_Rect *Box,
 
 
 
-void image::Bind()
+void cTexture::Bind()
 {
 	// Биндим текстуру
-	if(texture.tex)
+	if(mTexture)
 	{
-		glBindTexture(GL_TEXTURE_2D, texture.tex);
+		glBindTexture(GL_TEXTURE_2D, mTexture);
     	glLoadIdentity();
     	if(TextureManager && TextureManager->Graphics)
     	{
     		// Если менеджер текстур и графика в нём определены, то меняем текущуюю текстуру
-    		if(TextureManager->Graphics->GetCurrentTexture() != texture.tex)
-    			TextureManager->Graphics->SetCurrentTexture(texture.tex);
+    		if(TextureManager->Graphics->GetCurrentTexture() != mTexture)
+    			TextureManager->Graphics->SetCurrentTexture(mTexture);
        	}
 	}
 }
-void image::Reload()
+void cTexture::Reload()
 {
 	//TODO: Косяк в функции - не удаляется старая текстура
-	if(texture.fileName != "")
+	std::string Path = GetPath();
+	if(Path != "")
 	{
-		Open(texture.fileName);
+		Open(Path);
 	}
 }
-void image::Redraw(float x, float y, GLfloat Scale, GLfloat Rotatation,
-			GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
+void cTexture::Redraw(float x, float y, GLfloat Scale, GLfloat Rotatation, cColor aCol)
 {
 	// Полностью перерисовываем текстуру предварительно удалив и перегрузив в память
 	// Работает с полными картинками
 	Delete();
 	Reload();
-	if(!texture.tex)
+	if(!mTexture)
 	{
-		Draw(x, y, Scale, Rotatation, red, green, blue, alpha);
+		Draw(x, y, Scale, Rotatation, aCol);
 	}
 	else
 	{
@@ -251,17 +279,15 @@ void image::Redraw(float x, float y, GLfloat Scale, GLfloat Rotatation,
 #endif
 	}
 }
-void image::Redraw(float x, float y, PE_Rect *Box,
-		GLfloat Scale, GLfloat Rotatation ,
-		GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
+void cTexture::Redraw(float x, float y, PE_Rect *Box, GLfloat Scale, GLfloat Rotatation, cColor aCol)
 {
 	// Полностью перерисовываем текстуру предварительно удалив и перегрузив в память
 	// Работает с куском изображения
 	Delete();
 	Reload();
-	if(!texture.tex)
+	if(!mTexture)
 	{
-		Draw(x, y, Box, Scale, Rotatation, red, green , blue, alpha);
+		Draw(x, y, Box, Scale, Rotatation, aCol);
 	}
 	else
 	{
@@ -270,13 +296,13 @@ void image::Redraw(float x, float y, PE_Rect *Box,
 #endif
 	}
 }
-void image::Delete()
+void cTexture::Delete()
 {
 	//Удаляем gl текстуру изображения
-	if(texture.tex)
+	if(mTexture)
 	{
-		glDeleteTextures(1, &texture.tex);
-		texture.tex = 0;
+		glDeleteTextures(1, &mTexture);
+		mTexture = 0;
 	}
 	if(TextureManager)
 	{
@@ -284,12 +310,12 @@ void image::Delete()
 		TextureManager->UnManageTexture(this);
 		TextureManager = 0;
 	}
-	texture.pxh = 0;
-	texture.pxw = 0;
+	mfPxHeight = 0;
+	mfPxWidth = 0;
 }
 
 // Устанавливаем менеджер текстур для полуавтоматического управления памятью менеджером
-void image::SetTexManager(texture_manager *TexManager)
+void cTexture::SetTexManager(texture_manager *TexManager)
 {
 	// Если менеджер уже задан - выходим, т.к. менеджер может быть всего один на всю программу
 	if(TextureManager)
@@ -300,31 +326,16 @@ void image::SetTexManager(texture_manager *TexManager)
 	// Добавляем в менеджер эту текстуру(даже если она там есть)
 	TextureManager->ManageTexture(this);
 }
-float image::Width()
+
+cTexture::cTexture(std::string file,  GLint filter) : iLowLevelTexture()
 {
-	return texture.pxw;
-}
-float image::Heigth()
-{
-	return texture.pxh;
-}
-iTexture image::GetTXT()
-{
-	return texture;
-}
-image::image(std::string file,  GLint filter)
-{
-	texture.fileName = file;
-	texture.pxh = 0;
-	texture.pxw = 0;
-	texture.tex = 0;
 
 	TextureManager = 0;
 
 	if(file != "")
 		Open(file, filter);
 }
-image::~image()
+cTexture::~cTexture()
 {
 	Delete();
 }
@@ -340,12 +351,12 @@ texture_manager::~texture_manager()
 	Textures.clear();
 	Graphics = 0;
 }
-image *texture_manager::GetTextureInfos(GLuint texture)
+cTexture *texture_manager::GetTextureInfos(GLuint texture)
 {
 	// Получаем информацию о текстуре из её ID
 	for(unsigned int loop = 0; loop < Textures.size(); loop++)
 	{
-		if(Textures[loop]->texture.tex == texture)
+		if(Textures[loop]->mTexture == texture)
 		{
 			return Textures[loop];
 		}
@@ -377,12 +388,12 @@ void texture_manager::DeleteTextures()
 		delete Textures[loop];
 	}
 }
-void texture_manager::ManageTexture(image *managed_image)
+void texture_manager::ManageTexture(cTexture *managed_image)
 {
 	//Добавляем текстуру в вектор для управления
 	for(unsigned int loop = 0; loop < Textures.size(); loop++)
 	{
-		if(Textures[loop]->texture.tex == managed_image->texture.tex)
+		if(Textures[loop]->mTexture == managed_image->mTexture)
 		{
 			return;
 		}
@@ -392,7 +403,7 @@ void texture_manager::ManageTexture(image *managed_image)
 
 	Textures.push_back(managed_image);
 }
-void texture_manager::UnManageTexture(image *managed_image)
+void texture_manager::UnManageTexture(cTexture *managed_image)
 {
 	// Удаляем текстуру из вектора управления
 	// Внимание: Это только удалит текстуру из вектора управления, но не удалит саму текстуру
@@ -404,7 +415,7 @@ void texture_manager::UnManageTexture(image *managed_image)
 	// Ищем текстуру с данным ID в памяти
 	for(unsigned int loop = 0; loop < Textures.size(); loop++)
 	{
-		if(Textures[loop]->texture.tex == managed_image->texture.tex)
+		if(Textures[loop]->mTexture == managed_image->mTexture)
 		{
 			place = loop;
 			break;

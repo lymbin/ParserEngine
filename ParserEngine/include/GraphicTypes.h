@@ -58,5 +58,6 @@ struct PE_Tetra
 	GLfloat Bottom;		/**< Координата крайней нижней точки  */
 };
 
+typedef std::vector<PE_Rect> tRectVector;
 
 #endif /* GRAPHICTYPES_H_ */

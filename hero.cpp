@@ -9,40 +9,22 @@
 
 using namespace std;
 
-hero::hero(std::string nam, int hp)
+
+float sStaticTexture::GetRealWidth()
 {
-	Game = 0;
+	float result = mpTexture->GetWidth()*mfScaledMultiplier;
+	// TODO: манипуляции с rotate_degrees
+	return result;
+}
+float sStaticTexture::GetRealHeigth()
+{
+	float result = mpTexture->GetHeigth()*mfScaledMultiplier;
+	// TODO: манипуляции с rotate_degrees
+	return result;
+}
 
-	name = nam;
-	hit_points = hp;
-
-	armor.itemName = "Skin";
-	armor.main_classification = TEST_ROBE;
-	armor.sub_classification = TEST_ROBE_NONE;
-
-	weapon.itemName = "Hand";
-	weapon.main_classification = TEST_WEAPON;
-	weapon.sub_classification = TEST_WEAPON_NONE;
-
-	StaticTexture.texture = 0;
-	StaticTexture.static_anim_speed = 0;
-	StaticTexture.rotate_degrees = 0;
-	StaticTexture.scaled_multiplier = 1;
-
-	hero_speed = 0;
-
-	/*
-	moveright_animation = 0;
-	moveleft_animation = 0;
-	movedown_animation = 0;
-	moveup_animation = 0;
-	jump_animation = 0;
-	sit_animation = 0;
-	*/
-	Anims.clear();
-
-	items.clear();
-
+iCharacterBody::iCharacterBody()
+{
 	Box.X = 0;
 	Box.Y = 0;
 	Box.Heigth = 0;
@@ -50,158 +32,357 @@ hero::hero(std::string nam, int hp)
 
 	body = new collision_body();
 	body->SetAABBBox(Box);
-
-	//jumped = false;
-
-	last_state = MOVE_NONE;
 }
-hero::~hero()
+iCharacterBody::~iCharacterBody()
 {
-	if(StaticTexture.texture)
-	{
-		StaticTexture.texture = 0;
-	}
+
+}
+
+void iCharacterBody::SetBox(float W, float H, float X, float Y)
+{
+	Box.Heigth = H;
+	Box.Width = W;
+	Box.X = X;
+	Box.Y = Y;
+
+	body->SetAABBBox(Box);
+}
+
+void iCharacterBody::SetBody(collision_body *apBody)
+{
 	/*
-	if(moveright_animation)
-	{
-		delete moveright_animation;
-		moveright_animation = 0;
-	}
-	if(moveleft_animation)
-	{
-		delete moveleft_animation;
-		moveleft_animation = 0;
-	}
-	if(movedown_animation)
-	{
-		delete movedown_animation;
-		movedown_animation = 0;
-	}
-	if(moveup_animation)
-	{
-		delete moveup_animation;
-		moveup_animation = 0;
-	}
-	*/
-	if(!Anims.empty())
-	{
-		for(AnimIter = Anims.begin(); AnimIter != Anims.end(); ++AnimIter)
-		{
-			if(AnimIter->second.pAnim)
-			{
-				delete AnimIter->second.pAnim;
-				AnimIter->second.pAnim = 0;
-			}
-		}
-		Anims.clear();
-	}
 	if(body)
 	{
 		delete body;
-		body = 0;
 	}
-	Game = 0;
+	body = apBody;
+	*/
+}
+
+PE_Rect iCharacterBody::GetBox()
+{
+	return Box;
+}
+collision_body *iCharacterBody::GetCollisionBody()
+{
+	return body;
+}
+
+iCharacter::iCharacter(eCharacterType aType, std::string asName, int aiHP)
+{
+	miVelocity = 0;
+	miBasicAttackDamage = 0;
+	miBasicDefence = 0;
+	msName = asName;
+	miHitPoints = aiHP;
+
+
+	mpGame = 0;
+
+	mLastState = MOVE_NONE;
+	mType = aType;
+
+
+	mTexture.mpTexture = 0;
+	mTexture.miAnimSpeed = miVelocity;
+	mTexture.mfScaledMultiplier = 1.0;
+	mTexture.mfRotateDegrees = 0.0;
+
+
+	mAnims.clear();
+	mItems.clear();
+
+	mArmor.itemName = "Skin";
+	mArmor.main_classification = TEST_ROBE;
+	mArmor.sub_classification = TEST_ROBE_NONE;
+
+	mWeapon.itemName = "Hand";
+	mWeapon.main_classification = TEST_WEAPON;
+	mWeapon.sub_classification = TEST_WEAPON_NONE;
+
+}
+iCharacter::~iCharacter()
+{
+
+}
+
+void iCharacter::Update()
+{
+	OnUpdate();
+}
+void iCharacter::Render()
+{
+	OnRender();
+}
+
+void iCharacter::SetStaticTexture(cTexture *apTexture)
+{
+	mTexture.mpTexture = apTexture;
+}
+void iCharacter::SetVelocity(unsigned int aiVelocity)
+{
+	miVelocity = aiVelocity;
+	mTexture.miAnimSpeed = aiVelocity;
+}
+void iCharacter::SetName(std::string asName)
+{
+	msName = asName;
+}
+void iCharacter::SetHitPoints(int aiHP)
+{
+	miHitPoints = aiHP;
+}
+void iCharacter::SetBasicAttackDamage(int aiBasicAttackDamage)
+{
+	miBasicAttackDamage = aiBasicAttackDamage;
+}
+void iCharacter::SetBasicDefence(int aiBasicDefence)
+{
+	miBasicDefence = aiBasicDefence;
+}
+void iCharacter::SetGame(game *apGame)
+{
+	mpGame = apGame;
+}
+
+void iCharacter::AddAnim(int aiAnimType, cTexture *apTexture, std::vector< PE_Rect > aFrames)
+{
+	bool founded = false;
+
+	if(!mAnims.empty())
+	{
+		mAnimIter = mAnims.begin();
+		while(mAnimIter != mAnims.end())
+		{
+			if(mAnimIter->first == aiAnimType)
+			{
+				delete mAnimIter->second.mpAnim;
+				mAnimIter->second.mpAnim = new animation();
+				mAnimIter->second.mpAnim->SetTexture(apTexture);
+				mAnimIter->second.mpAnim->ClearFrames();
+				for(unsigned int loop = 0; loop < aFrames.size(); ++loop)
+				{
+					mAnimIter->second.mpAnim->AddNewFrame(aFrames[loop]);
+				}
+				founded = true;
+				break;
+			}
+			++mAnimIter;
+		}
+	}
+
+	if(!founded)
+	{
+		mAnims[aiAnimType].mpAnim = new animation;
+		mAnims[aiAnimType].miSpeed = 0;
+		mAnims[aiAnimType].mpAnim->SetTexture(apTexture);
+		mAnims[aiAnimType].mpAnim->ClearFrames();
+		for(unsigned int loop = 0; loop < aFrames.size(); ++loop)
+		{
+			mAnims[aiAnimType].mpAnim->AddNewFrame(aFrames[loop]);
+		}
+	}
+}
+void iCharacter::SetScaledAndRotate(float Scaled, float Rotate)
+{
+	mTexture.mfScaledMultiplier = Scaled;
+
+	if(Rotate >= 360)
+	{
+		do
+		{
+			Rotate-=360;
+		}while(Rotate >= 360);
+	}
+	else if(Rotate <= -360)
+	{
+		do
+		{
+			Rotate+=360;
+		}while(Rotate <= -360);
+	}
+
+	mTexture.mfRotateDegrees = Rotate;
+}
+float iCharacter::GetScaledMultiplier()
+{
+	return mTexture.mfScaledMultiplier;
+}
+float iCharacter::GetRotateDegrees()
+{
+	return mTexture.mfRotateDegrees;
+}
+void iCharacter::SetAnimSpeed(int aiAnimType, int aiSpeed)
+{
+	if(!mAnims.empty())
+	{
+		mAnimIter = mAnims.begin();
+		while(mAnimIter != mAnims.end())
+		{
+			if(mAnimIter->first == aiAnimType)
+			{
+				mAnimIter->second.miSpeed = aiSpeed;
+				break;
+			}
+			++mAnimIter;
+		}
+	}
+}
+
+sAnim iCharacter::GetAnim(int aiAnimType)
+{
+	if(!mAnims.empty())
+	{
+		mAnimIter = mAnims.begin();
+		while(mAnimIter != mAnims.end())
+		{
+			if(mAnimIter->first == aiAnimType)
+			{
+				return mAnimIter->second;
+				break;
+			}
+			++mAnimIter;
+		}
+	}
+	sAnim NullAnim;
+	NullAnim.mpAnim = 0;
+	NullAnim.miSpeed = 0;
+
+	return NullAnim;
+}
+cTexture *iCharacter::GetTexture()
+{
+	return mTexture.mpTexture;
+}
+
+std::string iCharacter::GetHeroName()
+{
+	return msName;
+}
+int	iCharacter::GetHealth()
+{
+	return miHitPoints;
+}
+inventory_item iCharacter::GetArmor()
+{
+	return mArmor;
+}
+inventory_item iCharacter::GetWeapon()
+{
+	return mWeapon;
+}
+unsigned int iCharacter::GetVelocity()
+{
+	return miVelocity;
+}
+
+hero::hero(std::string asName, int aiHP):iCharacter(eCharacterType_Hero, asName, aiHP)
+{
+
+}
+hero::~hero()
+{
 
 #ifdef DEBUG_SYS
 	cout << "One hero deleted..." << endl;
 #endif
 }
 
-void hero::move(int direction, int animation, int animpos)
+void hero::Move(int direction, int animation, int animpos)
 {
-	if((animation == ANIM_UNKNOWN)||(Anims.empty()))
+	if((animation == ANIM_UNKNOWN)||(mAnims.empty()))
 	{
 		if(direction == MOVE_RIGHT)
-			Box.X+=StaticTexture.static_anim_speed;
+			Box.X+=mTexture.miAnimSpeed;
 		else if(direction == MOVE_LEFT)
-			Box.X-=StaticTexture.static_anim_speed;
+			Box.X-=mTexture.miAnimSpeed;
 		else if(direction == MOVE_UP)
-			Box.Y-=StaticTexture.static_anim_speed;
+			Box.Y-=mTexture.miAnimSpeed;
 		else if(direction == MOVE_DOWN)
-			Box.Y+=StaticTexture.static_anim_speed;
+			Box.Y+=mTexture.miAnimSpeed;
 
 		// Пока блочим движение тела
 		// 	но в дальнейшем нужно менять камеру при движении
-		if(Game && Game->Graphics && StaticTexture.texture)
+		if(mpGame && mpGame->Graphics && mTexture.mpTexture)
 		{
-			if(Box.X > (Game->Graphics->GetScreenWidth()- StaticTexture.texture->Width()*StaticTexture.scaled_multiplier))
-				Box.X-=StaticTexture.static_anim_speed;
+			if(Box.X > (mpGame->Graphics->GetScreenWidth()- mTexture.mpTexture->GetWidth()*mTexture.mfScaledMultiplier))
+				Box.X-=mTexture.miAnimSpeed;
 			if(Box.X < 0)
-				Box.X+=StaticTexture.static_anim_speed;
-			if(Box.Y > (Game->Graphics->GetScreenHeigth() - StaticTexture.texture->Heigth()*StaticTexture.scaled_multiplier))
-				Box.Y-=StaticTexture.static_anim_speed;
+				Box.X+=mTexture.miAnimSpeed;
+			if(Box.Y > (mpGame->Graphics->GetScreenHeigth() - mTexture.mpTexture->GetHeigth()*mTexture.mfScaledMultiplier))
+				Box.Y-=mTexture.miAnimSpeed;
 			if(Box.Y < 0)
-				Box.Y+=StaticTexture.static_anim_speed;
+				Box.Y+=mTexture.miAnimSpeed;
 		}
 	}
 	else
 	{
 		if(animpos==0)
 		{
-			AnimIter = Anims.begin();
-			while(AnimIter != Anims.end())
+			mAnimIter = mAnims.begin();
+			while(mAnimIter != mAnims.end())
 			{
-				if(animation == AnimIter->first)
+				if(animation == mAnimIter->first)
 				{
 					if(animation == ANIM_MOVE_RIGHT)
-						Box.X+=AnimIter->second.speed;
+						Box.X+=mAnimIter->second.miSpeed;
 					else if(animation == ANIM_MOVE_LEFT)
-						Box.X-=AnimIter->second.speed;
+						Box.X-=mAnimIter->second.miSpeed;
 					else if(animation == ANIM_MOVE_UP)
-						Box.Y-=AnimIter->second.speed;
+						Box.Y-=mAnimIter->second.miSpeed;
 					else if(animation == ANIM_MOVE_DOWN)
-						Box.Y+=AnimIter->second.speed;
+						Box.Y+=mAnimIter->second.miSpeed;
 					else
 						break;
 
 					// Пока блочим движение тела
 					// 	но в дальнейшем нужно менять камеру при движении
-					if(Game && Game->Graphics)
+					if(mpGame && mpGame->Graphics)
 					{
-						if(Box.X > Game->Graphics->GetScreenWidth())
-							Box.X-=AnimIter->second.speed;
+						if(Box.X > mpGame->Graphics->GetScreenWidth())
+							Box.X-=mAnimIter->second.miSpeed;
 						if(Box.X < 0)
-							Box.X+=AnimIter->second.speed;
-						if(Box.Y > Game->Graphics->GetScreenHeigth())
-							Box.Y-=AnimIter->second.speed;
+							Box.X+=mAnimIter->second.miSpeed;
+						if(Box.Y > mpGame->Graphics->GetScreenHeigth())
+							Box.Y-=mAnimIter->second.miSpeed;
 						if(Box.Y < 0)
-							Box.Y+=AnimIter->second.speed;
+							Box.Y+=mAnimIter->second.miSpeed;
 					}
 
-					AnimIter->second.pAnim->Update();
+					mAnimIter->second.mpAnim->Update();
 					break;
 				}
-				++AnimIter;
+				++mAnimIter;
 			}
 		}
 		else
 		{
 			if(animation == ANIM_MOVE_RIGHT)
-				Box.X+=	Anims[animpos].speed;
+				Box.X+=	mAnims[animpos].miSpeed;
 			else if(animation == ANIM_MOVE_LEFT)
-				Box.X-=Anims[animpos].speed;
+				Box.X-=mAnims[animpos].miSpeed;
 			else if(animation == ANIM_MOVE_UP)
-				Box.Y-=Anims[animpos].speed;
+				Box.Y-=mAnims[animpos].miSpeed;
 			else if(animation == ANIM_MOVE_DOWN)
-				Box.Y+=Anims[animpos].speed;
+				Box.Y+=mAnims[animpos].miSpeed;
 
 			// Пока блочим движение тела
 			// 	но в дальнейшем нужно менять камеру при движении
-			if(Game && Game->Graphics)
+			if(mpGame && mpGame->Graphics)
 			{
-				if(Box.X > Game->Graphics->GetScreenWidth())
-					Box.X-=Anims[animpos].speed;
+				if(Box.X > mpGame->Graphics->GetScreenWidth())
+					Box.X-=mAnims[animpos].miSpeed;
 				if(Box.X < 0)
-					Box.X+=Anims[animpos].speed;
-				if(Box.Y > Game->Graphics->GetScreenHeigth())
-					Box.Y-=Anims[animpos].speed;
+					Box.X+=mAnims[animpos].miSpeed;
+				if(Box.Y > mpGame->Graphics->GetScreenHeigth())
+					Box.Y-=mAnims[animpos].miSpeed;
 				if(Box.Y < 0)
-					Box.Y+=Anims[animpos].speed;
+					Box.Y+=mAnims[animpos].miSpeed;
 			}
 		}
 	}
 }
-void hero::jump()
+void hero::Jump()
 {
 	/*
 	 * TODO: код для простого прыжка
@@ -229,7 +410,7 @@ void hero::jump()
 	}
 	*/
 }
-void hero::sit()
+void hero::Sit()
 {
 	/*
 	 * TODO: код для анимации приседа - 1 картинка
@@ -239,20 +420,20 @@ void hero::sit()
 	}
 	*/
 }
-void hero::shoot()
+void hero::Shoot()
 {
 	/*
 	 * TODO: код для выстрела
 	 */
 }
-void hero::update()
+void hero::OnUpdate()
 {
-	if((!Game)||(!Game->Input))
+	if((!mpGame)||(!mpGame->Input))
 		return;
 
 	PE_Rect OldBox = Box;
 	int move_type = MOVE_NONE;	// Необходимо для движения
-	last_state = MOVE_NONE;		// Необходимо для учёта порядка движений по приоритетам
+	mLastState = MOVE_NONE;		// Необходимо для учёта порядка движений по приоритетам
 
 	/*
 	if(jumped)
@@ -271,48 +452,48 @@ void hero::update()
 	}
 	*/
 
-	if(Game->Input->IsKeyDown(KEY_EQUALS) || Game->Input->IsKeyHeld(KEY_EQUALS))
+	if(mpGame->Input->IsKeyDown(KEY_EQUALS) || mpGame->Input->IsKeyHeld(KEY_EQUALS))
 	{
-		int speed = GetStaticSpeed();
+		unsigned int speed = GetVelocity();
 		if(speed < MAX_HERO_ANIM_SPEED)
 		{
 			speed+=1;
-			SetStaticSpeed(speed);
+			SetVelocity(speed);
 		}
 	}
-	else if(Game->Input->IsKeyDown(KEY_MINUS) || Game->Input->IsKeyHeld(KEY_MINUS))
+	else if(mpGame->Input->IsKeyDown(KEY_MINUS) || mpGame->Input->IsKeyHeld(KEY_MINUS))
 	{
-		int speed = GetStaticSpeed();
+		unsigned int speed = GetVelocity();
 		if(speed > 1)
 		{
 			speed-=1;
-			SetStaticSpeed(speed);
+			SetVelocity(speed);
 		}
 	}
 
 	// Сначала проверяем нажате клавиш и забиваем переменную last_state
-	if(Game->Input->IsKeyDown(KEY_RIGHT) || Game->Input->IsKeyHeld(KEY_RIGHT))
+	if(mpGame->Input->IsKeyDown(KEY_RIGHT) || mpGame->Input->IsKeyHeld(KEY_RIGHT))
 	{
-		if(last_state < MOVE_RIGHT)
-			last_state = MOVE_RIGHT;
+		if(mLastState < MOVE_RIGHT)
+			mLastState = MOVE_RIGHT;
 		move_type = MOVE_RIGHT;
 	}
-	else if(Game->Input->IsKeyDown(KEY_LEFT) || Game->Input->IsKeyHeld(KEY_LEFT))
+	else if(mpGame->Input->IsKeyDown(KEY_LEFT) || mpGame->Input->IsKeyHeld(KEY_LEFT))
 	{
-		if(last_state < MOVE_LEFT)
-			last_state = MOVE_LEFT;
+		if(mLastState < MOVE_LEFT)
+			mLastState = MOVE_LEFT;
 		move_type = MOVE_LEFT;
 	}
-	else if(Game->Input->IsKeyDown(KEY_DOWN) || Game->Input->IsKeyHeld(KEY_DOWN))
+	else if(mpGame->Input->IsKeyDown(KEY_DOWN) || mpGame->Input->IsKeyHeld(KEY_DOWN))
 	{
-		if(last_state < MOVE_DOWN)
-			last_state = MOVE_DOWN;
+		if(mLastState < MOVE_DOWN)
+			mLastState = MOVE_DOWN;
 		move_type = MOVE_DOWN;
 	}
-	else if(Game->Input->IsKeyHeld(KEY_UP) || Game->Input->IsKeyHeld(KEY_UP))
+	else if(mpGame->Input->IsKeyHeld(KEY_UP) || mpGame->Input->IsKeyHeld(KEY_UP))
 	{
-		if(last_state < MOVE_UP)
-			last_state = MOVE_UP;
+		if(mLastState < MOVE_UP)
+			mLastState = MOVE_UP;
 		move_type = MOVE_UP;
 	}
 
@@ -320,18 +501,20 @@ void hero::update()
 	if(move_type > MOVE_NONE)
 	{
 		// Только если движение было
-		if(!Anims.empty())
+		if(!mAnims.empty())
 		{
 			// Массив анимаций не пуст
 			int loop = 0;
 			bool animed = false;	// Движение анимировано
 
-			for(AnimIter = Anims.begin(); AnimIter != Anims.end(); ++AnimIter)
+			mAnimIter = mAnims.begin();
+
+			for( ; mAnimIter != mAnims.end(); ++mAnimIter)
 			{
-				if(AnimIter->first == move_type)
+				if(mAnimIter->first == move_type)
 				{
 					// Анимация найдена - двигаемся с нужной скоростью
-					move(move_type, AnimIter->first, loop);
+					Move(move_type, mAnimIter->first, loop);
 					animed = true;
 					break;
 				}
@@ -340,13 +523,13 @@ void hero::update()
 			if(!animed)
 			{
 				// Анимация не найдена - двигаемся без анимации
-				move(move_type);
+				Move(move_type);
 			}
 		}
 		else
 		{
 			// Анимаций нет - двигаемся без анимации
-			move(move_type);
+			Move(move_type);
 		}
 	}
 
@@ -372,26 +555,26 @@ void hero::update()
 	//body->SetAABBBox(Box);
 	//body->
 }
-void hero::render()
+void hero::OnRender()
 {
 	bool moved = false;
 
-	if(!Anims.empty() && (last_state != MOVE_NONE))
+	if(!mAnims.empty() && (mLastState != MOVE_NONE))
 	{
-		AnimIter = Anims.begin();
-		while(AnimIter != Anims.end())
+		mAnimIter = mAnims.begin();
+		while(mAnimIter != mAnims.end())
 		{
 			if(!moved)
 			{
 				// Обрабатываем движения
-				if(AnimIter->first == last_state)
+				if(mAnimIter->first == mLastState)
 				{
-					if(AnimIter->second.pAnim)
-						AnimIter->second.pAnim->Draw(Box.X, Box.Y);
+					if(mAnimIter->second.mpAnim)
+						mAnimIter->second.mpAnim->Draw(Box.X, Box.Y);
 					else
 					{
-						if(StaticTexture.texture)
-							StaticTexture.texture->Draw(Box.X, Box.Y, StaticTexture.scaled_multiplier, StaticTexture.rotate_degrees);
+						if(mTexture.mpTexture)
+							mTexture.mpTexture->Draw(Box.X, Box.Y, mTexture.mfScaledMultiplier, mTexture.mfRotateDegrees);
 					}
 
 					moved = true;
@@ -401,183 +584,12 @@ void hero::render()
 			// Обрабатываем что-то ещё
 
 
-			++AnimIter;
+			++mAnimIter;
 		}
 	}
 	else
 	{
-		if(StaticTexture.texture)
-			StaticTexture.texture->Draw(Box.X, Box.Y, StaticTexture.scaled_multiplier, StaticTexture.rotate_degrees);
+		if(mTexture.mpTexture)
+			mTexture.mpTexture->Draw(Box.X, Box.Y, mTexture.mfScaledMultiplier, mTexture.mfRotateDegrees);
 	}
-}
-
-// Устанавливаем статик текстуру и скорость текстуры, как четверть ширины
-void hero::SetTexture(image *texture)
-{
-	StaticTexture.texture = texture;
-}
-void hero::SetStaticSpeed(int speed)
-{
-	StaticTexture.static_anim_speed = speed;
-}
-void hero::SetScaledAndRotate(float Scaled, float Rotate)
-{
-	StaticTexture.scaled_multiplier = Scaled;
-
-	if(Rotate >= 360)
-	{
-		do
-		{
-			Rotate-=360;
-		}while(Rotate >= 360);
-	}
-	else if(Rotate <= -360)
-	{
-		do
-		{
-			Rotate+=360;
-		}while(Rotate <= -360);
-	}
-
-	StaticTexture.rotate_degrees = Rotate;
-}
-void hero::SetBox(float W, float H, float X, float Y)
-{
-	Box.Heigth = H;
-	Box.Width = W;
-	Box.X = X;
-	Box.Y = Y;
-
-	body->SetAABBBox(Box);
-}
-void hero::SetGame(game *gm)
-{
-	Game = gm;
-}
-void hero::SetAnim(int AnimType, image *texture, std::vector< PE_Rect > frames)
-{
-	bool founded = false;
-
-	if(!Anims.empty())
-	{
-		AnimIter = Anims.begin();
-		while(AnimIter != Anims.end())
-		{
-			if(AnimIter->first == AnimType)
-			{
-				delete AnimIter->second.pAnim;
-				AnimIter->second.pAnim = new animation();
-				AnimIter->second.pAnim->SetTexture(texture);
-				AnimIter->second.pAnim->ClearFrames();
-				for(unsigned int loop = 0; loop < frames.size(); ++loop)
-				{
-					AnimIter->second.pAnim->AddNewFrame(frames[loop]);
-				}
-				founded = true;
-				break;
-			}
-			++AnimIter;
-		}
-	}
-
-	if(!founded)
-	{
-		Anims[AnimType].pAnim = new animation;
-		Anims[AnimType].speed = 0;
-		Anims[AnimType].pAnim->SetTexture(texture);
-		Anims[AnimType].pAnim->ClearFrames();
-		for(unsigned int loop = 0; loop < frames.size(); ++loop)
-		{
-			Anims[AnimType].pAnim->AddNewFrame(frames[loop]);
-		}
-	}
-}
-void hero::SetAnimSpeed(int AnimType, int speed)
-{
-	if(!Anims.empty())
-	{
-		AnimIter = Anims.begin();
-		while(AnimIter != Anims.end())
-		{
-			if(AnimIter->first == AnimType)
-			{
-				AnimIter->second.speed = speed;
-				break;
-			}
-			++AnimIter;
-		}
-	}
-}
-sAnim hero::GetAnim(int AnimType)
-{
-	if(!Anims.empty())
-	{
-		AnimIter = Anims.begin();
-		while(AnimIter != Anims.end())
-		{
-			if(AnimIter->first == AnimType)
-			{
-				return AnimIter->second;
-			}
-			++AnimIter;
-		}
-	}
-	sAnim nullec;
-	nullec.pAnim = 0;
-	nullec.speed = 0;
-
-	return nullec;
-}
-image *hero::GetTexture()
-{
-	return StaticTexture.texture;
-}
-PE_Rect hero::GetBox()
-{
-	return Box;
-}
-int hero::GetStaticSpeed()
-{
-	return StaticTexture.static_anim_speed;
-}
-float hero::GetScaledMultiplier()
-{
-	return StaticTexture.scaled_multiplier;
-}
-float hero::GetRotateDegrees()
-{
-	return StaticTexture.rotate_degrees;
-}
-std::string hero::GetHeroName()
-{
-	return name;
-}
-int	hero::GetHealth()
-{
-	return hit_points;
-}
-inventory_item hero::GetArmor()
-{
-	return armor;
-}
-inventory_item hero::GetWeapon()
-{
-	return weapon;
-}
-collision_body *hero::GetCollisionBody()
-{
-	return body;
-}
-
-float sStaticTexture::GetRealWidth()
-{
-	float result = texture->Width()*scaled_multiplier;
-	// TODO: манипуляции с rotate_degrees
-	return result;
-}
-float sStaticTexture::GetRealHeigth()
-{
-	float result = texture->Heigth()*scaled_multiplier;
-	// TODO: манипуляции с rotate_degrees
-	return result;
 }

@@ -18,7 +18,7 @@ cButton::~cButton()
 
 }
 
-void cButton::SetImage(image *aTexture)
+void cButton::SetImage(cTexture *aTexture)
 {
 	mpTexture = aTexture;
 }

@@ -23,7 +23,7 @@ int engine::init()
 
 	//Забиваем графику
 	Graphics = new graphics();
-	if(Graphics->init() < 0)
+	if(Graphics->Init() < 0)
 		return -1;
 
 	Audio = new audio();

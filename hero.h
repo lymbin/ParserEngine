@@ -11,95 +11,110 @@
 #include "game.h"
 #include "Inventory.h"
 
-const int MAX_HERO_ANIM_SPEED = 30;
+const unsigned int MAX_HERO_ANIM_SPEED = 30;
+
+enum eCharacterType
+{
+	eCharacterType_Hero,
+	eCharacterType_Ally,
+	eCharacterType_NPC,
+	eCharacterType_Enemy,
+	eCharacterType_LastEnum
+};
+
 
 struct sAnim
 {
-	animation *pAnim;
-	unsigned int speed;
+	animation *mpAnim;
+	unsigned int miSpeed;
 
-	float scaled_multiplier;
-	float rotate_degrees;
+	float mfScaledMultiplier;
+	float mfRotateDegrees;
 };
 struct sStaticTexture
 {
-	image 		*texture;
-	unsigned int static_anim_speed;
+	cTexture	*mpTexture;
+	unsigned int miAnimSpeed;
 
-	float scaled_multiplier;
-	float rotate_degrees;
+	float mfScaledMultiplier;
+	float mfRotateDegrees;
 
 	float GetRealWidth();
 	float GetRealHeigth();
 };
-class hero
+class iCharacterBody
 {
-	game 		*Game;
-
-	sStaticTexture StaticTexture;
-	unsigned int hero_speed;
-
-	std::map <int, sAnim > Anims;
-	std::map <int, sAnim >::iterator AnimIter;
-	int last_state;
-
-	/*
-	animation 	*moveright_animation;
-	animation 	*moveleft_animation;
-	animation 	*moveup_animation;
-	animation 	*movedown_animation;
-
-	animation 	*jump_animation;
-	animation 	*sit_animation;
-
-	bool jumped;
-	*/
-
-	PE_Rect 	Box;
-
+protected:
+	PE_Rect 		Box;
 	collision_body *body;
 
-	std::string name;
-	int hit_points;
+public:
+	iCharacterBody();
+	virtual ~iCharacterBody();
 
-	std::vector <inventory_item > items;
-	inventory_item armor;
-	inventory_item weapon;
+	void SetBox(float W, float H, float X, float Y);
+	void SetBody(collision_body *apBody);
+
+	PE_Rect 		GetBox();
+	collision_body *GetCollisionBody();
+};
+
+class iCharacter : public iCharacterBody
+{
+protected:
+	game *mpGame;
+	eCharacterType mType;
+
+	sStaticTexture mTexture;
+	unsigned int miVelocity;
+
+	std::map <int, sAnim > mAnims;
+	std::map <int, sAnim >::iterator mAnimIter;
+
+	std::string msName;
+	int miHitPoints;
+
+	int miBasicAttackDamage;
+	int miBasicDefence;
+
+	std::vector <inventory_item > mItems;
+	inventory_item mArmor;
+	inventory_item mWeapon;
+
+	int mLastState;
 
 public:
-	hero(std::string nam = "Timmi", int hp = 100);
-	~hero();
+	iCharacter(eCharacterType aType, std::string asName, int aiHP);
+	virtual ~iCharacter();
 
-	void move(int direction, int animation = ANIM_UNKNOWN, int animpos = 0);
-	void jump();
-	void sit();
-	void shoot();
+	void Update();
+	void Render();
 
-	void update();
-	void render();
+	void SetStaticTexture(cTexture *apTexture);
+	void SetVelocity(unsigned int aiVelocity);
+	void SetName(std::string asName);
+	void SetHitPoints(int aiHP);
+	void SetBasicAttackDamage(int aiBasicAttackDamage);
+	void SetBasicDefence(int aiBasicDefence);
+	void SetGame(game *apGame);
 
-	void SetTexture(image 	*texture);
+	void SetScaledAndRotate(float Scaled, float Rotate);
 
-	void SetStaticSpeed(int speed);
+	void AddAnim(int aiAnimType, cTexture *apTexture, std::vector< PE_Rect > aFrames);
+	void SetAnimSpeed(int aiAnimType, int aiSpeed);
 
-	void SetScaledAndRotate(float Scaled = 1, float Rotate = 0);
+	virtual void Move(int aiDirection, int aiAnimation, int aiAnimpos) {}
+	virtual void Jump() {}
+	virtual void Sit(){}
+	virtual void Shoot(){}
 
-	void SetBox(float W = 0, float H = 0, float X = 0, float Y = 0);
+	virtual void OnUpdate(){}
+	virtual void OnRender(){}
 
-	void SetAnim(int AnimType, image *texture, std::vector< PE_Rect > frames);
-	void SetAnimSpeed(int AnimType, int speed);
 
-	void SetGame(game *gm);
+	sAnim GetAnim(int aiAnimType);
 
-	//void SetHeroName();
-
-	sAnim GetAnim(int AnimType);
-	image *GetTexture();
-	PE_Rect GetBox();
-	collision_body *GetCollisionBody();
-
-	int GetStaticSpeed();
-
+	cTexture *GetTexture();
 	float GetScaledMultiplier();
 	float GetRotateDegrees();
 
@@ -108,6 +123,24 @@ public:
 	inventory_item GetArmor();
 	inventory_item GetWeapon();
 
+	unsigned int GetVelocity();
+
+};
+
+class hero : public iCharacter
+{
+
+public:
+	hero(std::string nam = "Timmi", int hp = 100);
+	~hero();
+
+	void Move(int aiDirection, int aiAnimation = ANIM_UNKNOWN, int aiAnimpos = 0);
+	void Jump();
+	void Sit();
+	void Shoot();
+
+	void OnUpdate();
+	void OnRender();
 };
 
 

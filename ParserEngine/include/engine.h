@@ -80,9 +80,9 @@ const int 			SYS_AUDIO_BUFFERS = 1024;
 
 ///////////////// VERSIONS CONSTANTS /////////////////
 
-const std::string 	SYS_VERSION = "0.0.0.0.39";
-const std::string 	SYS_BUILD = "000039";
-const std::string	SYS_TEST_VERSION = "0.1.4.39";
+const std::string 	SYS_VERSION = "0.0.0.0.40";
+const std::string 	SYS_BUILD = "000040";
+const std::string	SYS_TEST_VERSION = "0.1.5.40";
 
 
 
@@ -94,7 +94,7 @@ class window;
 class game;
 struct textureClass;
 //class texture;
-class image;
+class cTexture;
 class texture_manager;
 
 
@@ -151,33 +151,91 @@ public:
 		return stream.str();
 	}
 };
-class graphics
+
+class cColor
 {
-	friend image;
+public:
+	float r, g, b, a;
+
+	cColor(float afR, float afG, float afB, float afA);
+	cColor(float afR, float afG, float afB);
+	cColor();
+	cColor(float afColor);
+	cColor(float afColor, float afA);
+
+	cColor operator*(float afColor) const;
+	cColor operator/(float afColor) const;
+
+	cColor operator+(const cColor &aCol) const;
+	cColor operator-(const cColor &aCol) const;
+	cColor operator*(const cColor &aCol) const;
+	cColor operator/(const cColor &aCol) const;
+
+	bool operator==(cColor aCol) const;
+
+	std::string ToString() const;
+};
+
+class iLowLevelGraphics
+{
+public:
+	iLowLevelGraphics();
+	virtual ~iLowLevelGraphics();
+
+	virtual int Init(int W = SYS_WIDTH, int H = SYS_HEIGTH, int BPP = SYS_BPP, int abFullScreen = SYS_FULLSCREEN)=0;
+
+	virtual void ClearScreen()=0;
+	virtual void SetClearColor(cColor aCol)=0;
+
+	virtual void PushMatrix()=0;
+	virtual void PopMatrix()=0;
+
+	virtual void SwapBuffers()=0;
+
+	// Рисуем примитивы
+	// TODO: возможно вынести в одтельный класс
+	// TODO: позаботиться об их удалении без очистки экрана
+	// TODO: дать только некоторым классам использовать эти функции
+	//		например, из примитивов рисовать что-то полезное внутри другого класса
+
+	// Рисуем каркас прямоугольника цветными линиями
+	void DrawRectangle(float x, float y, float width, float height, cColor aCol = cColor(1.0f, 1.0f));
+	void DrawRectangle(PE_Rect aRect, cColor aCol = cColor(1.0f, 1.0f));
+
+	// Рисуем заполненный цветом прямоугольник
+	void DrawFilledRectangle(float x, float y, float width, float height, cColor aCol = cColor(1.0f, 1.0f));
+	void DrawFilledRectangle(PE_Rect aRect, cColor aCol = cColor(1.0f, 1.0f));
+
+	// Рисуем линию
+	void DrawLine(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2, cColor aCol = cColor(1.0f, 1.0f));
+	void DrawLine(PE_Point A, PE_Point B, cColor aCol = cColor(1.0f, 1.0f));
+};
+class graphics: public iLowLevelGraphics
+{
+	friend cTexture;
 	texture_manager *TextureManager;	// Менеджер текстур
 	font_manager 	*FontManager;
 
 	SDL_Surface *screen;	// Сурфейс окна
 	GLuint CurrentTexture;	// Текущая забинженная текстура
 
-	int FullScreen;
-
-	int	ScreenWidth; 	//ширина
-	int	ScreenHeigth;	//высота
-	int	ScreenBpp;		//палитра
-
 	camera *Camera;
 	window *Window;
 
+	int mbFullScreen;
+
+	int	mlScreenWidth; 	//ширина
+	int	mlScreenHeigth;	//высота
+	int	mlScreenBpp;	//палитра
 public:
-	graphics(int W = SYS_WIDTH, int H = SYS_HEIGTH, int BPP = SYS_BPP);
+	graphics();
 	~graphics();
 
 	// Инициализируем все внутренние подсистемы
-	int init();
+	int Init(int W = SYS_WIDTH, int H = SYS_HEIGTH, int BPP = SYS_BPP, int abFullScreen = SYS_FULLSCREEN);
 
 	// Инициализация OpenGL
-	int initGL();
+	int InitGL();
 
 	// Очищаем всю графическую систему
 	void CleanUp();
@@ -189,7 +247,10 @@ public:
 	void ClearColor();
 
 	// Устанавливаем цвет
-	void SetColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha = 1.0f);
+	void SetClearColor(cColor aCol);
+
+	void PushMatrix();
+	void PopMatrix();
 
 	// Отрисовываем буферы на экране
 	void SwapBuffers();
@@ -199,24 +260,6 @@ public:
 
 	// Меняем полноэкранный режим
 	void ToggleFullScreen();
-
-	// Рисуем примитивы
-	// TODO: возможно вынести в одтельный класс
-	// TODO: позаботиться об их удалении без очистки экрана
-	// TODO: дать только некоторым классам использовать эти функции
-	//		например, из примитивов рисовать что-то полезное внутри другого класса
-
-	// Рисуем каркас прямоугольника цветными линиями
-	void DrawRectangle(GLfloat x, GLfloat y, GLfloat width, GLfloat height,
-						GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
-
-	// Рисуем заполненный цветом прямоугольник
-	void DrawFilledRectangle(GLfloat x, GLfloat y, GLfloat width, GLfloat height,
-								GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
-
-	// Рисуем линию
-	void DrawLine(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2,
-					GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
 
 	// Устанавливаем текущую забинженную текстуру
 	void SetCurrentTexture(GLuint texture);
@@ -257,27 +300,26 @@ public:
 
 };
 
-//typedef std::vector<image *>
-
+typedef std::vector <cTexture *> tTextureVector;
 
 class texture_manager
 {
 	// Менеджер текстур - управляет памятью.
 	// Пока не используется для изображений из-за сложности передачи каждому новому изображению указатель на менеджер
 	// TODO: доделать позднее выделив в глобал или в синглтон
-	friend image;
+	friend cTexture;
 	friend graphics;
 	graphics *Graphics;
 protected:
 
 	// Вектор хранящий все текстуры, которыми управляем
-	std::vector< image *> Textures;
+	tTextureVector Textures;
 public:
 	texture_manager();
 	~texture_manager();
 
 	// Получаем информацию по текстуре
-	image *GetTextureInfos(GLuint texture);
+	cTexture *GetTextureInfos(GLuint texture);
 
 	//Перезагружаем текстуры
 	void ReloadTextures();
@@ -289,44 +331,52 @@ public:
 	void DeleteTextures();
 
 	//Добавляем и удаляем из вектора управляющего текстурами
-	void ManageTexture(image *managed_image);
-	void UnManageTexture(image *managed_image);
+	void ManageTexture(cTexture *managed_image);
+	void UnManageTexture(cTexture *managed_image);
 
 	void SetGraphics(graphics *setGraphics);
 
 };
 
-struct iTexture
+class iLowLevelTexture
 {
 	//Содержит саму OpenGL текстуру изображения и всевозможные данные о ней
-	GLuint tex;
-	float pxw; //ширина в пикселах
-	float pxh; //высота в пикселах
 
-	std::string fileName; //Путь до файла
+	std::string msPath; //Путь до файла
+
+protected:
+	float mfPxHeight; //ширина в пикселах
+	float mfPxWidth; //высота в пикселах
+
+public:
+	iLowLevelTexture();
+	~iLowLevelTexture();
+
+	// Вывод реальных размеров изображения
+	float GetWidth();
+	float GetHeigth();
+
+	std::string GetPath();
+
+	void SetPath(std::string asPath);
+
 };
-
-class image
+class cTexture : public iLowLevelTexture
 {
 	friend texture_manager;
 	friend animation;
-	iTexture texture;
 	texture_manager *TextureManager; // TODO:в глобал или в синглтон
 
 	//TODO: протестировать
 	//std::vector< std::vector< bool > > m_PixelOn; // Храним пиксели текстуры для модуля столкновений(коллизии)
 
+	GLuint mTexture;
+
 public:
-	image(std::string file = "", GLint filter = SYS_GL_IMG_FILTER);
-	~image();
+	cTexture(std::string file = "", GLint filter = SYS_GL_IMG_FILTER);
+	~cTexture();
 
 	void SetTexManager(texture_manager *TextureManager);
-
-	iTexture GetTXT();
-
-	// Вывод реальных размеров изображения
-	float Width();
-	float Heigth();
 
 	// Различные функции отрисовки
 	void DrawTransform(float x, float y, PE_Rect *Box,
@@ -337,8 +387,8 @@ public:
 	 *  с заданным увеличением и поворотом текстуры(по умолчанию отсутствует)
 	 *  а также цветом текстуры(по умолчанию белый)
 	 */
-	void Draw(float x, float y, GLfloat Scale = 1, GLfloat Rotation = 0,
-			GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
+	void Draw(float x, float y,
+			GLfloat Scale = 1, GLfloat Rotation = 0, cColor aCol = cColor(1.0f, 1.0f));
 
 	/*
 	 *  Отрисовка куска текстуры в точке (x, y)
@@ -347,9 +397,7 @@ public:
 	 *  а также цветом текстуры(по умолчанию белый)
 	 */
 	void Draw(float x, float y, PE_Rect *Box,
-			GLfloat Scale = 1, GLfloat Rotation = 0,
-			GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
-
+			GLfloat Scale = 1, GLfloat Rotation = 0, cColor aCol = cColor(1.0f, 1.0f));
 
 
 	// Открываем изображение из файла
@@ -360,11 +408,11 @@ public:
 	void MakeTexture(SDL_Surface *Surface, GLint filter = SYS_GL_IMG_FILTER, bool LoadPixels = false);
 
 	// Полностью перерисовываем изображения с различными функциями отрисовки
-	void Redraw(float x, float y, GLfloat Scale = 1, GLfloat Rotatation = 0,
-				GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
+	void Redraw(float x, float y,
+			GLfloat Scale = 1, GLfloat Rotatation = 0, cColor aCol = cColor(1.0f, 1.0f));
+
 	void Redraw(float x, float y, PE_Rect *Box,
-			GLfloat Scale = 1, GLfloat Rotatation = 0,
-			GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
+			GLfloat Scale = 1, GLfloat Rotatation = 0, cColor aCol = cColor(1.0f, 1.0f));
 
 	// Биндим текстуру для работы с OpenGL
 	void Bind();
@@ -667,11 +715,11 @@ class animation
 	//TODO: глянуть потом этот тип анимации
 	//std::vector< image * > Textures;
 
-	image * CurrentTexture;
+	cTexture * CurrentTexture;
 
 	// Для второго типа анимаций текстуры лежат в одной из того же вектора(только там одна текстура)
 	// Смена кадров это смена кусков текстуры
-	std::vector< PE_Rect > frames;
+	tRectVector frames;
 
 	// Текущий фрейм анимации
 	uint CurrentFrame;
@@ -720,7 +768,7 @@ public:
 	void ClearFrames();
 
 	// Устанавливаем главную текстуру
-	void SetTexture(image *Texture);
+	void SetTexture(cTexture *Texture);
 
 	// Устанавливаем скорость анимации
 	void SetSpeed(Uint32 Speed);
@@ -731,7 +779,7 @@ public:
 	void SetItemName(std::string name);
 
 	// Добавляем новый фрейм в индекс или в конец
-	void AddNewFrame(PE_Rect, int index = -1);
+	void AddNewFrame(PE_Rect aFrame, int index = -1);
 
 	// Прыгаем на фрейм с заданным индексом
 	void JumpToFrame(unsigned int index);
@@ -743,7 +791,7 @@ public:
 	bool IsOver();
 
 	// Получаем главную текстуру
-	image *GetTexture();
+	cTexture *GetTexture();
 
 	// Получаем фрейм с индексом
 	PE_Rect GetFrame(unsigned int index);
