@@ -61,7 +61,6 @@ class camera;
 class audio;
 class window;
 
-class game;
 class cTexture;
 
 class input;

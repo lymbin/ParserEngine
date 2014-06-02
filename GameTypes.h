@@ -8,8 +8,6 @@
 #ifndef GAMETYPES_H_
 #define GAMETYPES_H_
 
-#include "PE.h"
-
 enum eItemMainClassification {
 	TEST_ITEM ,
 	TEST_WEAPON ,

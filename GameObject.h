@@ -21,6 +21,7 @@ enum eGameObjectType
 	eGameObjectType_LastEnum
 };
 
+
 // Тестовый класс
 class iAnimed
 {
@@ -29,8 +30,8 @@ protected:
 	std::map <int, sAnim >::iterator mAnimIter;
 
 public:
-	iAnimed();
-	virtual ~iAnimed();
+	iAnimed(){mAnims.clear();}
+	virtual ~iAnimed(){}
 
 	virtual void Move(int alDirection, int alAnimation, int alAnimpos) {}
 	virtual void Jump() {}
@@ -58,12 +59,9 @@ public:
 	virtual void CollisionHandler() {}
 };
 
-
-class iGameObject : public iCollisionBody
+class iGameObject : public iCollisionBody, public iUpdateable
 {
 protected:
-	game *mpGame;
-	std::string msName;
 
 	eGameObjectType mGameObjectType;
 
@@ -74,52 +72,63 @@ public:
 	iGameObject(eGameObjectType aType, std::string asName, int alHitPoints);
 	virtual ~iGameObject();
 
-	void Update();
-	void Render();
+	virtual void OnDraw() {}	// Перерисовка
+	virtual void Reset() {}		// Сброс настроек
+	virtual void OnStart() {}	// Установка начальных данных
+	virtual void OnExit() {}	// Выполняем при выходе, на последней итерации фреймов или при удалении
+	virtual void Update() {}	// Обновление данных
 
-	void SetGame(game *apGame);
-	void SetName(std::string asName);
 	void SetHitPoints(int alHP);
 	void SetVelocity(unsigned int alVelocity);
 
 	unsigned int GetVelocity();
-	std::string GetName();
 	int	GetHealth();
 
-	virtual void OnUpdate(){}
-	virtual void OnRender(){}
 };
 
-class cStaticObject : public iGameObject
+class iStaticObject : public iGameObject
 {
 	sStaticTexture mTexture;
 
 public:
-	cStaticObject(std::string asName = "", int alHitPoints = 100);
-	~cStaticObject();
+	iStaticObject(std::string asName, int alHitPoints);
+	virtual ~iStaticObject(){}
 
-	void OnUpdate();
-	void OnRender();
+	virtual void OnDraw() {}	// Перерисовка
+	virtual void Reset() {}		// Сброс настроек
+	virtual void OnStart() {}	// Установка начальных данных
+	virtual void OnExit() {}	// Выполняем при выходе, на последней итерации фреймов или при удалении
+	virtual void Update() {}	// Обновление данных
 
-	void CollisionHandler();
+	virtual void CollisionHandler(){}
 };
 
-class cDynamicObject : public iGameObject, public iAnimed
+class iDynamicObject : public iGameObject, public iAnimed
 {
 	sStaticTexture mTexture;
 
-	std::map <int, sAnim > mAnims;
-	std::map <int, sAnim >::iterator mAnimIter;
-
 public:
-	cDynamicObject(std::string asName = "", int alHitPoints = 100);
-	~cDynamicObject();
+	iDynamicObject(std::string asName, int alHitPoints):iGameObject(eGameObjectType_DynamicObject, asName, alHitPoints)
+	{
+		mTexture.mfRotateDegrees = 0.0;
+		mTexture.mfScaledMultiplier = 1.0;
 
-	void OnUpdate();
-	void OnRender();
+		mTexture.mpTexture = 0;
+	}
+	virtual ~iDynamicObject(){}
 
-	void CollisionHandler();
+	virtual void OnDraw() {}	// Перерисовка
+	virtual void Reset() {}		// Сброс настроек
+	virtual void OnStart() {}	// Установка начальных данных
+	virtual void OnExit() {}	// Выполняем при выходе, на последней итерации фреймов или при удалении
+	virtual void Update() {}	// Обновление данных
 
-	void Move(int alDirection, int alAnimation, int alAnimpos);
+	virtual void CollisionHandler(){}
+
+	virtual void Move(int alDirection, int alAnimation, int alAnimpos){}
+	virtual void Jump() {}
+	virtual void Sit(){}
+	virtual void Shoot(){}
 };
+
 #endif /* GAMEOBJECT_H_ */

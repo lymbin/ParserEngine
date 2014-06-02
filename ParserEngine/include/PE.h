@@ -36,4 +36,6 @@
 
 #include "widget.h"
 
+#include "Updater.h"
+
 #endif /* PE_H_ */

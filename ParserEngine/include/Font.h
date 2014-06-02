@@ -30,7 +30,6 @@
 class font;
 class text;
 class graphics;
-class game;
 
 class font_manager
 {
@@ -160,7 +159,6 @@ public:
 };
 class text
 {
-	friend game;
 	friend text_manager;
 
 	GLuint 		tex;		// OpenGL текстура

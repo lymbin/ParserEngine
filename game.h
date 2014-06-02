@@ -11,8 +11,10 @@
 #include "PE.h"
 #include "GameTypes.h"
 #include "Inventory.h"
+#include "Character.h"
 #include "hero.h"
 
+class hero;
 
 //Нижние дефайны пока никак не используем
 #define LEVEL_MAINMENU  0
@@ -23,32 +25,13 @@ const int GAME_GUI_HEIGTH = 200;
 const int GAME_HERO_HP = 100;
 const std::string GAME_HERO_NAME = "Timmi";
 
+
 struct MainMenu
 {
 	cTexture	*background;
 	text 		*title;
 	//image 	*button_start;
 	//image 	*button_exit;
-};
-
-class hero;
-
-class somebox
-{
-	PE_Rect Box;
-	collision_body *body;
-	game 		*Game;
-public:
-	somebox(GLfloat W = 0, GLfloat H = 0, GLfloat X = 0, GLfloat Y = 0);
-	~somebox();
-
-	void update();
-	void render();
-
-	void SetBox(PE_Rect NewBox);
-	void SetGame(game *gm);
-
-	collision_body *GetCollisionBody();
 };
 
 struct bottom_gui
@@ -104,5 +87,4 @@ public:
 
 
 };
-
 #endif /* GAME_H_ */

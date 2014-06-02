@@ -335,7 +335,7 @@ void hero::Shoot()
 	 * TODO: код для выстрела
 	 */
 }
-void hero::OnUpdate()
+void hero::Update()
 {
 	if((!mpGame)||(!mpGame->Input))
 		return;
@@ -464,7 +464,7 @@ void hero::OnUpdate()
 	//body->SetAABBBox(Box);
 	//body->
 }
-void hero::OnRender()
+void hero::OnDraw()
 {
 	bool moved = false;
 
@@ -501,4 +501,20 @@ void hero::OnRender()
 		if(mTexture.mpTexture)
 			mTexture.mpTexture->Draw(Box.X, Box.Y, mTexture.mfScaledMultiplier, mTexture.mfRotateDegrees);
 	}
+}
+void hero::Reset()
+{
+
+}
+void hero::OnStart()
+{
+
+}
+void hero::OnExit()
+{
+
+}
+void hero::SetGame(game *apGame)
+{
+	mpGame = apGame;
 }

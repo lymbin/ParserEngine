@@ -11,53 +11,6 @@ using namespace std;
 
 bool game::quit = false;
 
-somebox::somebox(GLfloat W, GLfloat H, GLfloat X, GLfloat Y)
-{
-	body = new collision_body();
-	Box.Heigth = H;
-	Box.Width = W;
-	Box.X = X;
-	Box.Y = Y;
-	body->SetAABBBox(Box);
-
-	Game = 0;
-}
-somebox::~somebox()
-{
-
-}
-void somebox::SetBox(PE_Rect NewBox)
-{
-	Box.Heigth = NewBox.Heigth;
-	Box.Width = NewBox.Width;
-	Box.X = NewBox.X;
-	Box.Y = NewBox.Y;
-
-	body->SetAABBBox(Box);
-	body->UpdateLayers();
-}
-void somebox::SetGame(game *gm)
-{
-	Game = gm;
-}
-collision_body *somebox::GetCollisionBody()
-{
-	return body;
-}
-
-void somebox::update()
-{
-
-}
-void somebox::render()
-{
-	if(!Game && !Game->Graphics)
-		return;
-
-	Game->Graphics->DrawFilledRectangle(Box.X, Box.Y, Box.Width, Box.Heigth, cColor(1.0f, 1.0f));
-}
-
-
 void game::update()
 {
 	// Обновляем все координаты объектов, текстов и прочего
@@ -90,7 +43,7 @@ void game::render()
 
 	if(Hero)
 	{
-		Hero->Render();
+		Hero->OnDraw();
 	}
 	if(dynamic_text)
 	{

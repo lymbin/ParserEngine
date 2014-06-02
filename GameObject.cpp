@@ -7,25 +7,15 @@
 
 #include "GameObject.h"
 
-iGameObject::iGameObject(eGameObjectType aType, std::string asName, int alHP)
+iGameObject::iGameObject(eGameObjectType aType, std::string asName, int alHP) : iUpdateable(asName)
 {
-	mpGame = 0;
 	mlVelocity = 0;
 	mGameObjectType = aType;
-	msName = asName;
 	mlHitPoints = alHP;
 }
 iGameObject::~iGameObject()
 {
 
-}
-void iGameObject::SetGame(game *apGame)
-{
-	mpGame = apGame;
-}
-void iGameObject::SetName(std::string asName)
-{
-	msName = asName;
 }
 void iGameObject::SetHitPoints(int alHP)
 {
@@ -39,21 +29,9 @@ unsigned int iGameObject::GetVelocity()
 {
 	return mlVelocity;
 }
-std::string iGameObject::GetName()
-{
-	return msName;
-}
 int	iGameObject::GetHealth()
 {
 	return mlHitPoints;
-}
-void iGameObject::Update()
-{
-	OnUpdate();
-}
-void iGameObject::Render()
-{
-	OnRender();
 }
 
 iCollisionBody::iCollisionBody()
@@ -104,4 +82,10 @@ void iCollisionBody::Collide()
 {
 	CollisionHandler();
 }
+iStaticObject::iStaticObject(std::string asName, int alHitPoints):iGameObject(eGameObjectType_StaticObject, asName, alHitPoints)
+{
+	mTexture.mfRotateDegrees = 0.0;
+	mTexture.mfScaledMultiplier = 1.0;
 
+	mTexture.mpTexture = 0;
+}

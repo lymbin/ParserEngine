@@ -8,8 +8,6 @@
 #ifndef INVENTORY_H_
 #define INVENTORY_H_
 
-#include "game.h"
-
 struct inventory_item
 {
 	int main_classification;
