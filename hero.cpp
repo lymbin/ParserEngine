@@ -23,68 +23,16 @@ float sStaticTexture::GetRealHeigth()
 	return result;
 }
 
-iCharacterBody::iCharacterBody()
+iCharacter::iCharacter(eCharacterType aType, std::string asName, int alHP) : iGameObject(eGameObjectType_Character, asName, alHP)
 {
-	Box.X = 0;
-	Box.Y = 0;
-	Box.Heigth = 0;
-	Box.Width = 0;
-
-	body = new collision_body();
-	body->SetAABBBox(Box);
-}
-iCharacterBody::~iCharacterBody()
-{
-
-}
-
-void iCharacterBody::SetBox(float W, float H, float X, float Y)
-{
-	Box.Heigth = H;
-	Box.Width = W;
-	Box.X = X;
-	Box.Y = Y;
-
-	body->SetAABBBox(Box);
-}
-
-void iCharacterBody::SetBody(collision_body *apBody)
-{
-	/*
-	if(body)
-	{
-		delete body;
-	}
-	body = apBody;
-	*/
-}
-
-PE_Rect iCharacterBody::GetBox()
-{
-	return Box;
-}
-collision_body *iCharacterBody::GetCollisionBody()
-{
-	return body;
-}
-
-iCharacter::iCharacter(eCharacterType aType, std::string asName, int aiHP)
-{
-	miVelocity = 0;
 	miBasicAttackDamage = 0;
 	miBasicDefence = 0;
-	msName = asName;
-	miHitPoints = aiHP;
-
-
-	mpGame = 0;
 
 	mLastState = MOVE_NONE;
-	mType = aType;
+	mCharacterType = aType;
 
 
 	mTexture.mpTexture = 0;
-	mTexture.miAnimSpeed = miVelocity;
 	mTexture.mfScaledMultiplier = 1.0;
 	mTexture.mfRotateDegrees = 0.0;
 
@@ -105,32 +53,9 @@ iCharacter::~iCharacter()
 {
 
 }
-
-void iCharacter::Update()
-{
-	OnUpdate();
-}
-void iCharacter::Render()
-{
-	OnRender();
-}
-
 void iCharacter::SetStaticTexture(cTexture *apTexture)
 {
 	mTexture.mpTexture = apTexture;
-}
-void iCharacter::SetVelocity(unsigned int aiVelocity)
-{
-	miVelocity = aiVelocity;
-	mTexture.miAnimSpeed = aiVelocity;
-}
-void iCharacter::SetName(std::string asName)
-{
-	msName = asName;
-}
-void iCharacter::SetHitPoints(int aiHP)
-{
-	miHitPoints = aiHP;
 }
 void iCharacter::SetBasicAttackDamage(int aiBasicAttackDamage)
 {
@@ -139,10 +64,6 @@ void iCharacter::SetBasicAttackDamage(int aiBasicAttackDamage)
 void iCharacter::SetBasicDefence(int aiBasicDefence)
 {
 	miBasicDefence = aiBasicDefence;
-}
-void iCharacter::SetGame(game *apGame)
-{
-	mpGame = apGame;
 }
 
 void iCharacter::AddAnim(int aiAnimType, cTexture *apTexture, std::vector< PE_Rect > aFrames)
@@ -255,14 +176,6 @@ cTexture *iCharacter::GetTexture()
 	return mTexture.mpTexture;
 }
 
-std::string iCharacter::GetHeroName()
-{
-	return msName;
-}
-int	iCharacter::GetHealth()
-{
-	return miHitPoints;
-}
 inventory_item iCharacter::GetArmor()
 {
 	return mArmor;
@@ -270,10 +183,6 @@ inventory_item iCharacter::GetArmor()
 inventory_item iCharacter::GetWeapon()
 {
 	return mWeapon;
-}
-unsigned int iCharacter::GetVelocity()
-{
-	return miVelocity;
 }
 
 hero::hero(std::string asName, int aiHP):iCharacter(eCharacterType_Hero, asName, aiHP)
@@ -293,26 +202,26 @@ void hero::Move(int direction, int animation, int animpos)
 	if((animation == ANIM_UNKNOWN)||(mAnims.empty()))
 	{
 		if(direction == MOVE_RIGHT)
-			Box.X+=mTexture.miAnimSpeed;
+			Box.X+=mlVelocity;
 		else if(direction == MOVE_LEFT)
-			Box.X-=mTexture.miAnimSpeed;
+			Box.X-=mlVelocity;
 		else if(direction == MOVE_UP)
-			Box.Y-=mTexture.miAnimSpeed;
+			Box.Y-=mlVelocity;
 		else if(direction == MOVE_DOWN)
-			Box.Y+=mTexture.miAnimSpeed;
+			Box.Y+=mlVelocity;
 
 		// Пока блочим движение тела
 		// 	но в дальнейшем нужно менять камеру при движении
 		if(mpGame && mpGame->Graphics && mTexture.mpTexture)
 		{
 			if(Box.X > (mpGame->Graphics->GetScreenWidth()- mTexture.mpTexture->GetWidth()*mTexture.mfScaledMultiplier))
-				Box.X-=mTexture.miAnimSpeed;
+				Box.X-=mlVelocity;
 			if(Box.X < 0)
-				Box.X+=mTexture.miAnimSpeed;
+				Box.X+=mlVelocity;
 			if(Box.Y > (mpGame->Graphics->GetScreenHeigth() - mTexture.mpTexture->GetHeigth()*mTexture.mfScaledMultiplier))
-				Box.Y-=mTexture.miAnimSpeed;
+				Box.Y-=mlVelocity;
 			if(Box.Y < 0)
-				Box.Y+=mTexture.miAnimSpeed;
+				Box.Y+=mlVelocity;
 		}
 	}
 	else
@@ -325,13 +234,13 @@ void hero::Move(int direction, int animation, int animpos)
 				if(animation == mAnimIter->first)
 				{
 					if(animation == ANIM_MOVE_RIGHT)
-						Box.X+=mAnimIter->second.miSpeed;
+						Box.X+=(mlVelocity+mAnimIter->second.miSpeed);
 					else if(animation == ANIM_MOVE_LEFT)
-						Box.X-=mAnimIter->second.miSpeed;
+						Box.X-=(mlVelocity+mAnimIter->second.miSpeed);
 					else if(animation == ANIM_MOVE_UP)
-						Box.Y-=mAnimIter->second.miSpeed;
+						Box.Y-=(mlVelocity+mAnimIter->second.miSpeed);
 					else if(animation == ANIM_MOVE_DOWN)
-						Box.Y+=mAnimIter->second.miSpeed;
+						Box.Y+=(mlVelocity+mAnimIter->second.miSpeed);
 					else
 						break;
 
@@ -340,13 +249,13 @@ void hero::Move(int direction, int animation, int animpos)
 					if(mpGame && mpGame->Graphics)
 					{
 						if(Box.X > mpGame->Graphics->GetScreenWidth())
-							Box.X-=mAnimIter->second.miSpeed;
+							Box.X-=(mlVelocity+mAnimIter->second.miSpeed);
 						if(Box.X < 0)
-							Box.X+=mAnimIter->second.miSpeed;
+							Box.X+=(mlVelocity+mAnimIter->second.miSpeed);
 						if(Box.Y > mpGame->Graphics->GetScreenHeigth())
-							Box.Y-=mAnimIter->second.miSpeed;
+							Box.Y-=(mlVelocity+mAnimIter->second.miSpeed);
 						if(Box.Y < 0)
-							Box.Y+=mAnimIter->second.miSpeed;
+							Box.Y+=(mlVelocity+mAnimIter->second.miSpeed);
 					}
 
 					mAnimIter->second.mpAnim->Update();
@@ -358,26 +267,26 @@ void hero::Move(int direction, int animation, int animpos)
 		else
 		{
 			if(animation == ANIM_MOVE_RIGHT)
-				Box.X+=	mAnims[animpos].miSpeed;
+				Box.X+=	(mlVelocity+mAnims[animpos].miSpeed);
 			else if(animation == ANIM_MOVE_LEFT)
-				Box.X-=mAnims[animpos].miSpeed;
+				Box.X-=(mlVelocity+mAnims[animpos].miSpeed);
 			else if(animation == ANIM_MOVE_UP)
-				Box.Y-=mAnims[animpos].miSpeed;
+				Box.Y-=(mlVelocity+mAnims[animpos].miSpeed);
 			else if(animation == ANIM_MOVE_DOWN)
-				Box.Y+=mAnims[animpos].miSpeed;
+				Box.Y+=(mlVelocity+mAnims[animpos].miSpeed);
 
 			// Пока блочим движение тела
 			// 	но в дальнейшем нужно менять камеру при движении
 			if(mpGame && mpGame->Graphics)
 			{
 				if(Box.X > mpGame->Graphics->GetScreenWidth())
-					Box.X-=mAnims[animpos].miSpeed;
+					Box.X-=(mlVelocity+mAnims[animpos].miSpeed);
 				if(Box.X < 0)
-					Box.X+=mAnims[animpos].miSpeed;
+					Box.X+=(mlVelocity+mAnims[animpos].miSpeed);
 				if(Box.Y > mpGame->Graphics->GetScreenHeigth())
-					Box.Y-=mAnims[animpos].miSpeed;
+					Box.Y-=(mlVelocity+mAnims[animpos].miSpeed);
 				if(Box.Y < 0)
-					Box.Y+=mAnims[animpos].miSpeed;
+					Box.Y+=(mlVelocity+mAnims[animpos].miSpeed);
 			}
 		}
 	}

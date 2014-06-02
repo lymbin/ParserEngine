@@ -8,8 +8,9 @@
 #ifndef HERO_H_
 #define HERO_H_
 
-#include "game.h"
+#include "PE.h"
 #include "Inventory.h"
+#include "GameObject.h"
 
 const unsigned int MAX_HERO_ANIM_SPEED = 30;
 
@@ -22,57 +23,15 @@ enum eCharacterType
 	eCharacterType_LastEnum
 };
 
-
-struct sAnim
-{
-	animation *mpAnim;
-	unsigned int miSpeed;
-
-	float mfScaledMultiplier;
-	float mfRotateDegrees;
-};
-struct sStaticTexture
-{
-	cTexture	*mpTexture;
-	unsigned int miAnimSpeed;
-
-	float mfScaledMultiplier;
-	float mfRotateDegrees;
-
-	float GetRealWidth();
-	float GetRealHeigth();
-};
-class iCharacterBody
+class iCharacter : public iGameObject
 {
 protected:
-	PE_Rect 		Box;
-	collision_body *body;
-
-public:
-	iCharacterBody();
-	virtual ~iCharacterBody();
-
-	void SetBox(float W, float H, float X, float Y);
-	void SetBody(collision_body *apBody);
-
-	PE_Rect 		GetBox();
-	collision_body *GetCollisionBody();
-};
-
-class iCharacter : public iCharacterBody
-{
-protected:
-	game *mpGame;
-	eCharacterType mType;
+	eCharacterType mCharacterType;
 
 	sStaticTexture mTexture;
-	unsigned int miVelocity;
 
 	std::map <int, sAnim > mAnims;
 	std::map <int, sAnim >::iterator mAnimIter;
-
-	std::string msName;
-	int miHitPoints;
 
 	int miBasicAttackDamage;
 	int miBasicDefence;
@@ -84,26 +43,20 @@ protected:
 	int mLastState;
 
 public:
-	iCharacter(eCharacterType aType, std::string asName, int aiHP);
+	iCharacter(eCharacterType aType, std::string asName, int alHP);
 	virtual ~iCharacter();
 
-	void Update();
-	void Render();
-
 	void SetStaticTexture(cTexture *apTexture);
-	void SetVelocity(unsigned int aiVelocity);
-	void SetName(std::string asName);
-	void SetHitPoints(int aiHP);
-	void SetBasicAttackDamage(int aiBasicAttackDamage);
-	void SetBasicDefence(int aiBasicDefence);
-	void SetGame(game *apGame);
+
+	void SetBasicAttackDamage(int alBasicAttackDamage);
+	void SetBasicDefence(int alBasicDefence);
 
 	void SetScaledAndRotate(float Scaled, float Rotate);
 
-	void AddAnim(int aiAnimType, cTexture *apTexture, std::vector< PE_Rect > aFrames);
-	void SetAnimSpeed(int aiAnimType, int aiSpeed);
+	void AddAnim(int alAnimType, cTexture *apTexture, std::vector< PE_Rect > aFrames);
+	void SetAnimSpeed(int alAnimType, int alSpeed);
 
-	virtual void Move(int aiDirection, int aiAnimation, int aiAnimpos) {}
+	virtual void Move(int alDirection, int alAnimation, int alAnimpos) {}
 	virtual void Jump() {}
 	virtual void Sit(){}
 	virtual void Shoot(){}
@@ -111,19 +64,14 @@ public:
 	virtual void OnUpdate(){}
 	virtual void OnRender(){}
 
-
-	sAnim GetAnim(int aiAnimType);
+	sAnim GetAnim(int alAnimType);
 
 	cTexture *GetTexture();
 	float GetScaledMultiplier();
 	float GetRotateDegrees();
 
-	std::string GetHeroName();
-	int	GetHealth();
 	inventory_item GetArmor();
 	inventory_item GetWeapon();
-
-	unsigned int GetVelocity();
 
 };
 

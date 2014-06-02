@@ -8,7 +8,7 @@
 #ifndef GAMETYPES_H_
 #define GAMETYPES_H_
 
-#include "game.h"
+#include "PE.h"
 
 enum eItemMainClassification {
 	TEST_ITEM ,
@@ -70,6 +70,25 @@ enum eAxis{
 	AXIS_X,
 	AXIS_Y,
 	AXIS_Z
+};
+
+struct sAnim
+{
+	animation *mpAnim;
+	unsigned int miSpeed;
+
+	float mfScaledMultiplier;
+	float mfRotateDegrees;
+};
+struct sStaticTexture
+{
+	cTexture	*mpTexture;
+
+	float mfScaledMultiplier;
+	float mfRotateDegrees;
+
+	float GetRealWidth();
+	float GetRealHeigth();
 };
 
 
