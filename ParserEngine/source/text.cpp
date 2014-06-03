@@ -397,6 +397,50 @@ void font::Write(std::string text, GLfloat x, GLfloat y, GLuint *tex, GLfloat re
 
 //-----------------------------------------------------------------------
 
+// Функция аналогичная верхней, но позволяет писать текст с выравниванием в заданном боксе
+void font::Write(std::string text, PE_Rect aBox, int alAlignment, GLuint *tex, GLfloat W_Shift, GLfloat H_Shift,
+				GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
+{
+	GLfloat dx, dy;
+
+	if(!alAlignment)
+	{
+		alAlignment = eTextAlignment_Left | eTextAlignment_Top;
+	}
+
+	if(alAlignment & eTextAlignment_Left)
+	{
+		dx = aBox.X;
+	}
+	else if(alAlignment & eTextAlignment_Centered_H)
+	{
+		dx = aBox.X + (aBox.Width - CalcTextWidth(text))/2.0f;
+	}
+	else if(alAlignment & eTextAlignment_Right)
+	{
+		dx = aBox.X + (aBox.Width - CalcTextWidth(text));
+	}
+
+	if(alAlignment & eTextAlignment_Top)
+	{
+		dy = aBox.Y;
+	}
+	else if(alAlignment & eTextAlignment_Centered_V)
+	{
+		dy = aBox.Y + (aBox.Heigth - CalcTextHeigth(text))/2.0f;
+	}
+	else if(alAlignment & eTextAlignment_Bottom)
+	{
+		dy = aBox.Y + (aBox.Heigth - CalcTextHeigth(text));
+	}
+	dx+=W_Shift;
+	dy+=H_Shift;
+
+	Write(text, dx, dy, tex, red, green, blue, alpha);
+}
+
+//-----------------------------------------------------------------------
+
 font::font(string file, int fontSize)
 {
 	ttf_font = 0;
@@ -682,9 +726,91 @@ void text::Write(GLfloat new_x, GLfloat new_y, std::string text, int size, GLflo
 
 //-----------------------------------------------------------------------
 
+void text::Write(PE_Rect aBox, int alAlignment, GLfloat W_Shift, GLfloat H_Shift,
+		std::string text, int size, GLfloat Rotation, int center,
+		GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
+{
+	//TODO: добавить посимвольную отрисовку текста с определением интервала между буквами и
+	//размером текста, независящим от размера шрифта
+
+	if(text!="")
+	{
+		SetText(text);
+	}
+
+	if(!textString.length())
+	{
+#ifdef DEBUG_ERRORS
+		cout << "Unable to Write NULL text. "<< endl;
+#endif
+		return;
+	}
+
+	GLfloat dx, dy;
+
+	if(!alAlignment)
+	{
+		alAlignment = eTextAlignment_Left | eTextAlignment_Top;
+	}
+
+	if(alAlignment & eTextAlignment_Left)
+	{
+		dx = aBox.X;
+	}
+	else if(alAlignment & eTextAlignment_Centered_H)
+	{
+		dx = aBox.X + (aBox.Width - GetFont()->CalcTextWidth(textString))/2.0f;
+	}
+	else if(alAlignment & eTextAlignment_Right)
+	{
+		dx = aBox.X + (aBox.Width - GetFont()->CalcTextWidth(textString));
+	}
+
+	if(alAlignment & eTextAlignment_Top)
+	{
+		dy = aBox.Y;
+	}
+	else if(alAlignment & eTextAlignment_Centered_V)
+	{
+		dy = aBox.Y + (aBox.Heigth - GetFont()->CalcTextHeigth(textString))/2.0f;
+	}
+	else if(alAlignment & eTextAlignment_Bottom)
+	{
+		dy = aBox.Y + (aBox.Heigth - GetFont()->CalcTextHeigth(textString));
+	}
+
+	dx+=W_Shift;
+	dy+=H_Shift;
+
+	//Забиваем новые координаты начальной точки для текста
+	SetCoordinates(dx, dy);
+	//Создаём текстуру с текстом определённого размера(он берётся из шрифта)
+	CreateTex();
+
+	Bind();
+
+	Draw(x, y, size, Rotation, center, red, green, blue, alpha);
+}
+
+//-----------------------------------------------------------------------
+
 void text::SetText(std::string newText)
 {
 	textString = newText;
+}
+
+//-----------------------------------------------------------------------
+
+int text::GetTextWidth()
+{
+	return GetFont()->CalcTextWidth(textString);
+}
+
+//-----------------------------------------------------------------------
+
+int text::GetTextHeigth()
+{
+	return GetFont()->CalcTextHeigth(textString);
 }
 
 //-----------------------------------------------------------------------

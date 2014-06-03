@@ -12,9 +12,11 @@
 #include "GameTypes.h"
 #include "Inventory.h"
 #include "Character.h"
+#include "boxes.h"
 #include "hero.h"
 
 class hero;
+class cStaticBox;
 
 //Нижние дефайны пока никак не используем
 #define LEVEL_MAINMENU  0
@@ -57,8 +59,9 @@ class game: public engine
 	game_gui *Gui;
 	hero *Hero;
 	collision_layer *layer;
-
+	cStaticBox *StaticBox;
 	text *dynamic_text;
+
 
 public:
 	game();

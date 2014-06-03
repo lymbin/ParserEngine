@@ -80,6 +80,7 @@ int cTexture::Open(std::string source, GLint filter)
 		// Если задан менеджер текстур, то добавляем эту текстуру в менеджер
 		TextureManager->ManageTexture(this);
 	}
+
 	return 0;
 }
 int cTexture::OpenFromZip(string source, GLint filter)
@@ -98,11 +99,13 @@ void cTexture::MakeTexture(SDL_Surface *Surface, GLint filter, bool LoadPixels)
 	glGenTextures(1, &mTexture);
 	glBindTexture(GL_TEXTURE_2D, mTexture);
 
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
 
 	GLuint glFormat = GL_RGBA;
 	if(!Surface->format->Amask)
@@ -333,7 +336,9 @@ cTexture::cTexture(std::string file,  GLint filter) : iLowLevelTexture()
 	TextureManager = 0;
 
 	if(file != "")
+	{
 		Open(file, filter);
+	}
 }
 cTexture::~cTexture()
 {

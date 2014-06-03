@@ -202,7 +202,8 @@ void graphics::ClearScreen()
 // Очищаем цвет
 void graphics::ClearColor()
 {
-	SetClearColor(cColor(1.0f, 1.0f));
+	glClearColor(0,0,0,0);
+	//SetClearColor(cColor(1.0f, 1.0f));
 }
 // Устанавливаем цвет OpenGL
 void graphics::SetClearColor(cColor aCol)

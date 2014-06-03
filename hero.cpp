@@ -187,7 +187,7 @@ inventory_item iCharacter::GetWeapon()
 
 hero::hero(std::string asName, int aiHP):iCharacter(eCharacterType_Hero, asName, aiHP)
 {
-
+	mpGame = 0;
 }
 hero::~hero()
 {
@@ -340,7 +340,7 @@ void hero::Update()
 	if((!mpGame)||(!mpGame->Input))
 		return;
 
-	PE_Rect OldBox = Box;
+	PE_Rect OldBox = Box;		// Запоминаем старый бокс для случая столкновения с каким-либо телом и возвратом в исходное положение
 	int move_type = MOVE_NONE;	// Необходимо для движения
 	mLastState = MOVE_NONE;		// Необходимо для учёта порядка движений по приоритетам
 

@@ -26,6 +26,7 @@
 #endif
 
 #include "SystemConstants.h"
+#include "GraphicTypes.h"
 
 class font;
 class text;
@@ -117,7 +118,13 @@ public:
 
 	// Пишем текст прямо из класса шрифт и вносим текст в менеджер текста
 	// обязательно удалить tex после каждого кадра - иначе будет засорять память
+	// TODO: если ввести обязательным наличие менеджера текстур у шрифта,
+	//	то можно будет попробовать сделать указатель по умолчанию на ноль
 	void Write(std::string text, GLfloat x, GLfloat y, GLuint *tex,
+			GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
+
+	// Функция аналогичная верхней, но позволяет писать текст с выравниванием в заданном боксе
+	void Write(std::string text, PE_Rect aBox, int alAlignment, GLuint *tex, GLfloat W_Shift = 0, GLfloat H_Shift = 0,
 			GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
 
 	// Получаем высоту шрифта
@@ -190,6 +197,10 @@ public:
 	void Write(GLfloat new_x, GLfloat new_y, std::string text = "", int size = -1, GLfloat Rotation = 0, int center = 0,
 			GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
 
+	void Write(PE_Rect aBox, int alAlignment, GLfloat W_Shift = 0, GLfloat H_Shift = 0,
+			std::string text = "", int size = -1, GLfloat Rotation = 0, int center = 0,
+			GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
+
 	// Устанавливаем текст для отрисовки
 	void SetText(std::string newText);
 
@@ -202,6 +213,9 @@ public:
 	// Меняем размер текста(шрифта)
 	// TODO: переделать - сделать изменение размера текста не зависимое от размера шрифта
 	void ResizeText(int textSize);
+
+	int GetTextWidth();
+	int GetTextHeigth();
 };
 
 

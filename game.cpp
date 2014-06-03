@@ -14,6 +14,7 @@ bool game::quit = false;
 void game::update()
 {
 	// Обновляем все координаты объектов, текстов и прочего
+	// TODO:Обновляем все Updatable объекты
 
 	if(Hero)
 	{
@@ -25,6 +26,10 @@ void game::update()
 			sstream << "Hero Speed: " << Hero->GetVelocity();
 			dynamic_text->SetText(sstream.str());
 		}
+	}
+	if(StaticBox)
+	{
+		StaticBox->Update();
 	}
 }
 void game::render()
@@ -41,13 +46,28 @@ void game::render()
     //Graphics->DrawFilledRectangle(10, 10, 200, 100, 0.0f, 0.0f, 1.0f, 1.0f);
    // Graphics->DrawFilledRectangle(10, 110, 200, 100, 1.0f, 0.0f, 0.0f, 1.0f);
 
+	static GLuint tex = 0;
 	if(Hero)
 	{
 		Hero->OnDraw();
 	}
 	if(dynamic_text)
 	{
-		dynamic_text->Write(SYS_FRAME_PIXELS, Graphics->GetScreenHeigth() - dynamic_text->GetFont()->CalcTextHeigth(dynamic_text->GetText()));
+		PE_Rect ScreenRect;
+		ScreenRect.X = ScreenRect.Y = 0;
+		ScreenRect.Heigth = Graphics->GetScreenHeigth();
+		ScreenRect.Width = Graphics->GetScreenWidth();
+		dynamic_text->Write(ScreenRect, eTextAlignment_Left | eTextAlignment_Bottom);
+	}
+	if(StaticBox)
+	{
+		StaticBox->OnDraw();
+		dynamic_text->GetFont()->Write("DEMO!", StaticBox->GetBox(), eTextAlignment_Centered_H | eTextAlignment_Centered_V, &tex);
+	}
+	if(tex)
+	{
+		glDeleteTextures(1, &tex);
+		tex = 0;
 	}
 /*
     if(Mmenu.background)
@@ -80,12 +100,15 @@ void game::render()
 }
 void game::MainLoop()
 {
+
 	LoadTextures();
 	CreatingObjects();
 
 	Graphics->ClearScreen();
-	Graphics->SetClearColor(cColor());
+	//Graphics->SetClearColor(cColor());
 	Graphics->SwapBuffers();
+
+
 
 	fps.start();
 
@@ -108,7 +131,7 @@ void game::MainLoop()
 	{
 		sstream.str(string());
 		Graphics->ClearScreen();
-		Graphics->SetClearColor(cColor());
+		//Graphics->SetClearColor(cColor());
 
 		if(Events->handle_events())
 		{
@@ -146,40 +169,52 @@ void game::MainLoop()
 			render();
 		}
 
+		PE_Rect ScreenRect;
+		ScreenRect.X = ScreenRect.Y = 0;
+		ScreenRect.Heigth = Graphics->GetScreenHeigth();
+		ScreenRect.Width = Graphics->GetScreenWidth();
 
 		if(simple_menu)
 		{
 			help_text->ResizeText(18);
+
+
+
+
 			// Отрисовываем текст в центре
 			help_text->SetText("Press 1 to Play demo");
-			help_text->Write(Graphics->GetScreenWidth()/2 - help_text->GetFont()->CalcTextWidth(help_text->GetText())/2,
-							Graphics->GetScreenHeigth()/2 - help_text->GetFont()->CalcTextHeigth(help_text->GetText())/2);
+
+			cColor col(1.0f, 0.0f, 1.0f, 1.0f);
+			Graphics->DrawFilledRectangle(
+					Graphics->GetScreenWidth()/2 - help_text->GetTextWidth()/2,
+					Graphics->GetScreenHeigth()/2 - help_text->GetTextHeigth()/2,
+					help_text->GetTextWidth(), help_text->GetTextHeigth()*2, col);
+
+			help_text->Write(ScreenRect, eTextAlignment_Centered_H | eTextAlignment_Centered_V);
 
 			// Отрисовываем текст чуть ниже центра
 			help_text->SetText("Press 2 to Exit demo");
-			help_text->Write(Graphics->GetScreenWidth()/2 - help_text->GetFont()->CalcTextWidth(help_text->GetText())/2,
-							Graphics->GetScreenHeigth()/2 - help_text->GetFont()->CalcTextHeigth(help_text->GetText())/2 + help_text->GetFont()->CalcTextHeigth(help_text->GetText()));
+			help_text->Write(ScreenRect, eTextAlignment_Centered_H | eTextAlignment_Centered_V, 0, help_text->GetTextHeigth());
+
 
 		}
 		else
 		{
 			help_text->ResizeText(16);
+
 			// Отрисовываем текст в центре
 			help_text->SetText("Press ESC to Exit");
-			help_text->Write(Graphics->GetScreenWidth()/2 - help_text->GetFont()->CalcTextWidth(help_text->GetText())/2,
-							help_text->GetFont()->CalcTextHeigth(help_text->GetText()));
+			help_text->Write(ScreenRect, eTextAlignment_Centered_H | eTextAlignment_Top);
 
 			help_text->SetText("Press Arrows to Move");
-			help_text->Write(Graphics->GetScreenWidth()/2 - help_text->GetFont()->CalcTextWidth(help_text->GetText())/2,
-							help_text->GetFont()->CalcTextHeigth(help_text->GetText())*2);
+			help_text->Write(ScreenRect, eTextAlignment_Centered_H | eTextAlignment_Top, 0, help_text->GetTextHeigth());
 
 		}
 
 
 		sstream << "PreAlpha ParserEngine Demo. Version " << SYS_TEST_VERSION << ".";
 		help_text->SetText(sstream.str());
-		help_text->Write(Graphics->GetScreenWidth() - help_text->GetFont()->CalcTextWidth(help_text->GetText()) - SYS_FRAME_PIXELS,
-						Graphics->GetScreenHeigth() - help_text->GetFont()->CalcTextHeigth(help_text->GetText()) - SYS_FRAME_PIXELS);
+		help_text->Write(ScreenRect, eTextAlignment_Right | eTextAlignment_Bottom);
 
 		sstream.str(string());
 		// Выводим FPS поверх игры
@@ -191,7 +226,7 @@ void game::MainLoop()
 			glDeleteTextures(1, &tex);
 			tex = 0;
 		}
-		//std::stringstream sstream;
+		std::stringstream sstream;
 
 		if(fps.get_ticks() > 1000)
 		{
@@ -205,7 +240,6 @@ void game::MainLoop()
 
 		fps_font->Write(sstream.str(), Graphics->GetScreenWidth() - fps_font->CalcTextWidth(sstream.str()) - SYS_FRAME_PIXELS, 0 + SYS_FRAME_PIXELS, &tex);
 #endif
-
 		Graphics->SwapBuffers();
 		SDL_Delay(10);
 	}
@@ -251,7 +285,13 @@ int game::CreatingObjects()
 	}
 	if(!dynamic_text)
 	{
-		dynamic_text = new text("123", "data/fonts/non-free/Minecraftia.ttf", 14);
+		dynamic_text = new text("", "data/fonts/non-free/Minecraftia.ttf", 14);
+	}
+	if(!StaticBox)
+	{
+		StaticBox = new cStaticBox("Box1", 100);
+		StaticBox->SetGame(this);
+		StaticBox->SetBox(100,100,200,200);
 	}
 
 	return 0;
@@ -305,6 +345,10 @@ void game::FreeObjects()
 	{
 		delete layer;
 	}
+	if(StaticBox)
+	{
+		delete StaticBox;
+	}
 }
 game::game()
 {
@@ -314,6 +358,7 @@ game::game()
 	Hero = 0;
 	layer = 0;
 	dynamic_text = 0;
+	StaticBox = 0;
 }
 game::~game()
 {

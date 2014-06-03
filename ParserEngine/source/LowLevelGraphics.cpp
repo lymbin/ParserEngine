@@ -18,6 +18,7 @@ iLowLevelGraphics::~iLowLevelGraphics()
 // Рисуем каркас прямоугольника цветными линиями
 void iLowLevelGraphics::DrawRectangle(float x, float y, float width, float height, cColor aCol)
 {
+	glDisable(GL_TEXTURE_2D); // TODO: временное решение для отрисовки примитива
 	glPushMatrix();
 	//TODO: доделать работу с камерой
 	glLoadIdentity();
@@ -43,6 +44,7 @@ void iLowLevelGraphics::DrawRectangle(PE_Rect aRect, cColor aCol)
 // Рисуем заполненный цветом прямоугольник
 void iLowLevelGraphics::DrawFilledRectangle(float x, float y, float width, float height, cColor aCol)
 {
+	glDisable(GL_TEXTURE_2D); // TODO: временное решение для отрисовки примитива
 	glLoadIdentity();
 
 	SetClearColor(aCol);
@@ -64,6 +66,7 @@ void iLowLevelGraphics::DrawFilledRectangle(PE_Rect aRect, cColor aCol)
 // Рисуем линию
 void iLowLevelGraphics::DrawLine(float x1, float y1, float x2, float y2, cColor aCol)
 {
+	glDisable(GL_TEXTURE_2D); // TODO: временное решение для отрисовки примитива
 	glLoadIdentity();
 
 	SetClearColor(aCol);

@@ -60,4 +60,14 @@ struct PE_Tetra
 
 typedef std::vector<PE_Rect> tRectVector;
 
+
+enum eTextAlignment{
+	eTextAlignment_Left = 1,
+	eTextAlignment_Centered_H = 2,
+	eTextAlignment_Right = 4,
+	eTextAlignment_Top = 8,
+	eTextAlignment_Centered_V = 16,
+	eTextAlignment_Bottom = 32
+};
+
 #endif /* GRAPHICTYPES_H_ */

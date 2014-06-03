@@ -10,12 +10,15 @@
 
 #include "PE.h"
 #include "GameObject.h"
+#include "game.h"
 
+class game;
 class iStaticObject;
 class iDynamicObject;
 
 class cStaticBox : public iStaticObject
 {
+	game *mpGame;
 public:
 	cStaticBox(std::string asName = "", int alHitPoints = 100);
 	~cStaticBox();
@@ -27,10 +30,14 @@ public:
 	void Update();	// Обновление данных
 
 	void CollisionHandler();
+
+	void SetGame(game *apGame){mpGame = apGame;}
 };
 
 class cDynamicBox : public iDynamicObject
 {
+	game *mpGame;
+public:
 	cDynamicBox(std::string asName = "", int alHitPoints = 100);
 	~cDynamicBox();
 
@@ -45,6 +52,8 @@ class cDynamicBox : public iDynamicObject
 	void Jump() {}
 	void Sit(){}
 	void Shoot(){}
+
+	void SetGame(game *apGame){mpGame = apGame;}
 };
 
 #endif /* BOXES_H_ */
