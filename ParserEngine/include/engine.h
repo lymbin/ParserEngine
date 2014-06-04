@@ -56,8 +56,6 @@ class cTexture;
 
 class input;
 class events;
-class collision;
-
 
 class engine
 {
@@ -75,7 +73,6 @@ public:
 	graphics *Graphics;
 	audio *Audio;
 	input *Input;
-	collision *Collision;
 	events *Events;
 	//textures
 	//animation

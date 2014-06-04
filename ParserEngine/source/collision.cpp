@@ -6,8 +6,429 @@
  */
 
 #include "Physics.h"
+#include "Collision.h"
 
 using namespace std;
+
+
+//////////////////////////////////////////////////////////////////////////
+// CONSTRUCTORS
+//////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------
+
+cCollision::cCollision()
+{
+#ifdef DEBUGGING
+	IsEnabled = true;
+#endif
+	mAllCollisionLayers.clear();
+	mAllCollisionBodies.clear();
+}
+
+//-----------------------------------------------------------------------
+
+cCollision::~cCollision()
+{
+	mAllCollisionLayers.clear();
+	mAllCollisionBodies.clear();
+}
+
+//-----------------------------------------------------------------------
+
+cCollisionBody::cCollisionBody()
+{
+	mBox.Heigth = 0;
+	mBox.Width = 0;
+	mBox.X = 0;
+	mBox.Y = 0;
+}
+
+//-----------------------------------------------------------------------
+
+cCollisionBody::~cCollisionBody()
+{
+
+}
+
+//-----------------------------------------------------------------------
+
+iCollisionLayer::iCollisionLayer(PE_Rect aBorder)
+{
+	Border.Heigth = aBorder.Heigth;
+	Border.Width = aBorder.Width;
+	Border.X = aBorder.X;
+	Border.Y = aBorder.Y;
+}
+
+//-----------------------------------------------------------------------
+
+iCollisionLayer::iCollisionLayer(GLfloat W, GLfloat H, GLfloat X, GLfloat Y)
+{
+	Border.Heigth = H;
+	Border.Width = W;
+	Border.X = X;
+	Border.Y = Y;
+}
+
+//-----------------------------------------------------------------------
+
+iCollisionLayer::~iCollisionLayer()
+{
+	mCollisionLayer.clear();
+}
+
+//-----------------------------------------------------------------------
+
+iCollisionBody::iCollisionBody()
+{
+	mpCollision = 0;
+}
+
+//-----------------------------------------------------------------------
+
+iCollisionBody::~iCollisionBody()
+{
+
+}
+
+//-----------------------------------------------------------------------
+
+//////////////////////////////////////////////////////////////////////////
+// PUBLIC METODS
+//////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------
+
+// Основная функция проверки столкновений двух тел
+bool cCollision::CheckCollision(cCollisionBody A, cCollisionBody B)
+{
+	return CheckCollision(A.mBox, B.mBox);
+}
+
+//-----------------------------------------------------------------------
+
+// Функция проверки столкновений двух прямоугольников
+bool cCollision::CheckCollision(PE_Rect A, PE_Rect B)
+{
+	float leftBox, leftChecked;
+	float rightBox, rightChecked;
+	float	topBox, topChecked;
+	float bottomBox, bottomChecked;
+
+	leftBox = A.X;
+	rightBox = A.X + A.Width;
+	topBox = A.Y;
+	bottomBox = A.Y + A.Heigth;
+
+	leftChecked = B.X;
+	rightChecked = B.X + B.Width;
+	topChecked = B.Y;
+	bottomChecked = B.Y + B.Heigth;
+
+	if(bottomBox <= topChecked)
+	{
+		return false;
+	}
+
+	if(topBox >= bottomChecked)
+	{
+		return false;
+	}
+
+	if(rightBox <= leftChecked)
+	{
+		return false;
+	}
+
+	if(leftBox >= rightChecked)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+//-----------------------------------------------------------------------
+
+void iCollisionBody::SetBox(float W, float H, float X, float Y)
+{
+	mBox.Heigth = H;
+	mBox.Width = W;
+	mBox.X = X;
+	mBox.Y = Y;
+}
+
+//-----------------------------------------------------------------------
+
+void iCollisionBody::SetBox(PE_Rect aBox)
+{
+	mBox.Heigth = aBox.Heigth;
+	mBox.Width = aBox.Width;
+	mBox.X = aBox.X;
+	mBox.Y = aBox.Y;
+}
+
+//-----------------------------------------------------------------------
+
+void iCollisionBody::SetCollisionsPointer(cCollision *apCollision)
+{
+	mpCollision = apCollision;
+}
+
+//-----------------------------------------------------------------------
+
+PE_Rect iCollisionBody::GetBox()
+{
+	return mBox;
+}
+
+//-----------------------------------------------------------------------
+
+cCollision *iCollisionBody::GetCollisionPointer()
+{
+	return mpCollision;
+}
+
+//-----------------------------------------------------------------------
+
+void iCollisionBody::Collide()
+{
+	//CollisionHandler(iGameObject *Collider, iGameObject *CollSurface, void * data);
+}
+
+//-----------------------------------------------------------------------
+
+// Устанавливем слой
+void iCollisionBody::AddNewLayer(iCollisionLayer *apLayer)
+{
+	mCollisionLayers.push_back(apLayer);
+}
+
+//-----------------------------------------------------------------------
+
+void iCollisionBody::UpdateLayers()
+{
+	if(mpCollision)
+	{
+		mCollisionLayers.clear();
+		mpCollision->UpdateBodyLayers(this);
+	}
+	else
+	{
+		tpCollisionLayersIt It = mCollisionLayers.begin();
+		for( ; It != mCollisionLayers.end(); ++It)
+		{
+			if((*It)->CheckBodyInLayer(this) == eBodyPosition_Outside)
+			{
+				(*It)->EraseBody(this);
+				EraseLayer((*It));
+			}
+		}
+	}
+}
+
+//-----------------------------------------------------------------------
+
+void iCollisionBody::EraseLayer(iCollisionLayer *apLayer)
+{
+	tpCollisionLayersIt It;
+	It = std::find(mCollisionLayers.begin(), mCollisionLayers.end(), apLayer);
+
+	if(It != mCollisionLayers.end())
+	{
+		mCollisionLayers.erase(It);
+	}
+}
+
+//-----------------------------------------------------------------------
+
+// Добавляем тело в слой
+void iCollisionLayer::AddCollisionBody(iCollisionBody *body)
+{
+	tpCollisionLayerIt It = mCollisionLayer.begin();
+	It = std::find(mCollisionLayer.begin(), mCollisionLayer.end(), body);
+
+	if(It == mCollisionLayer.end())
+	{
+		mCollisionLayer.push_back(body);
+	}
+}
+
+//-----------------------------------------------------------------------
+
+// Проверяем где именно находится заданное тело, относительно слоя
+int iCollisionLayer::CheckBodyInLayer(iCollisionBody *body)
+{
+	float leftBox, leftChecked;
+	float rightBox, rightChecked;
+	float	topBox, topChecked;
+	float bottomBox, bottomChecked;
+
+	// Параметры границы слоя
+	leftBox = Border.X;
+	rightBox = Border.X + Border.Width;
+	topBox = Border.Y;
+	bottomBox = Border.Y + Border.Heigth;
+
+		// Простое сравнение AABB
+		leftChecked = body->GetBox().X;
+		rightChecked = body->GetBox().X + body->GetBox().Width;
+		topChecked = body->GetBox().Y;
+		bottomChecked = body->GetBox().Y + body->GetBox().Heigth;
+
+		if((bottomBox >= bottomChecked) && (topBox <= topChecked) && (rightBox >= rightChecked) && (leftBox <= leftChecked))
+		{
+			// Тело внутри слоя
+			return eBodyPosition_Inside;
+		}
+		else
+		{
+			// Ищем столкновения - можно сделать какую-нибудь общую функцию для поиска столкновений 2-х прямоугольников
+			if(!cCollision::CheckCollision(Border, body->GetBox()))
+			{
+				return eBodyPosition_Outside;
+			}
+			else
+			{
+				// Тело соприкасается со слоем и входит одновременно в несколько слоёв и надо искать столкновения во всех
+				return eBodyPosition_Intersect;
+			}
+		}
+
+	return eBodyPosition_Outside;
+}
+
+//-----------------------------------------------------------------------
+
+// Удаляем тело из слоя
+void iCollisionLayer::EraseBody(iCollisionBody *body)
+{
+	tpCollisionLayerIt It;
+	It = std::find(mCollisionLayer.begin(), mCollisionLayer.end(), body);
+
+	if(It != mCollisionLayer.end())
+	{
+		mCollisionLayer.erase(It);
+	}
+}
+
+//-----------------------------------------------------------------------
+
+// Задаём границы слоя
+void iCollisionLayer::SetLayerBorder(PE_Rect aBorder)
+{
+	Border.Heigth = aBorder.Heigth;
+	Border.Width = aBorder.Width;
+	Border.X = aBorder.X;
+	Border.Y = aBorder.Y;
+}
+
+//-----------------------------------------------------------------------
+
+// Получаем границы слоя
+PE_Rect iCollisionLayer::GetLayerBorder()
+{
+	return Border;
+}
+
+//-----------------------------------------------------------------------
+
+void cCollision::AddCollisionBody(iCollisionBody *aBody)
+{
+	tpCollisionLayerIt It;
+	It = std::find(mAllCollisionBodies.begin(), mAllCollisionBodies.end(), aBody);
+
+	if(It == mAllCollisionBodies.end())
+	{
+		mAllCollisionBodies.push_back(aBody);
+	}
+}
+
+//-----------------------------------------------------------------------
+
+void cCollision::AddCollisionLayer(iCollisionLayer *aLayer)
+{
+	tpCollisionLayersIt It;
+	It = std::find(mAllCollisionLayers.begin(), mAllCollisionLayers.end(), aLayer);
+
+	if(It == mAllCollisionLayers.end())
+	{
+		mAllCollisionLayers.push_back(aLayer);
+	}
+}
+
+//-----------------------------------------------------------------------
+
+void cCollision::EraseCollisionBody(iCollisionBody *aBody)
+{
+	tpCollisionLayerIt It;
+	It = std::find(mAllCollisionBodies.begin(), mAllCollisionBodies.end(), aBody);
+
+	if(It != mAllCollisionBodies.end())
+	{
+		mAllCollisionBodies.erase(It);
+	}
+}
+
+//-----------------------------------------------------------------------
+
+void cCollision::EraseCollisionLayer(iCollisionLayer *aLayer)
+{
+	tpCollisionLayersIt It;
+	It = std::find(mAllCollisionLayers.begin(), mAllCollisionLayers.end(), aLayer);
+
+	if(It != mAllCollisionLayers.end())
+	{
+		mAllCollisionLayers.erase(It);
+	}
+}
+
+//-----------------------------------------------------------------------
+
+void cCollision::DeleteAll()
+{
+	tpCollisionLayersIt LayerIt = mAllCollisionLayers.begin();
+	tpCollisionLayerIt BodyIt = mAllCollisionBodies.begin();
+
+	for( ; LayerIt != mAllCollisionLayers.end(); ++LayerIt)
+	{
+		delete (*LayerIt);
+	}
+
+	for( ; BodyIt != mAllCollisionBodies.end(); ++BodyIt)
+	{
+		delete (*BodyIt);
+	}
+
+	mAllCollisionLayers.clear();
+	mAllCollisionBodies.clear();
+}
+
+//-----------------------------------------------------------------------
+
+void cCollision::UpdateBodyLayers(iCollisionBody *aBody)
+{
+	AddCollisionBody(aBody);
+
+	tpCollisionLayersIt It = mAllCollisionLayers.begin();
+	for( ; It != mAllCollisionLayers.end(); ++It)
+	{
+		if((*It)->CheckBodyInLayer(aBody) != eBodyPosition_Outside)
+		{
+			(*It)->AddCollisionBody(aBody);
+			aBody->AddNewLayer((*It));
+		}
+	}
+}
+
+//-----------------------------------------------------------------------
+
+//////////////////////////////////////////////////////////////////////////
+// DEPRECATED METHODS
+//////////////////////////////////////////////////////////////////////////
+/*
+//-----------------------------------------------------------------------
 
 //////////////////////////////////////////////////////////////////////////
 // CONSTRUCTORS
@@ -180,7 +601,7 @@ void collision_AABB::SetAABBBox(PE_Rect NewBox)
 
 //-----------------------------------------------------------------------
 
-/*
+
 bool collision_OBB::OverlapsAABB(collision_AABB aabb)
 {
 	return true;
@@ -192,7 +613,7 @@ bool collision_OBB::OverlapsOBB(collision_OBB obb)
 {
 	return true;
 }
-*/
+
 //-----------------------------------------------------------------------
 
 void collision_body::SetCollisionType(int Type)
@@ -702,7 +1123,7 @@ void collision_layer::OptimizeCollisions()
 		return;
 
 	SortCollisions();
-	/*
+
 	GLfloat leftA, 	leftB;
 	GLfloat rightA, rightB;
 	GLfloat topA, 	topB;
@@ -734,7 +1155,7 @@ void collision_layer::OptimizeCollisions()
 			}
 		}
 	}
-		*/
+
 }
 
 //-----------------------------------------------------------------------
@@ -742,7 +1163,7 @@ void collision_layer::OptimizeCollisions()
 void collision_layer::SortCollisions()
 {
 	// TODO: проверить
-	/*
+
 	if(!bodies.empty())
 	{
 		GLdouble max_sq = bodies[0]->BodyBox.Heigth*bodies[0]->BodyBox.Heigth;
@@ -759,95 +1180,8 @@ void collision_layer::SortCollisions()
 			}
 		}
 	}
-	*/
+
 }
 
 //-----------------------------------------------------------------------
-
-
-
-cCollision::cCollision()
-{
-#ifdef DEBUGGING
-	IsEnabled = true;
-#endif
-
-}
-cCollision::~cCollision()
-{
-
-}
-
-// Инициализация системы
-int cCollision::Init()
-{
-	return 0;
-}
-
-// Основная функция проверки столкновений двух тел
-bool cCollision::CheckCollision(cCollisionBody A, cCollisionBody B)
-{
-	return CheckCollision(A.mBox, B.mBox);
-}
-// Функция проверки столкновений двух прямоугольников
-bool cCollision::CheckCollision(PE_Rect A, PE_Rect B)
-{
-	float leftBox, leftChecked;
-	float rightBox, rightChecked;
-	float	topBox, topChecked;
-	float bottomBox, bottomChecked;
-
-	leftBox = A.X;
-	rightBox = A.X + A.Width;
-	topBox = A.Y;
-	bottomBox = A.Y + A.Heigth;
-
-	leftChecked = B.X;
-	rightChecked = B.X + B.Width;
-	topChecked = B.Y;
-	bottomChecked = B.Y + B.Heigth;
-
-	if(bottomBox <= topChecked)
-	{
-		return false;
-	}
-
-	if(topBox >= bottomChecked)
-	{
-		return false;
-	}
-
-	if(rightBox <= leftChecked)
-	{
-		return false;
-	}
-
-	if(leftBox >= rightChecked)
-	{
-		return false;
-	}
-
-	return true;
-}
-
-cCollisionBody::cCollisionBody()
-{
-
-}
-cCollisionBody::~cCollisionBody()
-{
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
+*/

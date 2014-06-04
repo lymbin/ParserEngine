@@ -23,7 +23,7 @@ void game::update()
 		if(dynamic_text)
 		{
 			std::stringstream sstream;
-			sstream << "Hero Speed: " << Hero->GetVelocity();
+			sstream << "Hero Speed: " << Hero->GetVelocity() << " Hero Health: " << Hero->GetHealth();
 			dynamic_text->SetText(sstream.str());
 		}
 	}
@@ -257,10 +257,11 @@ int game::CreatingObjects()
 	cout << "Creating objects" << endl;
 #endif
 
-	if(Collisions)
+	if(Collision)
 	{
 		layer = new iCollisionLayer(PE_Rect {0, 0, Graphics->GetScreenWidth(), Graphics->GetScreenHeigth()});
 		//layer = Collision->NewCollisionLayer(Graphics->GetScreenWidth(), Graphics->GetScreenHeigth(), 0, 0);
+		Collision->AddCollisionLayer(layer);
 	}
 
 	if(!Hero)
@@ -274,12 +275,13 @@ int game::CreatingObjects()
 		if(Hero->GetTexture())
 			Hero->SetBox(Hero->GetTexture()->GetWidth()*Hero->GetScaledMultiplier(), Hero->GetTexture()->GetHeigth()*Hero->GetScaledMultiplier(), 0, 100);
 
-
-
 		if(layer)
 		{
 			layer->AddCollisionBody(Hero);
 			Hero->AddNewLayer(layer);
+
+			Hero->SetCollisionsPointer(Collision);
+			Collision->AddCollisionBody(Hero);
 		}
 
 	}
@@ -300,6 +302,9 @@ int game::CreatingObjects()
 		{
 			layer->AddCollisionBody(StaticBox);
 			StaticBox->AddNewLayer(layer);
+
+			StaticBox->SetCollisionsPointer(Collision);
+			Collision->AddCollisionBody(StaticBox);
 		}
 	}
 
@@ -358,7 +363,7 @@ void game::FreeObjects()
 	{
 		delete StaticBox;
 	}
-	delete Collisions;
+	delete Collision;
 }
 game::game()
 {
@@ -369,7 +374,7 @@ game::game()
 	layer = 0;
 	dynamic_text = 0;
 	StaticBox = 0;
-	Collisions = new iCollisions();
+	Collision = new cCollision();
 }
 game::~game()
 {

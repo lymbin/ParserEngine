@@ -59,7 +59,7 @@ class game: public engine
 	game_gui *Gui;
 	hero *Hero;
 	iCollisionLayer *layer;
-	iCollisions *Collisions;
+	cCollision *Collision;
 	cStaticBox *StaticBox;
 	text *dynamic_text;
 

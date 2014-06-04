@@ -525,3 +525,7 @@ void hero::SetGame(game *apGame)
 {
 	mpGame = apGame;
 }
+void hero::CollisionHandler(iCollisionBody *Collider, iCollisionBody *CollSurface, void *data)
+{
+
+}

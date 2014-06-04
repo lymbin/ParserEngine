@@ -37,6 +37,7 @@ public:
 	void Update(); // Обновление данных
 
 	void SetGame(game *apGame);
+	void CollisionHandler(iCollisionBody *Collider, iCollisionBody *CollSurface, void *data);
 };
 
 

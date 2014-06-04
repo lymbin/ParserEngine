@@ -36,10 +36,6 @@ int engine::init()
 
 	Input->Engine = this;
 
-	Collision = new collision();
-	if(Collision->init() < 0)
-		return -1;
-
 	Events = new events(Input, Graphics->GetWindow());
 	if(Events->init() < 0)
 		return -1;
@@ -70,11 +66,6 @@ void engine::CleanUp()
 		delete Input;
 		Input = 0;
 	}
-	if(Collision)
-	{
-		delete Collision;
-		Collision = 0;
-	}
 	if(Events)
 	{
 		delete Events;
@@ -97,7 +88,6 @@ engine::engine()
 	Graphics = 0;
 	Audio = 0;
 	Input = 0;
-	Collision = 0;
 	Events = 0;
 	//Другие компоненты
 	//
