@@ -112,7 +112,7 @@ collision_layer::~collision_layer()
 		{
 			if(bodies[loop])
 			{
-				if(CheckBodyInLayer(bodies[loop]) == COLLISION_INSIDE)
+				if(CheckBodyInLayer(bodies[loop]) == eBodyPosition_Inside)
 				{
 					delete bodies[loop];
 				}
@@ -288,7 +288,7 @@ void collision_body::UpdateLayers()
 			for(unsigned int loop = 0; loop < CurrentLayers.size(); ++loop)
 			{
 				int result = CurrentLayers[loop]->CheckBodyInLayer(this);
-				if(result == COLLISION_OUTSIDE)
+				if(result == eBodyPosition_Outside)
 				{
 					RemoveLayer(loop);
 					--loop;
@@ -310,7 +310,8 @@ bool collision_body::CheckCollision()
 		{
 			if(CurrentLayers[loop])
 			{
-				CurrentLayers[loop]->CheckCollision(this);
+				if(CurrentLayers[loop]->CheckCollision(this))
+					return true;
 			}
 		}
 	}
@@ -396,27 +397,27 @@ int collision_layer::CheckBodyInLayer(collision_body *body)
 		if((bottomBox >= bottomChecked) && (topBox <= topChecked) && (rightBox >= rightChecked) && (leftBox <= leftChecked))
 		{
 			// Тело внутри слоя
-			return COLLISION_INSIDE;
+			return eBodyPosition_Inside;
 		}
 		else
 		{
 			// Ищем столкновения - можно сделать какую-нибудь общую функцию для поиска столкновений 2-х прямоугольников
 			if(!collision::CheckCollision(LayerBorder, body->AABBBodyBox))
 			{
-				return COLLISION_OUTSIDE;
+				return eBodyPosition_Outside;
 			}
 		}
 
 		// Тело соприкасается со слоем и входит одновременно в несколько слоёв и надо искать столкновения во всех
-		return COLLISION_INTERSECT;
+		return eBodyPosition_Intersect;
 	}
 	else
 	{
 		// TODO: доделать проверку
-		return COLLISION_OUTSIDE;
+		return eBodyPosition_Outside;
 	}
 
-	return COLLISION_OUTSIDE;
+	return eBodyPosition_Outside;
 }
 
 //-----------------------------------------------------------------------
@@ -650,7 +651,7 @@ void collision::NewLayersInBody(collision_body *body)
 		for(unsigned int loop = 0; loop < layers.size(); ++loop)
 		{
 			int result = layers[loop]->CheckBodyInLayer(body);
-			if(result == COLLISION_INSIDE || result == COLLISION_INTERSECT)
+			if(result == eBodyPosition_Inside || result == eBodyPosition_Intersect)
 			{
 				body->AddNewLayer(layers[loop]);
 			}
@@ -762,3 +763,91 @@ void collision_layer::SortCollisions()
 }
 
 //-----------------------------------------------------------------------
+
+
+
+cCollision::cCollision()
+{
+#ifdef DEBUGGING
+	IsEnabled = true;
+#endif
+
+}
+cCollision::~cCollision()
+{
+
+}
+
+// Инициализация системы
+int cCollision::Init()
+{
+	return 0;
+}
+
+// Основная функция проверки столкновений двух тел
+bool cCollision::CheckCollision(cCollisionBody A, cCollisionBody B)
+{
+	return CheckCollision(A.mBox, B.mBox);
+}
+// Функция проверки столкновений двух прямоугольников
+bool cCollision::CheckCollision(PE_Rect A, PE_Rect B)
+{
+	float leftBox, leftChecked;
+	float rightBox, rightChecked;
+	float	topBox, topChecked;
+	float bottomBox, bottomChecked;
+
+	leftBox = A.X;
+	rightBox = A.X + A.Width;
+	topBox = A.Y;
+	bottomBox = A.Y + A.Heigth;
+
+	leftChecked = B.X;
+	rightChecked = B.X + B.Width;
+	topChecked = B.Y;
+	bottomChecked = B.Y + B.Heigth;
+
+	if(bottomBox <= topChecked)
+	{
+		return false;
+	}
+
+	if(topBox >= bottomChecked)
+	{
+		return false;
+	}
+
+	if(rightBox <= leftChecked)
+	{
+		return false;
+	}
+
+	if(leftBox >= rightChecked)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+cCollisionBody::cCollisionBody()
+{
+
+}
+cCollisionBody::~cCollisionBody()
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

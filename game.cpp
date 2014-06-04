@@ -257,9 +257,10 @@ int game::CreatingObjects()
 	cout << "Creating objects" << endl;
 #endif
 
-	if(Collision)
+	if(Collisions)
 	{
-		layer = Collision->NewCollisionLayer(Graphics->GetScreenWidth(), Graphics->GetScreenHeigth(), 0, 0);
+		layer = new iCollisionLayer(PE_Rect {0, 0, Graphics->GetScreenWidth(), Graphics->GetScreenHeigth()});
+		//layer = Collision->NewCollisionLayer(Graphics->GetScreenWidth(), Graphics->GetScreenHeigth(), 0, 0);
 	}
 
 	if(!Hero)
@@ -273,11 +274,14 @@ int game::CreatingObjects()
 		if(Hero->GetTexture())
 			Hero->SetBox(Hero->GetTexture()->GetWidth()*Hero->GetScaledMultiplier(), Hero->GetTexture()->GetHeigth()*Hero->GetScaledMultiplier(), 0, 100);
 
+
+
 		if(layer)
 		{
-			layer->AddCollisionBody(Hero->GetCollisionBody());
-			Hero->GetCollisionBody()->AddNewLayer(layer);
+			layer->AddCollisionBody(Hero);
+			Hero->AddNewLayer(layer);
 		}
+
 	}
 	if(!Gui)
 	{
@@ -292,6 +296,11 @@ int game::CreatingObjects()
 		StaticBox = new cStaticBox("Box1", 100);
 		StaticBox->SetGame(this);
 		StaticBox->SetBox(100,100,200,200);
+		if(layer)
+		{
+			layer->AddCollisionBody(StaticBox);
+			StaticBox->AddNewLayer(layer);
+		}
 	}
 
 	return 0;
@@ -349,6 +358,7 @@ void game::FreeObjects()
 	{
 		delete StaticBox;
 	}
+	delete Collisions;
 }
 game::game()
 {
@@ -359,6 +369,7 @@ game::game()
 	layer = 0;
 	dynamic_text = 0;
 	StaticBox = 0;
+	Collisions = new iCollisions();
 }
 game::~game()
 {

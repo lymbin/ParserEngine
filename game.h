@@ -58,7 +58,8 @@ class game: public engine
 	MainMenu Mmenu;
 	game_gui *Gui;
 	hero *Hero;
-	collision_layer *layer;
+	iCollisionLayer *layer;
+	iCollisions *Collisions;
 	cStaticBox *StaticBox;
 	text *dynamic_text;
 

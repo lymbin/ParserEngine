@@ -11,6 +11,7 @@
 #include "SystemConstants.h"
 #include "GraphicTypes.h"
 #include "PhysicsTypes.h"
+#include "Collision.h"
 
 class collision_AABB;
 class collision_OBB;
@@ -18,45 +19,23 @@ class collision_body;
 class collision_layer;
 class collision;
 
-
-class collision_AABB
+class cPhysics
 {
-	// AABB бокс столкновений
 public:
-	collision_AABB();
-	~collision_AABB();
+	cPhysics();
+	~cPhysics();
 
-	// Проверка столкновения
-	bool OverlapsAABB(collision_AABB aabb);
-	bool OverlapsOBB(collision_OBB obb);
-
-	void SetAABBBox(PE_Rect NewBox);
-
-	// Положение тела
-	PE_Rect AABBBodyBox;
-	PE_Point MinPoint, MaxPoint;
+	// Инициализация системы
+	int Init();
 };
-class collision_OBB
-{
-	// OBB бокс столкновений
-public:
-	collision_OBB();
-	~collision_OBB();
 
-	// Проверка столкновения
-	//bool OverlapsAABB(collision_AABB aabb);
-	//bool OverlapsOBB(collision_OBB obb);
-
-	// Положение тела
-	PE_Rect OBBBodyBox;
-
-};
 class collision_body: public collision_OBB, public collision_AABB
 {
 	// Тело столкновений - по-сути коробка, содержащаяся в слоях(слое) столкновений
 	friend class collision;
 	friend class collision_layer;
 
+protected:
 	// Указатель на класс столкновений
 	collision *Collision;
 
@@ -73,7 +52,7 @@ class collision_body: public collision_OBB, public collision_AABB
 	int BoundingVolumeType;
 
 public:
-	collision_body(int ColPass = COLLISION_UNPASSABLE, int ColType = COLLISION_OUTSIDE, int BVType = COLLISION_AABB);
+	collision_body(int ColPass = COLLISION_UNPASSABLE, int ColType = eBodyPosition_Outside, int BVType = COLLISION_AABB);
 	~collision_body();
 
 	// Устанавливем слой
@@ -118,12 +97,11 @@ class collision_layer
 {
 	// Класс слоя столкновений хранит тела, которые могут сталкиваться в ограниченной области
 	friend class collision;
+	friend class collision_body;
 
+protected:
 	// Указатель на класс столкновений
 	collision *Collision;
-
-	// Тела в текущем слое
-	std::vector< collision_body *> bodies;
 
 	// Прямоугольная рамка слоя
 	PE_Rect LayerBorder;
@@ -158,6 +136,9 @@ public:
 
 	// Получаем границы слоя
 	PE_Rect GetLayerBorder();
+
+	// Тела в текущем слое
+	std::vector< collision_body *> bodies;
 };
 class collision
 {
@@ -179,7 +160,7 @@ public:
 	int init();
 
 	// Добавляем новое тело в систему столкновений
-	collision_body *NewCollisionBody(unsigned int LayerId, int ColPass = COLLISION_UNPASSABLE, int ColType = COLLISION_OUTSIDE, int BVType = COLLISION_AABB);
+	collision_body *NewCollisionBody(unsigned int LayerId, int ColPass = COLLISION_UNPASSABLE, int ColType = eBodyPosition_Outside, int BVType = COLLISION_AABB);
 
 	// Добавляем новый слой в систему столкновений
 	collision_layer *NewCollisionLayer(GLfloat W = SYS_WIDTH, GLfloat H = SYS_HEIGTH, GLfloat X = 0, GLfloat Y = 0);

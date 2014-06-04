@@ -55,6 +55,10 @@ int input::init()
 	{
 		MouseButtons.push_back('n');
 	}
+
+#ifdef DEBUG_SYS
+	cout << "Input system initialization - success" << endl;
+#endif
 	return 0;
 }
 

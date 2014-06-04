@@ -199,6 +199,8 @@ hero::~hero()
 
 void hero::Move(int direction, int animation, int animpos)
 {
+	PE_Rect Box = GetBox();
+
 	if((animation == ANIM_UNKNOWN)||(mAnims.empty()))
 	{
 		if(direction == MOVE_RIGHT)
@@ -290,6 +292,7 @@ void hero::Move(int direction, int animation, int animpos)
 			}
 		}
 	}
+	SetBox(Box);
 }
 void hero::Jump()
 {
@@ -340,7 +343,7 @@ void hero::Update()
 	if((!mpGame)||(!mpGame->Input))
 		return;
 
-	PE_Rect OldBox = Box;		// Запоминаем старый бокс для случая столкновения с каким-либо телом и возвратом в исходное положение
+	PE_Rect OldBox = GetBox();		// Запоминаем старый бокс для случая столкновения с каким-либо телом и возвратом в исходное положение
 	int move_type = MOVE_NONE;	// Необходимо для движения
 	mLastState = MOVE_NONE;		// Необходимо для учёта порядка движений по приоритетам
 
@@ -461,13 +464,17 @@ void hero::Update()
 	}
 	*/
 
-	//body->SetAABBBox(Box);
-	//body->
+	if(HandleCollisions())
+	{
+		cout << "Collided" << endl;
+		SetBox(OldBox);
+	}
+
 }
 void hero::OnDraw()
 {
 	bool moved = false;
-
+	PE_Rect Box = GetBox();
 	if(!mAnims.empty() && (mLastState != MOVE_NONE))
 	{
 		mAnimIter = mAnims.begin();

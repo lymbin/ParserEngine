@@ -27,6 +27,10 @@ events::~events()
 {
 	Input = 0;
 	Window = 0;
+
+#ifdef DEBUG_SYS
+	cout << "Events clean up - success" << endl;
+#endif
 }
 
 //-----------------------------------------------------------------------
@@ -39,6 +43,10 @@ events::~events()
 
 int events::init()
 {
+
+#ifdef DEBUG_SYS
+	cout << "Events initialization - success" << endl;
+#endif
 	return 0;
 }
 

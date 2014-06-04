@@ -26,7 +26,7 @@ void cStaticBox::OnDraw()
 	if(!mpGame && !mpGame->Graphics)
 		return;
 
-	mpGame->Graphics->DrawFilledRectangle(Box.X, Box.Y, Box.Width, Box.Heigth, cColor(1.0f, 0.0f, 1.0f, 1.0f));
+	mpGame->Graphics->DrawFilledRectangle(GetBox(), cColor(1.0f, 0.0f, 1.0f, 1.0f));
 
 }
 void cStaticBox::Reset()
@@ -43,8 +43,10 @@ void cStaticBox::OnExit()
 }
 void cStaticBox::Update()
 {
+	PE_Rect Box = GetBox();
 	// TODO: обновлять камеру тут
 
+	SetBox(Box);
 }
 
 void cStaticBox::CollisionHandler()

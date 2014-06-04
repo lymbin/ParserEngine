@@ -23,6 +23,15 @@
 #include <GL/glext.h>
 #endif /* WIN32 */
 
+//Закомментировать строчки ниже для запрета показа отладочной информации и ошибок
+#define DEBUGGING
+
+#ifdef DEBUGGING
+#define DEBUG_SYS
+#define DEBUG_ERRORS
+#define DEBUG_INFOS
+#endif
+
 ///////////////// MAIN SYSTEM CONSTANTS /////////////////
 
 const int 			SYS_AUDIO = 0; 					//аудио(0 - отключено, !0 - включено)
@@ -54,9 +63,9 @@ const int 			SYS_AUDIO_BUFFERS = 1024;
 
 ///////////////// VERSIONS CONSTANTS /////////////////
 
-const std::string 	SYS_VERSION = "0.0.0.0.44";
-const std::string 	SYS_BUILD = "000044";
-const std::string	SYS_TEST_VERSION = "0.1.9.44";
+const std::string 	SYS_VERSION = "0.0.0.0.45";
+const std::string 	SYS_BUILD = "000045";
+const std::string	SYS_TEST_VERSION = "0.1.10.45";
 
 
 #endif /* SYSTEMCONSTANTS_H_ */

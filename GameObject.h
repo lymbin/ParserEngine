@@ -10,6 +10,7 @@
 
 #include "PE.h"
 #include "GameTypes.h"
+#include <algorithm>
 
 enum eGameObjectType
 {
@@ -39,25 +40,103 @@ public:
 	virtual void Shoot(){}
 };
 
+class iGameObject;
+class iCollisionBody;
+class iCollisionLayer;
+
+typedef std::vector<iCollisionBody *> tpCollisionLayer;
+typedef std::vector<iCollisionBody *>::iterator tpCollisionLayerIt;
+
+typedef std::vector<iCollisionLayer *> tpCollisionLayers;
+typedef std::vector<iCollisionLayer *>::iterator tpCollisionLayersIt;
+
+class iCollisions
+{
+public:
+	iCollisions();
+	~iCollisions();
+
+	void AddCollisionBody(iCollisionBody *aBody);
+	void AddCollisionLayer(iCollisionLayer *aLayer);
+
+	void EraseCollisionBody(iCollisionBody *aBody);
+	void EraseCollisionLayer(iCollisionLayer *aLayer);
+
+	void DeleteAll();
+
+	tpCollisionLayers mAllCollisionLayers;
+	tpCollisionLayer mAllCollisionBodies;
+};
+
+class iCollisionLayer
+{
+	PE_Rect Border;
+public:
+	iCollisionLayer(PE_Rect aBorder);
+	iCollisionLayer(GLfloat W = SYS_WIDTH, GLfloat H = SYS_HEIGTH, GLfloat X = 0, GLfloat Y = 0);
+	~iCollisionLayer();
+
+	// Добавляем тело в слой
+	void AddCollisionBody(iCollisionBody *body);
+
+	// Проверяем где именно находится заданное тело, относительно слоя
+	int CheckBodyInLayer(iCollisionBody *body);
+
+	// Удаляем тело из слоя
+	void EraseBody(iCollisionBody *body);
+
+	// Задаём границы слоя
+	void SetLayerBorder(PE_Rect aBorder);
+
+	// Получаем границы слоя
+	PE_Rect GetLayerBorder();
+
+	tpCollisionLayer mCollisionLayer;
+};
+
+
 class iCollisionBody
 {
+private:
+	iCollisions *mpCollisions;
+
 protected:
-	PE_Rect 		Box;
-	collision_body *body;
+	cCollisionBody *mpBody;
+	tpCollisionLayers mCollisionLayers;
 
 public:
 	iCollisionBody();
 	virtual ~iCollisionBody();
 
 	void Collide();
+	bool HandleCollisions();
 
 	void SetBox(float W, float H, float X, float Y);
-	void SetBody(collision_body *apBody);
+	void SetBox(PE_Rect aBox);
+
+	void SetCollisionsPointer(iCollisions *apCollisions);
+
+	// Устанавливем слой
+	void AddNewLayer(iCollisionLayer *apLayer);
+
+	void UpdateLayers();
+
+	void EraseLayer(iCollisionLayer *apLayer);
 
 	PE_Rect 		GetBox();
-	collision_body *GetCollisionBody();
-	virtual void CollisionHandler() {}
+	cCollisionBody 	*GetCollisionBody();
+	iCollisions 	*GetCollisionsPointer();
+	virtual void 	CollisionHandler(iCollisionBody *Collider, iCollisionBody *CollSurface, void *data) {}
+
+
 };
+
+
+
+
+
+
+
 
 class iGameObject : public iCollisionBody, public iUpdateable
 {
@@ -84,6 +163,7 @@ public:
 	unsigned int GetVelocity();
 	int	GetHealth();
 
+	virtual void CollisionHandler(iCollisionBody *Collider, iCollisionBody *CollSurface, void *data) {}
 };
 
 class iStaticObject : public iGameObject

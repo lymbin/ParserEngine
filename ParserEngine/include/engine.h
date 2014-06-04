@@ -8,15 +8,6 @@
 #ifndef ENGINE_H_
 #define ENGINE_H_
 
-//Закомментировать строчки ниже для запрета показа отладочной информации и ошибок
-#define DEBUGGING
-
-#ifdef DEBUGGING
-#define DEBUG_SYS
-#define DEBUG_ERRORS
-#define DEBUG_INFOS
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -19,10 +19,10 @@ enum eBoundingVolume{
 	COLLISION_AABB_OBB
 };
 
-enum eCollision{
-	COLLISION_INSIDE,
-	COLLISION_OUTSIDE,
-	COLLISION_INTERSECT
+enum eBodyPosition{
+	eBodyPosition_Inside,
+	eBodyPosition_Outside,
+	eBodyPosition_Intersect,
+	eBodyPosition_LastEnum
 };
-
 #endif /* PHYSICSTYPES_H_ */
