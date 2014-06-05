@@ -259,7 +259,7 @@ int game::CreatingObjects()
 
 	if(Collision)
 	{
-		layer = new iCollisionLayer(PE_Rect {0, 0, Graphics->GetScreenWidth(), Graphics->GetScreenHeigth()});
+		layer = new iCollisionLayer(PE_Rect {0, 0, (float)Graphics->GetScreenWidth(), (float)Graphics->GetScreenHeigth()});
 		//layer = Collision->NewCollisionLayer(Graphics->GetScreenWidth(), Graphics->GetScreenHeigth(), 0, 0);
 		Collision->AddCollisionLayer(layer);
 	}
@@ -282,6 +282,8 @@ int game::CreatingObjects()
 
 			Hero->SetCollisionsPointer(Collision);
 			Collision->AddCollisionBody(Hero);
+
+			Hero->CALLBACK(hero::CollisionHandler, 0);
 		}
 
 	}

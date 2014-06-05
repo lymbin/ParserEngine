@@ -63,9 +63,9 @@ const int 			SYS_AUDIO_BUFFERS = 1024;
 
 ///////////////// VERSIONS CONSTANTS /////////////////
 
-const std::string 	SYS_VERSION = "0.0.0.0.46";
-const std::string 	SYS_BUILD = "000046";
-const std::string	SYS_TEST_VERSION = "0.1.11.46";
+const std::string 	SYS_VERSION = "0.0.0.0.47";
+const std::string 	SYS_BUILD = "000047";
+const std::string	SYS_TEST_VERSION = "0.1.12.47";
 
 
 #endif /* SYSTEMCONSTANTS_H_ */

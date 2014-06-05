@@ -40,6 +40,12 @@ struct PE_Point
 	GLfloat y;	/**< Координата Y */
 };
 
+typedef std::list<PE_Point> tPointList;
+typedef std::list<PE_Point>::iterator tPointListIt;
+
+typedef std::vector<PE_Point> tPointVector;
+typedef std::vector<PE_Point>::iterator tPointVectorIt;
+
 // Прямоугольник
 struct PE_Rect
 {
@@ -49,6 +55,9 @@ struct PE_Rect
 	GLfloat Heigth; /**< Высота прямоугольника 	*/
 };
 
+typedef std::vector<PE_Rect> tRectVector;
+typedef std::vector<PE_Rect>::iterator tRectVectorIt;
+
 // Четырёхугольник
 struct PE_Tetra
 {
@@ -57,9 +66,6 @@ struct PE_Tetra
 	GLfloat Top; 		/**< Координата крайней верхней точки  */
 	GLfloat Bottom;		/**< Координата крайней нижней точки  */
 };
-
-typedef std::vector<PE_Rect> tRectVector;
-
 
 enum eTextAlignment{
 	eTextAlignment_Left = 1,

@@ -83,6 +83,8 @@ iCollisionLayer::~iCollisionLayer()
 iCollisionBody::iCollisionBody()
 {
 	mpCollision = 0;
+	mpCallBackData = 0;
+	handler = 0;
 }
 
 //-----------------------------------------------------------------------
@@ -151,6 +153,97 @@ bool cCollision::CheckCollision(PE_Rect A, PE_Rect B)
 
 //-----------------------------------------------------------------------
 
+PE_Rect cCollision::GetCollisionPoints(cCollisionBody A, cCollisionBody B)
+{
+	return GetCollisionPoints(A.mBox, B.mBox);
+}
+
+//-----------------------------------------------------------------------
+
+PE_Rect cCollision::GetCollisionPoints(PE_Rect A, PE_Rect B)
+{
+	PE_Rect CrossedRect;
+
+	float leftA, leftB, leftC;
+	float rightA, rightB, rightC;
+	float topA, topB, topC;
+	float bottomA, bottomB, bottomC;
+
+	leftA = A.X;
+	rightA = A.X + A.Width;
+	topA = A.Y;
+	bottomA = A.Y + A.Heigth;
+
+	leftB = B.X;
+	rightB = B.X + B.Width;
+	topB = B.Y;
+	bottomB = B.Y + B.Heigth;
+
+	if(topA <= topB)
+		topC = topB;
+	else
+		topC = topA;
+
+	if(bottomA <= bottomB)
+		bottomC = bottomA;
+	else
+		bottomC = bottomB;
+
+	if(rightA <= rightB)
+		rightC = rightA;
+	else
+		rightC = rightB;
+
+	if(leftA <= leftB)
+		leftC = leftB;
+	else
+		leftC = leftA;
+
+	CrossedRect.X = leftC;
+	CrossedRect.Y = topC;
+	CrossedRect.Heigth = bottomC - topC;
+	CrossedRect.Width = rightC - leftC;
+
+/*
+	if(topA <= topB || leftA <= leftB)
+	{
+		// Производим поиск по B
+		leftC = B.X;
+		rightC = B.X + B.Width;
+		topC = B.Y;
+		bottomC = B.Y + B.Heigth;
+
+		while(cuted)
+		{
+			//Начинаем отсекать части у B
+			NewRightC = B.X + B.Width/2.0;
+			if(NewRightC > rightA)
+			{
+
+			}
+
+		}
+	}
+	else if(topA > topB || leftA > leftB)
+	{
+		// Производим поиск по A
+		leftC = A.X;
+		rightC = A.X + A.Width;
+		topC = A.Y;
+		bottomC = A.Y + A.Heigth;
+
+		while()
+		{
+			//Начинаем отсекать части у A
+
+		}
+	}
+*/
+	return CrossedRect;
+}
+
+//-----------------------------------------------------------------------
+
 void iCollisionBody::SetBox(float W, float H, float X, float Y)
 {
 	mBox.Heigth = H;
@@ -192,9 +285,40 @@ cCollision *iCollisionBody::GetCollisionPointer()
 
 //-----------------------------------------------------------------------
 
-void iCollisionBody::Collide()
+void iCollisionBody::CALLBACK(void (*callback)(iCollisionBody *, PE_Rect, void *), void *apCallBackData)
 {
-	//CollisionHandler(iGameObject *Collider, iGameObject *CollSurface, void * data);
+	handler = callback;
+	mpCallBackData = apCallBackData;
+}
+
+//-----------------------------------------------------------------------
+
+bool iCollisionBody::HandleCollisions()
+{
+	bool Result = false;
+	tPointList PointList;
+
+	UpdateLayers();
+
+	tpCollisionLayersIt LayersIt = mCollisionLayers.begin();
+	for( ; LayersIt != mCollisionLayers.end(); ++LayersIt)
+	{
+		tpCollisionLayerIt BodiesIt = (*LayersIt)->mCollisionLayer.begin();
+		for( ; BodiesIt != (*LayersIt)->mCollisionLayer.end(); ++BodiesIt)
+		{
+			if(this == (*BodiesIt))
+				continue;
+			if(cCollision::CheckCollision(*this, **BodiesIt))
+			{
+				Result = true;
+				if(handler)
+				{
+					handler(*BodiesIt, cCollision::GetCollisionPoints(*this, **BodiesIt), mpCallBackData); // Вызываем обработчик столкновения заданного класса
+				}
+			}
+		}
+	}
+	return Result;
 }
 
 //-----------------------------------------------------------------------

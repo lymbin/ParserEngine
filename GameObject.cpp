@@ -33,29 +33,6 @@ int	iGameObject::GetHealth()
 {
 	return mlHitPoints;
 }
-// Обрабатываем все столкновения
-bool iGameObject::HandleCollisions()
-{
-	bool Result = false;
-	UpdateLayers();
-
-	tpCollisionLayersIt LayersIt = mCollisionLayers.begin();
-	for( ; LayersIt != mCollisionLayers.end(); ++LayersIt)
-	{
-		tpCollisionLayerIt BodiesIt = (*LayersIt)->mCollisionLayer.begin();
-		for( ; BodiesIt != (*LayersIt)->mCollisionLayer.end(); ++BodiesIt)
-		{
-			if(this == (*BodiesIt))
-				continue;
-			if(cCollision::CheckCollision(*this, **BodiesIt))
-			{
-				Result = true;
-				//CollisionHandler()
-			}
-		}
-	}
-	return Result;
-}
 iStaticObject::iStaticObject(std::string asName, int alHitPoints):iGameObject(eGameObjectType_StaticObject, asName, alHitPoints)
 {
 	mTexture.mfRotateDegrees = 0.0;

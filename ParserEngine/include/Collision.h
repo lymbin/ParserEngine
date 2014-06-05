@@ -49,6 +49,10 @@ public:
 	// Функция проверки столкновений двух прямоугольников
 	static bool CheckCollision(PE_Rect A, PE_Rect B);
 
+	// Получаем точки столкновения
+	static PE_Rect GetCollisionPoints(cCollisionBody A, cCollisionBody B);
+	static PE_Rect GetCollisionPoints(PE_Rect A, PE_Rect B);
+
 
 	void AddCollisionBody(iCollisionBody *aBody);
 	void AddCollisionLayer(iCollisionLayer *aLayer);
@@ -96,6 +100,9 @@ class iCollisionBody : public cCollisionBody
 private:
 	cCollision *mpCollision;
 
+	void (*handler)(iCollisionBody *, PE_Rect, void *);	// Храним указатель на обработчик столкновения
+	void *mpCallBackData;
+
 protected:
 	tpCollisionLayers mCollisionLayers;
 
@@ -103,16 +110,14 @@ public:
 	iCollisionBody();
 	virtual ~iCollisionBody();
 
-	void Collide();
-
 	void SetBox(float W, float H, float X, float Y);
 	void SetBox(PE_Rect aBox);
-
 	void SetCollisionsPointer(cCollision *apCollision);
 
 	// Устанавливем слой
 	void AddNewLayer(iCollisionLayer *apLayer);
 
+	// Обновляем слои, в которых тело находится
 	void UpdateLayers();
 
 	void EraseLayer(iCollisionLayer *apLayer);
@@ -121,9 +126,11 @@ public:
 	cCollisionBody 	*GetCollisionBody();
 	cCollision	 	*GetCollisionPointer();
 
-	virtual bool 	HandleCollisions(){return false;}
-	virtual void 	CollisionHandler(iCollisionBody *Collider, iCollisionBody *CollSurface, void *data) {}
+	// Устанавливаем обработчик столкновения
+	void CALLBACK(void (*callback)(iCollisionBody *, PE_Rect, void *), void *apCallBackData);
 
+	// Обрабатываем столкновения в слое
+	bool HandleCollisions();
 };
 
 

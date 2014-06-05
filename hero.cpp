@@ -464,11 +464,8 @@ void hero::Update()
 	}
 	*/
 
-	if(HandleCollisions())
-	{
-		cout << "Collided" << endl;
-		SetBox(OldBox);
-	}
+	HandleCollisions();
+
 
 }
 void hero::OnDraw()
@@ -525,7 +522,7 @@ void hero::SetGame(game *apGame)
 {
 	mpGame = apGame;
 }
-void hero::CollisionHandler(iCollisionBody *Collider, iCollisionBody *CollSurface, void *data)
+void hero::CollisionHandler(iCollisionBody *CollidedBody, PE_Rect CollisionRect, void *data)
 {
-
+	cout << "collided!" << endl;
 }

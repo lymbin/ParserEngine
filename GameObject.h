@@ -65,8 +65,7 @@ public:
 	unsigned int GetVelocity();
 	int	GetHealth();
 
-	bool HandleCollisions();
-	virtual void CollisionHandler(iCollisionBody *Collider, iCollisionBody *CollSurface, void *data) {}
+	//virtual void CollisionHandler(iCollisionBody *Collider, iCollisionBody *CollSurface, void *data) {}
 };
 
 class iStaticObject : public iGameObject
@@ -83,7 +82,7 @@ public:
 	virtual void OnExit() {}	// Выполняем при выходе, на последней итерации фреймов или при удалении
 	virtual void Update() {}	// Обновление данных
 
-	virtual void CollisionHandler(){}
+	//virtual void CollisionHandler(){}
 };
 
 class iDynamicObject : public iGameObject, public iAnimed
