@@ -285,10 +285,11 @@ cCollision *iCollisionBody::GetCollisionPointer()
 
 //-----------------------------------------------------------------------
 
-void iCollisionBody::CALLBACK(void (*callback)(iCollisionBody *, PE_Rect, void *), void *apCallBackData)
+void iCollisionBody::CALLBACK(void (*callback)(iCollisionBody *thisBody, PE_Rect CollidedRect, void *CollidedObject, void *data), void *apCollidedObject, void *apCallBackData)
 {
 	handler = callback;
 	mpCallBackData = apCallBackData;
+	mpCollidedObject = apCollidedObject;
 }
 
 //-----------------------------------------------------------------------
@@ -313,7 +314,7 @@ bool iCollisionBody::HandleCollisions()
 				Result = true;
 				if(handler)
 				{
-					handler(*BodiesIt, cCollision::GetCollisionPoints(*this, **BodiesIt), mpCallBackData); // Вызываем обработчик столкновения заданного класса
+					handler(this, cCollision::GetCollisionPoints(*this, **BodiesIt), (*BodiesIt)->mpCollidedObject, mpCallBackData); // Вызываем обработчик столкновения заданного класса
 				}
 			}
 		}

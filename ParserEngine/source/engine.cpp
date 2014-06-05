@@ -40,6 +40,10 @@ int engine::init()
 	if(Events->init() < 0)
 		return -1;
 
+	Physics = new cPhysics();
+	if(Physics->Init() < 0)
+		return -1;
+
 	frame = 0;
 
 #ifdef DEBUG_SYS
@@ -71,6 +75,11 @@ void engine::CleanUp()
 		delete Events;
 		Events = 0;
 	}
+	if(Physics)
+	{
+		delete Physics;
+		Physics = 0;
+	}
 #ifdef DEBUG_SYS
 	cout << "Engine clean up - success" << endl;
 #endif
@@ -89,6 +98,7 @@ engine::engine()
 	Audio = 0;
 	Input = 0;
 	Events = 0;
+	Physics = 0;
 	//Другие компоненты
 	//
 	//

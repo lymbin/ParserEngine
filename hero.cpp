@@ -343,7 +343,6 @@ void hero::Update()
 	if((!mpGame)||(!mpGame->Input))
 		return;
 
-	PE_Rect OldBox = GetBox();		// Запоминаем старый бокс для случая столкновения с каким-либо телом и возвратом в исходное положение
 	int move_type = MOVE_NONE;	// Необходимо для движения
 	mLastState = MOVE_NONE;		// Необходимо для учёта порядка движений по приоритетам
 
@@ -463,10 +462,7 @@ void hero::Update()
 		}
 	}
 	*/
-
-	HandleCollisions();
-
-
+	//CALLBACK(hero::CollisionHandler, this, &OldBox);
 }
 void hero::OnDraw()
 {
@@ -522,7 +518,12 @@ void hero::SetGame(game *apGame)
 {
 	mpGame = apGame;
 }
-void hero::CollisionHandler(iCollisionBody *CollidedBody, PE_Rect CollisionRect, void *data)
+void hero::CollisionHandler(iCollisionBody *thisBody, PE_Rect CollidedRect, void *CollidedObject, void *data)
 {
+	PE_Rect *Rect = (PE_Rect *)data;
+
+	thisBody->SetBox(*Rect);
+
+
 	cout << "collided!" << endl;
 }

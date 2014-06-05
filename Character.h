@@ -25,8 +25,6 @@ enum eCharacterType
 class iCharacter : public iGameObject
 {
 protected:
-	eCharacterType mCharacterType;
-
 	sStaticTexture mTexture;
 
 	std::map <int, sAnim > mAnims;
@@ -74,6 +72,8 @@ public:
 
 	inventory_item GetArmor();
 	inventory_item GetWeapon();
+
+	eCharacterType mCharacterType;
 
 };
 

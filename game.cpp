@@ -18,18 +18,27 @@ void game::update()
 
 	if(Hero)
 	{
+		PE_Rect OldBox = Hero->GetBox();// Запоминаем старый бокс для случая столкновения с каким-либо телом и возвратом в исходное положение
 		Hero->Update();
-
-		if(dynamic_text)
-		{
-			std::stringstream sstream;
-			sstream << "Hero Speed: " << Hero->GetVelocity() << " Hero Health: " << Hero->GetHealth();
-			dynamic_text->SetText(sstream.str());
-		}
+		Hero->CALLBACK(hero::CollisionHandler, Hero, &OldBox);
 	}
 	if(StaticBox)
 	{
 		StaticBox->Update();
+	}
+	if(StaticBox)
+		StaticBox->HandleCollisions();
+	if(Hero)
+		Hero->HandleCollisions();
+
+	if(dynamic_text)
+	{
+		std::stringstream sstream;
+		if(Hero)
+			sstream << "Hero Speed: " << Hero->GetVelocity() << " Hero Health: " << Hero->GetHealth();
+		else
+			sstream << "Mind Walkers Production 2014.";
+		dynamic_text->SetText(sstream.str());
 	}
 }
 void game::render()
@@ -47,9 +56,34 @@ void game::render()
    // Graphics->DrawFilledRectangle(10, 110, 200, 100, 1.0f, 0.0f, 0.0f, 1.0f);
 
 	static GLuint tex = 0;
+	int GuiAlignment = eTextAlignment_Left | eTextAlignment_Bottom;
+	static bool killed = false;
 	if(Hero)
 	{
-		Hero->OnDraw();
+		if(Hero->GetHealth() > 0)
+		{
+			Hero->OnDraw();
+		}
+		else
+		{
+			delete Hero;
+			Hero = 0;
+			killed = true;
+		}
+
+	}
+
+	if(killed)
+	{
+		static int frames = 0;
+		if(frames < 180)
+		{
+			std::stringstream sstream;
+			sstream << "Game Over! Timmi has been killed. Please leave this game now! :(";
+			dynamic_text->SetText(sstream.str());
+			GuiAlignment = eTextAlignment_Centered_H | eTextAlignment_Centered_V;
+			frames++;
+		}
 	}
 	if(dynamic_text)
 	{
@@ -57,7 +91,7 @@ void game::render()
 		ScreenRect.X = ScreenRect.Y = 0;
 		ScreenRect.Heigth = Graphics->GetScreenHeigth();
 		ScreenRect.Width = Graphics->GetScreenWidth();
-		dynamic_text->Write(ScreenRect, eTextAlignment_Left | eTextAlignment_Bottom);
+		dynamic_text->Write(ScreenRect, GuiAlignment);
 	}
 	if(StaticBox)
 	{
@@ -283,7 +317,7 @@ int game::CreatingObjects()
 			Hero->SetCollisionsPointer(Collision);
 			Collision->AddCollisionBody(Hero);
 
-			Hero->CALLBACK(hero::CollisionHandler, 0);
+			Hero->CALLBACK(hero::CollisionHandler, Hero, 0);
 		}
 
 	}
@@ -307,6 +341,8 @@ int game::CreatingObjects()
 
 			StaticBox->SetCollisionsPointer(Collision);
 			Collision->AddCollisionBody(StaticBox);
+
+			StaticBox->CALLBACK(cStaticBox::CollisionHandler, StaticBox, 0);
 		}
 	}
 

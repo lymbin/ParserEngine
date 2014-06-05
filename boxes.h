@@ -29,9 +29,8 @@ public:
 	void OnExit();	// Выполняем при выходе, на последней итерации фреймов или при удалении
 	void Update();	// Обновление данных
 
-	void CollisionHandler();
-
 	void SetGame(game *apGame){mpGame = apGame;}
+	static void CollisionHandler(iCollisionBody *thisBody, PE_Rect CollidedRect, void *CollidedObject, void *data);
 };
 
 class cDynamicBox : public iDynamicObject
@@ -47,13 +46,13 @@ public:
 	void OnExit();	// Выполняем при выходе, на последней итерации фреймов или при удалении
 	void Update();	// Обновление данных
 
-	void CollisionHandler();
 	void Move(int alDirection, int alAnimation, int alAnimpos);
 	void Jump() {}
 	void Sit(){}
 	void Shoot(){}
 
 	void SetGame(game *apGame){mpGame = apGame;}
+	static void CollisionHandler(iCollisionBody *, iCollisionBody *, PE_Rect, void *data);
 };
 
 #endif /* BOXES_H_ */

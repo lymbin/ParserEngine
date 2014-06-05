@@ -49,9 +49,27 @@ void cStaticBox::Update()
 	SetBox(Box);
 }
 
-void cStaticBox::CollisionHandler()
-{
 
+void cStaticBox::CollisionHandler(iCollisionBody *thisBody, PE_Rect CollidedRect, void *CollidedObject, void *data)
+{
+	if(!CollidedObject)
+		return;
+
+	iGameObject *aGameObject = (iGameObject *)CollidedObject;
+	if(aGameObject->mGameObjectType == eGameObjectType_Character)
+	{
+		iCharacter *aCharacter = (iCharacter *)CollidedObject;
+		if(aCharacter->mCharacterType == eCharacterType_Hero)
+		{
+			// Какая-то проверка на расположение шипов
+			aGameObject->SetHitPoints((aGameObject->GetHealth()-1));
+		}
+		else if(aCharacter->mCharacterType == eCharacterType_Ally)
+		{
+			// Какая-то проверка на расположение шипов
+			aGameObject->SetHitPoints((aGameObject->GetHealth()-1));
+		}
+	}
 }
 
 cDynamicBox::cDynamicBox(std::string asName, int alHitPoints) : iDynamicObject(asName, alHitPoints)
@@ -86,12 +104,11 @@ void cDynamicBox::Update()
 {
 
 }
-
-void cDynamicBox::CollisionHandler()
+void cDynamicBox::Move(int alDirection, int alAnimation, int alAnimpos)
 {
 
 }
-void cDynamicBox::Move(int alDirection, int alAnimation, int alAnimpos)
+void cDynamicBox::CollisionHandler(iCollisionBody *, iCollisionBody *, PE_Rect, void *data)
 {
 
 }

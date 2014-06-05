@@ -100,8 +100,9 @@ class iCollisionBody : public cCollisionBody
 private:
 	cCollision *mpCollision;
 
-	void (*handler)(iCollisionBody *, PE_Rect, void *);	// Храним указатель на обработчик столкновения
+	void (*handler)(iCollisionBody *thisBody, PE_Rect CollidedRect, void *CollidedObject, void *data);	// Храним указатель на обработчик столкновения
 	void *mpCallBackData;
+	void *mpCollidedObject;
 
 protected:
 	tpCollisionLayers mCollisionLayers;
@@ -127,7 +128,7 @@ public:
 	cCollision	 	*GetCollisionPointer();
 
 	// Устанавливаем обработчик столкновения
-	void CALLBACK(void (*callback)(iCollisionBody *, PE_Rect, void *), void *apCallBackData);
+	void CALLBACK(void (*callback)(iCollisionBody *thisBody, PE_Rect CollidedRect, void *CollidedObject, void *data), void *apCollidedObject, void *apCallBackData);
 
 	// Обрабатываем столкновения в слое
 	bool HandleCollisions();

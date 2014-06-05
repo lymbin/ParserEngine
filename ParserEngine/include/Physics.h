@@ -16,11 +16,11 @@
 class cPhysics
 {
 public:
-	cPhysics();
-	~cPhysics();
+	cPhysics(){}
+	~cPhysics(){}
 
 	// Инициализация системы
-	int Init();
+	int Init(){return 0;}
 };
 
 #endif /* PHYSICS_H_ */

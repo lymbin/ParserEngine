@@ -37,7 +37,7 @@ public:
 	void Update(); // Обновление данных
 
 	void SetGame(game *apGame);
-	static void CollisionHandler(iCollisionBody *, PE_Rect, void *data);
+	static void CollisionHandler(iCollisionBody *thatBody, PE_Rect CollidedRect, void *CollidedObject, void *data);
 };
 
 

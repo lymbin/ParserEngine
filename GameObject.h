@@ -43,9 +43,6 @@ public:
 class iGameObject : public iCollisionBody, public iUpdateable
 {
 protected:
-
-	eGameObjectType mGameObjectType;
-
 	int mlHitPoints;
 	unsigned int mlVelocity;
 
@@ -64,6 +61,8 @@ public:
 
 	unsigned int GetVelocity();
 	int	GetHealth();
+
+	eGameObjectType mGameObjectType;
 
 	//virtual void CollisionHandler(iCollisionBody *Collider, iCollisionBody *CollSurface, void *data) {}
 };
