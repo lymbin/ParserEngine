@@ -30,16 +30,6 @@ void game::update()
 		StaticBox->HandleCollisions();
 	if(Hero)
 		Hero->HandleCollisions();
-
-	if(dynamic_text)
-	{
-		std::stringstream sstream;
-		if(Hero)
-			sstream << "Hero Speed: " << Hero->GetVelocity() << " Hero Health: " << Hero->GetHealth();
-		else
-			sstream << "Mind Walkers Production 2014.";
-		dynamic_text->SetText(sstream.str());
-	}
 }
 void game::render()
 {
@@ -56,6 +46,8 @@ void game::render()
    // Graphics->DrawFilledRectangle(10, 110, 200, 100, 1.0f, 0.0f, 0.0f, 1.0f);
 
 	static GLuint tex = 0;
+	static GLuint texD = 0;
+
 	int GuiAlignment = eTextAlignment_Left | eTextAlignment_Bottom;
 	static bool killed = false;
 	if(Hero)
@@ -70,38 +62,54 @@ void game::render()
 			Hero = 0;
 			killed = true;
 		}
-
 	}
 
-	if(killed)
-	{
-		static int frames = 0;
-		if(frames < 180)
-		{
-			std::stringstream sstream;
-			sstream << "Game Over! Timmi has been killed. Please leave this game now! :(";
-			dynamic_text->SetText(sstream.str());
-			GuiAlignment = eTextAlignment_Centered_H | eTextAlignment_Centered_V;
-			frames++;
-		}
-	}
-	if(dynamic_text)
+	if(DynamicTextFont)
 	{
 		PE_Rect ScreenRect;
+		std::stringstream sstream;
 		ScreenRect.X = ScreenRect.Y = 0;
 		ScreenRect.Heigth = Graphics->GetScreenHeigth();
 		ScreenRect.Width = Graphics->GetScreenWidth();
-		dynamic_text->Write(ScreenRect, GuiAlignment);
+		if(killed)
+		{
+			static int frames = 0;
+			if(frames < 180)
+			{
+				sstream << "Game Over! Timmi has been killed. Please leave this game now! :(";
+				GuiAlignment = eTextAlignment_Centered_H | eTextAlignment_Centered_V;
+				frames++;
+			}
+			else
+			{
+				sstream << "Mind Walkers Production 2014.";
+			}
+		}
+		else
+		{
+			if(Hero)
+				sstream << "Hero Speed: " << Hero->GetVelocity() << " Hero Health: " << Hero->GetHealth();
+			else
+			{
+				sstream << "Mind Walkers Production 2014.";
+			}
+		}
+		DynamicTextFont->Write(sstream.str(), ScreenRect, GuiAlignment, &texD);
 	}
 	if(StaticBox)
 	{
 		StaticBox->OnDraw();
-		dynamic_text->GetFont()->Write("DEMO!", StaticBox->GetBox(), eTextAlignment_Centered_H | eTextAlignment_Centered_V, &tex);
+		DynamicTextFont->Write("DEMO!", StaticBox->GetBox(), eTextAlignment_Centered_H | eTextAlignment_Centered_V, &tex);
 	}
 	if(tex)
 	{
 		glDeleteTextures(1, &tex);
 		tex = 0;
+	}
+	if(texD)
+	{
+		glDeleteTextures(1, &texD);
+		texD = 0;
 	}
 /*
     if(Mmenu.background)
@@ -150,10 +158,12 @@ void game::MainLoop()
 	cout << "Game start!" << endl;
 #endif
 
-	text *help_text = new text("hlp", "data/fonts/non-free/Minecraftia.ttf", 16);
 
 #ifdef DEBUG_INFOS
-	font *fps_font = new font("data/fonts/non-free/Minecraftia.ttf", 16);
+	font *fps_font = new font("data/fonts/non-free/Minecraftia.ttf", 18);
+	if(Graphics)
+		Graphics->GetFontManager()->ManageFont(fps_font);
+
 	std::string fps_rate;
 	GLuint tex = 0;
 
@@ -210,45 +220,39 @@ void game::MainLoop()
 
 		if(simple_menu)
 		{
-			help_text->ResizeText(18);
-
-
-
-
 			// Отрисовываем текст в центре
-			help_text->SetText("Press 1 to Play demo");
+
 
 			cColor col(1.0f, 0.0f, 1.0f, 1.0f);
 			Graphics->DrawFilledRectangle(
-					Graphics->GetScreenWidth()/2 - help_text->GetTextWidth()/2,
-					Graphics->GetScreenHeigth()/2 - help_text->GetTextHeigth()/2,
-					help_text->GetTextWidth(), help_text->GetTextHeigth()*2, col);
+					Graphics->GetScreenWidth()/2 - fps_font->CalcTextWidth("Press 1 to Play demo")/2,
+					Graphics->GetScreenHeigth()/2 - fps_font->CalcTextHeigth("Press 1 to Play demo")/2,
+					fps_font->CalcTextWidth("Press 1 to Play demo"), fps_font->CalcTextHeigth("Press 1 to Play demo")*2, col);
 
-			help_text->Write(ScreenRect, eTextAlignment_Centered_H | eTextAlignment_Centered_V);
+			fps_font->Write("Press 1 to Play demo", ScreenRect, eTextAlignment_Centered_H | eTextAlignment_Centered_V, &tex);
 
 			// Отрисовываем текст чуть ниже центра
-			help_text->SetText("Press 2 to Exit demo");
-			help_text->Write(ScreenRect, eTextAlignment_Centered_H | eTextAlignment_Centered_V, 0, help_text->GetTextHeigth());
+			fps_font->Write("Press 2 to Exit demo", ScreenRect, eTextAlignment_Centered_H | eTextAlignment_Centered_V, &tex, 0,
+					fps_font->CalcTextHeigth("Press 1 to Play demo"));
 
 
 		}
 		else
 		{
-			help_text->ResizeText(16);
-
 			// Отрисовываем текст в центре
-			help_text->SetText("Press ESC to Exit");
-			help_text->Write(ScreenRect, eTextAlignment_Centered_H | eTextAlignment_Top);
+			//help_text->SetText("Press ESC to Exit");
+			fps_font->Write("Press ESC to Exit", ScreenRect, eTextAlignment_Centered_H | eTextAlignment_Top, &tex);
 
-			help_text->SetText("Press Arrows to Move");
-			help_text->Write(ScreenRect, eTextAlignment_Centered_H | eTextAlignment_Top, 0, help_text->GetTextHeigth());
+			//help_text->SetText("Press Arrows to Move");
+			fps_font->Write("Press Arrows to Move", ScreenRect, eTextAlignment_Centered_H | eTextAlignment_Top, &tex,
+					0, fps_font->CalcTextHeigth("Press ESC to Exit"));
 
 		}
 
 
 		sstream << "PreAlpha ParserEngine Demo. Version " << SYS_TEST_VERSION << ".";
-		help_text->SetText(sstream.str());
-		help_text->Write(ScreenRect, eTextAlignment_Right | eTextAlignment_Bottom);
+		//help_text->SetText(sstream.str());
+		fps_font->Write(sstream.str(), ScreenRect, eTextAlignment_Right | eTextAlignment_Bottom, &tex);
 
 		sstream.str(string());
 		// Выводим FPS поверх игры
@@ -280,7 +284,7 @@ void game::MainLoop()
 #ifdef DEBUG_INFOS
 	delete fps_font;
 #endif
-	delete help_text;
+
 	FreeTextures();
 	FreeObjects();
 }
@@ -325,9 +329,11 @@ int game::CreatingObjects()
 	{
 		Gui = new game_gui();
 	}
-	if(!dynamic_text)
+	if(!DynamicTextFont)
 	{
-		dynamic_text = new text("", "data/fonts/non-free/Minecraftia.ttf", 14);
+		DynamicTextFont = new font("data/fonts/non-free/Minecraftia.ttf", 14);
+		if(Graphics)
+			DynamicTextFont->SetFontManager(Graphics->GetFontManager());
 	}
 	if(!StaticBox)
 	{
@@ -357,7 +363,9 @@ int game::LoadTextures()
 #endif
 	Mmenu.background = new cTexture("data/graphics/test/test.png");
 	//Mmenu.background = new image("foo.png");
-	Mmenu.title = new text("FireFly", "data/fonts/non-free/Minecraftia.ttf", 30);
+	Mmenu.MainMenuFont = new font("data/fonts/non-free/Minecraftia.ttf", 30);
+	if(Graphics)
+		Graphics->GetFontManager()->ManageFont(Mmenu.MainMenuFont);
 	//Mmenu.background->SetColorKey();
 	//Mmenu.title = new text("Кириллица", "data/fonts/PTS55F.ttf", 30);
 	//Mmenu.button_start = new image();
@@ -376,9 +384,9 @@ void game::FreeTextures()
 	if(Mmenu.background)
 		delete Mmenu.background;
 	Mmenu.background = 0;
-	if(Mmenu.title)
-		delete Mmenu.title;
-	Mmenu.title = 0;
+	if(Mmenu.MainMenuFont)
+		delete Mmenu.MainMenuFont;
+	Mmenu.MainMenuFont = 0;
 }
 void game::FreeObjects()
 {
@@ -406,11 +414,11 @@ void game::FreeObjects()
 game::game()
 {
 	Mmenu.background = 0;
-	Mmenu.title = 0;
+	Mmenu.MainMenuFont = 0;
 	Gui = 0;
 	Hero = 0;
 	layer = 0;
-	dynamic_text = 0;
+	DynamicTextFont = 0;
 	StaticBox = 0;
 	Collision = new cCollision();
 }
@@ -421,25 +429,23 @@ game::~game()
 #endif
 }
 
-
-
 game_gui::game_gui()
 {
-	bottom.dynamic_text = 0;
-	bottom.static_text = 0;
+	bottom.DynamicTextFont = 0;
+	bottom.StaticTextFont = 0;
 	bottom.texture = 0;
 }
 game_gui::~game_gui()
 {
-	if(bottom.dynamic_text)
+	if(bottom.DynamicTextFont)
 	{
-		delete bottom.dynamic_text;
-		bottom.dynamic_text = 0;
+		delete bottom.DynamicTextFont;
+		bottom.DynamicTextFont = 0;
 	}
-	if(bottom.static_text)
+	if(bottom.StaticTextFont)
 	{
-		delete bottom.static_text;
-		bottom.static_text = 0;
+		delete bottom.StaticTextFont;
+		bottom.StaticTextFont = 0;
 	}
 	if(bottom.texture)
 	{

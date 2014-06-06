@@ -31,7 +31,7 @@ const std::string GAME_HERO_NAME = "Timmi";
 struct MainMenu
 {
 	cTexture	*background;
-	text 		*title;
+	font 		*MainMenuFont;
 	//image 	*button_start;
 	//image 	*button_exit;
 };
@@ -39,8 +39,8 @@ struct MainMenu
 struct bottom_gui
 {
 	cTexture 	*texture;
-	text 		*static_text;
-	text 		*dynamic_text;
+	font 		*StaticTextFont;
+	font 		*DynamicTextFont;
 };
 class game_gui
 {
@@ -61,7 +61,7 @@ class game: public engine
 	iCollisionLayer *layer;
 	cCollision *Collision;
 	cStaticBox *StaticBox;
-	text *dynamic_text;
+	font 	*DynamicTextFont;
 
 
 public:

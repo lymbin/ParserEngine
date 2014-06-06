@@ -16,11 +16,14 @@ graphics::graphics()
 	mlScreenBpp = 0;
 	mbFullScreen = 0;
 
-	FontManager = new font_manager();
-	FontManager->SetGraphics(this);
+	mpFontManager = new cFontManager();
+	mpFontManager->SetGraphics(this);
 
-	TextureManager = new texture_manager();
-	TextureManager->SetGraphics(this);
+	mpTextManager = new cTextManager();
+	mpTextManager->SetGraphics(this);
+
+	mpTextureManager = new texture_manager();
+	mpTextureManager->SetGraphics(this);
 
 	CurrentTexture = 0;
 	screen = 0;
@@ -65,7 +68,7 @@ int graphics::Init(int W, int H, int BPP, int abFullScreen)
 
 
 	// Инициализация шрифтов
-	if(font_manager::FontsInit() < 0)
+	if(cFontManager::FontsInit() < 0)
 		return -1;
 
 	// Инициализация OpenGL
@@ -124,25 +127,26 @@ int graphics::InitGL()
 }
 void graphics::CleanUp()
 {
-	if(TTF_WasInit())
-		TTF_Quit();
-
 	if(screen)
 		SDL_FreeSurface(screen);
 	screen = 0;
 
-	if(TextureManager)
-		delete TextureManager;
+	if(mpTextureManager)
+		delete mpTextureManager;
 
-	if(FontManager)
-		delete FontManager;
+	if(mpTextManager)
+		delete mpTextManager;
+
+	if(mpFontManager)
+		delete mpFontManager;
 
 	if(Camera)
 		delete Camera;
 
 	Camera = 0;
-	TextureManager = 0;
-	FontManager = 0;
+	mpTextureManager = 0;
+	mpFontManager = 0;
+	mpTextManager = 0;
 	CurrentTexture = 0;
 }
 // Изменяем рамер окна
@@ -278,4 +282,16 @@ camera *graphics::GetCamera()
 window *graphics::GetWindow()
 {
 	return Window;
+}
+texture_manager *graphics::GetTextureManager()
+{
+	return mpTextureManager;
+}
+cFontManager *graphics::GetFontManager()
+{
+	return mpFontManager;
+}
+cTextManager *graphics::GetTextManager()
+{
+	return mpTextManager;
 }

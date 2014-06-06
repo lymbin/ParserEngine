@@ -76,4 +76,11 @@ enum eTextAlignment{
 	eTextAlignment_Bottom = 32
 };
 
+typedef std::list<GLuint> tTextureList;
+typedef std::list<GLuint>::iterator tTextureListIt;
+
+typedef std::map<std::string, tTextureList> tTextureMap;
+typedef std::map<std::string, tTextureList>::iterator tTextureMapIt;
+
+
 #endif /* GRAPHICTYPES_H_ */

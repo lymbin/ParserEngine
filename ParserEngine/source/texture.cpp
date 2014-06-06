@@ -12,7 +12,8 @@ using namespace std;
 
 iLowLevelTexture::iLowLevelTexture()
 {
-
+	mfPxHeight = mfPxWidth = 0;
+	msPath = "";
 }
 iLowLevelTexture::~iLowLevelTexture()
 {

@@ -9,470 +9,161 @@
 
 using namespace std;
 
+//////////////////////////////////////////////////////////////////////////
+// CONSTRUCTORS
+//////////////////////////////////////////////////////////////////////////
 
 //-----------------------------------------------------------------------
 
-void font_manager::ManageFont(font *managed_font)
+cTextManager::cTextManager()
 {
-	if(!managed_font)
-		return;
+	Graphics = 0;
+	mTextTextures.clear();
 
-	for(unsigned int loop = 0; loop < Fonts.size(); loop++)
+	tTextureList aTextureList;
+	aTextureList.clear();
+	mTextTextures.insert(pair<std::string, tTextureList>("", aTextureList));
+}
+
+//-----------------------------------------------------------------------
+
+cTextManager::~cTextManager()
+{
+	Graphics = 0;
+	DeleteAll();
+}
+
+//-----------------------------------------------------------------------
+
+//////////////////////////////////////////////////////////////////////////
+// PUBLIC METODS
+//////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------
+
+//Удаляем текст
+void cTextManager::DeleteAll()
+{
+	tTextureMapIt MapIt = mTextTextures.begin();
+	for( ; MapIt != mTextTextures.end(); ++MapIt)
 	{
-		if(managed_font->ttf_font == Fonts[loop]->ttf_font)
+		tTextureListIt It = MapIt->second.begin();
+		for( ; It != MapIt->second.begin(); ++It)
+		{
+			glDeleteTextures(1, &(*It));
+		}
+	}
+	mTextTextures.clear();
+}
+
+//-----------------------------------------------------------------------
+
+//Добавляем и удаляем из вектора управляющего текстом
+void cTextManager::ManageText(tTextTexture aTextTexture, std::string aMapId)
+{
+	if(!aTextTexture)
+		return; // Что-то пошло не так =(
+
+	if(mTextTextures.empty())
+	{
+		// А менеджер-то пустой - заполним быстренько чем-нибудь
+		tTextureList aTextureList;
+		aTextureList.clear();
+		mTextTextures.insert(pair<std::string, tTextureList>("", aTextureList));
+	}
+
+	tTextureMapIt MapIt = mTextTextures.find(aMapId);
+	if(MapIt == mTextTextures.end())
+	{
+		// Не нашли ничерта!
+		if(aMapId == "")
+		{
+			// А может в первый...
+			MapIt = mTextTextures.begin();
+		}
+		else
 			return;
 	}
 
-	Fonts.push_back(managed_font);
-}
-
-//-----------------------------------------------------------------------
-
-void font_manager::UnManageFont(font *managed_font)
-{
-	if(!managed_font)
-		return;
-
-	int place = -1;
-
-	for(unsigned int loop = 0; loop < Fonts.size(); loop++)
+	tTextureListIt It = MapIt->second.begin();
+	for( ; It != MapIt->second.begin(); ++It)
 	{
-		if(managed_font->ttf_font == Fonts[loop]->ttf_font)
+		if((*It) == aTextTexture)
 		{
-			place = (int)loop;
-			break;
+			return;
 		}
 	}
 
-	if(place < 0)
-		return;
+	MapIt->second.push_back(aTextTexture);
 
-	if((unsigned int)(place+1) == Fonts.size())
-	{
-		// Шрифт в самом конце - удаляем, перед этим обснулив указатель на менеджер шрифтов
-		//Fonts[place]-> = 0;
-		Fonts.pop_back();
-	}
-	else
-	{
-		// Шрифт где-то внутри вектора - удаляем, перед этим обснулив указатель на менеджер шрифтов
-		//TODO: проверить
-		//Textures[place] = Textures[ Textures.size() - 1 ];
-		//Fonts[place]->TextureManager = 0;
-		Fonts.erase( Fonts.begin() + place);
-	}
 }
 
 //-----------------------------------------------------------------------
 
-font_manager::font_manager()
+void cTextManager::UnManageText(tTextTexture aTextTexture, std::string aMapId)
 {
-	Graphics = 0;
-	if(!Fonts.empty())
-		Fonts.clear();
-}
+	// Удаляем текст из вектора управления
+	// Внимание: Это только удалит текст из вектора управления, но не удалит сам текст
+	// 	для этого нужно использовать delete - внутри деструктора вызовется Delete() и сделает всё необходимое
+	// Лучше использовать delete вместо UnManageTexture - внутри деструктора вызовется UnManage
 
-//-----------------------------------------------------------------------
 
-font_manager::~font_manager()
-{
-	DeleteFonts();
-	Fonts.clear();
-}
+	if(!aTextTexture || mTextTextures.empty())
+		return;	// Что-то пошло не так =(
 
-//-----------------------------------------------------------------------
-
-// Инициализация TTF
-int font_manager::FontsInit()
-{
-	if(!TTF_WasInit())
+	if(aMapId == "")
 	{
-		if(TTF_Init() < 0)
+		// Удаляем со всех слоёв
+		tTextureMapIt MapIt = mTextTextures.begin();
+		for( ; MapIt != mTextTextures.end(); ++MapIt)
 		{
-#ifdef DEBUG_ERRORS
-			cout << "Error initializing TTF : " << SDL_GetError() << endl;
-#endif
-			return -1;
+			tTextureListIt It = MapIt->second.begin();
+			for( ; It != MapIt->second.begin(); ++It)
+			{
+				if((*It) == aTextTexture)
+				{
+					// Попался! Стираем его!
+					MapIt->second.erase(It);
+				}
+			}
 		}
 	}
 	else
 	{
-#ifdef DEBUG_SYS
-	cout << "TTF already initialized! " << endl;
-#endif
-		return 0;
-	}
-
-#ifdef DEBUG_SYS
-	cout << "TTF initialization - success" << endl;
-#endif
-	return 0;
-}
-
-//-----------------------------------------------------------------------
-
-// Удаляем шрифты из памяти
-void font_manager::DeleteFonts()
-{
-	for(unsigned int loop = 0; loop < Fonts.size(); loop++)
-	{
-		delete Fonts[loop];
+		tTextureMapIt MapIt = mTextTextures.find(aMapId);
+		if(MapIt == mTextTextures.end())
+		{
+			// Не нашли эту текстуру в менеджере =(
+			return;
+		}
+		tTextureListIt It = MapIt->second.begin();
+		for( ; It != MapIt->second.begin(); ++It)
+		{
+			if((*It) == aTextTexture)
+			{
+				// Попался! Стираем его!
+				MapIt->second.erase(It);
+				return;
+			}
+		}
 	}
 }
 
 //-----------------------------------------------------------------------
 
-// Устанавливаем указатель на графику
-void font_manager::SetGraphics(graphics *setGraphics)
+void cTextManager::SetGraphics(graphics *setGraphics)
 {
 	Graphics = setGraphics;
 }
 
 //-----------------------------------------------------------------------
 
-void font::SetColor(Uint8 R, Uint8 G, Uint8 B, Uint8 A )
-{
-	// Устанавливаем цвет текста
-	format.textcolor.r = R;
-	format.textcolor.g = G;
-	format.textcolor.b = B;
-	format.textcolor.unused = A;
-}
+//////////////////////////////////////////////////////////////////////////
+// DEPRECATED METHODS
+//////////////////////////////////////////////////////////////////////////
 
 //-----------------------------------------------------------------------
-
-void font::SetBGColor(Uint8 R, Uint8 G, Uint8 B)
-{
-	// Устанавливаем цвет заднего фона для текста
-	format.bgcolor.r = R;
-	format.bgcolor.g = G;
-	format.bgcolor.b = B;
-}
-
-//-----------------------------------------------------------------------
-
-void font::SetStyle(bool bold, bool italic, bool underline)
-{
-	// Устанавливаем стиль для текста
-	int flags = 0;
-
-	if(bold)
-		flags |= TTF_STYLE_BOLD;
-	if(italic)
-		flags |= TTF_STYLE_ITALIC;
-	if(underline)
-		flags |= TTF_STYLE_UNDERLINE;
-	if(!flags)
-		flags = TTF_STYLE_NORMAL;
-
-	if(ttf_font)
-		TTF_SetFontStyle(ttf_font, flags);
-	else
-	{
-#ifdef DEBUG_ERRORS
-		cout << "Unable to set new font style with NULL font" << endl;
-#endif
-	}
-}
-
-//-----------------------------------------------------------------------
-
-// Изменяем размер шрифта
-void font::Resize(int size)
-{
-	if(fileName.length())
-	{
-		// заново пересоздаём шрифт из источника с заданным размером
-		format.size = size;
-		Open(fileName, size);
-	}
-	else
-	{
-#ifdef DEBUG_ERRORS
-		cout << "Unable to resize font." << endl;
-#endif
-	}
-}
-
-//-----------------------------------------------------------------------
-
-void font::SetStatic(bool static_font)
-{
-	StaticFont = static_font;
-}
-
-//-----------------------------------------------------------------------
-
-// Устанавливаем менеджер шрифтов для полуавтоматического управления памятью менеджером
-void font::SetTexManager(font_manager *FonManager)
-{
-	// Если менеджер уже задан - выходим, т.к. менеджер может быть всего один на всю программу
-	if(FontManager)
-		return;
-
-	FontManager = FonManager;
-
-	// Добавляем в менеджер этот шрифт(даже если он там есть)
-	FontManager->ManageFont(this);
-}
-
-//-----------------------------------------------------------------------
-
-int font::GetHeigth()
-{
-	if(ttf_font)
-	{
-		return TTF_FontHeight(ttf_font);
-	}
-	else
-	{
-#ifdef DEBUG_ERRORS
-		cout << "Unable to GetHeigth NULL font. "<< endl;
-#endif
-		return 0;
-	}
-}
-
-//-----------------------------------------------------------------------
-
-int font::CalcTextWidth(string text)
-{
-	if(ttf_font)
-	{
-		int w, h;
-		TTF_SizeUTF8(ttf_font, text.c_str(), &w, &h);
-		return w;
-	}
-	else
-	{
-#ifdef DEBUG_ERRORS
-		cout << "Unable to CalcTextWidth NULL font. "<< endl;
-#endif
-		return 0;
-	}
-}
-
-//-----------------------------------------------------------------------
-
-int font::CalcTextHeigth(string text)
-{
-	if(ttf_font)
-	{
-		int w, h;
-		TTF_SizeUTF8(ttf_font, text.c_str(), &w, &h);
-		return h;
-	}
-	else
-	{
-#ifdef DEBUG_ERRORS
-		cout << "Unable to CalcTextHeigth NULL font. "<< endl;
-#endif
-		return 0;
-	}
-}
-
-//-----------------------------------------------------------------------
-
-// Открываем шрифт из источника
-int font::Open(string source, int fontSize)
-{
-	if(ttf_font)
-		TTF_CloseFont(ttf_font);
-
-	ttf_font = TTF_OpenFont(source.c_str(), fontSize);
-	if(!ttf_font)
-	{
-#ifdef DEBUG_ERRORS
-		cout << "Unable to open font : " << source << SDL_GetError() << endl;
-#endif
-		return -1;
-	}
-	if(FontManager)
-		FontManager->ManageFont(this);
-
-	return 0;
-}
-
-//-----------------------------------------------------------------------
-
-// Пишем текст без использования text класса
-void font::Write(std::string text, GLfloat x, GLfloat y, GLuint *tex, GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
-{
-	if(!ttf_font)
-	{
-#ifdef DEBUG_ERRORS
-		cout << "Font can not be founded! " << endl;
-#endif
-		return;
-	}
-
-	// Получаем размеры текста данного шрифта
-	int w, h;
-	TTF_SizeUTF8(ttf_font, text.c_str(), &w, &h);
-
-	if(!*tex)
-	{
-		//TODO: Эта часть скопирована из Write класса text - подумать над изменением???
-		// Создаём текстуру для tex
-
-		SDL_Surface *temp = 0, *tempb = 0;
-
-		Uint32 rmask, gmask, bmask, amask;
-
-	#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-		rmask = 0xff000000;
-		gmask = 0x00ff0000;
-		bmask = 0x0000ff00;
-		amask = 0x000000ff;
-	#else
-		rmask = 0x000000ff;
-		gmask = 0x0000ff00;
-		bmask = 0x00ff0000;
-		amask = 0xff000000;
-	#endif
-
-		temp = TTF_RenderUTF8_Blended(ttf_font, text.c_str(), format.textcolor);
-
-		SDL_SetAlpha(temp, 0, 0);
-
-		tempb = SDL_CreateRGBSurface(0, w, h, SYS_TEXT_DEPTH, rmask, gmask, bmask, amask);
-		if(!tempb)
-		{
-	#ifdef DEBUG_ERRORS
-			cout << "Error create surface : "<< SDL_GetError() << endl;
-	#endif
-			SDL_FreeSurface(temp);
-			SDL_FreeSurface(tempb);
-			return;
-		}
-
-		SDL_Rect //src={0,0,0,0},
-				dest={0,0,0,0};
-
-		/*src.x = 0;
-		src.y = 0;
-		src.w = w;
-		src.h = h;
-		 */
-
-		dest.x = 0;
-		dest.y = 0;
-		//dest.w = w;
-		//dest.h = h;
-
-		SDL_BlitSurface(temp, NULL, tempb, &dest);
-		glGenTextures(1, tex);
-
-		glBindTexture(GL_TEXTURE_2D, *tex);
-
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tempb->w, tempb->h, 0, GL_BGRA,
-					GL_UNSIGNED_BYTE, tempb->pixels);
-
-		SDL_FreeSurface(temp);
-		SDL_FreeSurface(tempb);
-	}
-
-	// Эта часть скопирована из класса text
-	glBindTexture(GL_TEXTURE_2D, *tex);
-
-	glEnable(GL_TEXTURE_2D);
-	glLoadIdentity();
-	glTranslatef(x, y, 0);
-
-	//Рисуем текстуру
-	glBegin(GL_QUADS);
-		glColor4f( red, green, blue, alpha );
-		glTexCoord2i(0, 0); glVertex2f(0,  0);  //Верхний левый угол
-		glTexCoord2i(0, 1); glVertex2f(0,  h); //Нижний левый угол
-		glTexCoord2i(1, 1); glVertex2f(w, h); //Нижний правый угол
-		glTexCoord2i(1, 0); glVertex2f(w, 0);  //Верхний правый угол
-	glEnd();
-
-		glLoadIdentity();
-
-}
-
-//-----------------------------------------------------------------------
-
-// Функция аналогичная верхней, но позволяет писать текст с выравниванием в заданном боксе
-void font::Write(std::string text, PE_Rect aBox, int alAlignment, GLuint *tex, GLfloat W_Shift, GLfloat H_Shift,
-				GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
-{
-	GLfloat dx, dy;
-
-	if(!alAlignment)
-	{
-		alAlignment = eTextAlignment_Left | eTextAlignment_Top;
-	}
-
-	if(alAlignment & eTextAlignment_Left)
-	{
-		dx = aBox.X;
-	}
-	else if(alAlignment & eTextAlignment_Centered_H)
-	{
-		dx = aBox.X + (aBox.Width - CalcTextWidth(text))/2.0f;
-	}
-	else if(alAlignment & eTextAlignment_Right)
-	{
-		dx = aBox.X + (aBox.Width - CalcTextWidth(text));
-	}
-
-	if(alAlignment & eTextAlignment_Top)
-	{
-		dy = aBox.Y;
-	}
-	else if(alAlignment & eTextAlignment_Centered_V)
-	{
-		dy = aBox.Y + (aBox.Heigth - CalcTextHeigth(text))/2.0f;
-	}
-	else if(alAlignment & eTextAlignment_Bottom)
-	{
-		dy = aBox.Y + (aBox.Heigth - CalcTextHeigth(text));
-	}
-	dx+=W_Shift;
-	dy+=H_Shift;
-
-	Write(text, dx, dy, tex, red, green, blue, alpha);
-}
-
-//-----------------------------------------------------------------------
-
-font::font(string file, int fontSize)
-{
-	ttf_font = 0;
-	fileName = file;
-	StaticFont = true;
-	format.bold = format.italic = format.underline = false;
-	format.textcolor.r = format.textcolor.g = format.textcolor.b = format.textcolor.unused =255;
-	format.bgcolor.r = format.bgcolor.g = format.bgcolor.b = format.bgcolor.unused = 0;
-	format.size = fontSize;
-
-	FontManager = 0;
-
-	if(fileName != "")
-		Open(file, format.size);
-}
-
-//-----------------------------------------------------------------------
-
-font::~font()
-{
-	if(FontManager)
-	{
-		FontManager->UnManageFont(this);
-		FontManager = 0;
-	}
-	if(ttf_font)
-		TTF_CloseFont(ttf_font);
-	ttf_font = 0;
-}
-
-//-----------------------------------------------------------------------
-
+/*
 text::text(string textStrings, font *ExistFont)
 {
 	tex = 0;
@@ -633,7 +324,7 @@ void text::CreateTex()
 	//temp = TTF_RenderUTF8_Solid(textFont->ttf_font, textString.c_str(), textFont->format.textcolor);
 	//TODO:test
 	//temp = TTF_RenderUTF8_Shaded(textFont->ttf_font, textString.c_str(), textFont->format.textcolor, textFont->format.bgcolor);
-	temp = TTF_RenderUTF8_Blended(textFont->ttf_font, textString.c_str(), textFont->format.textcolor);
+	temp = TTF_RenderUTF8_Blended(textFont->ttf_font, textString.c_str(), textFont->mFormat.textcolor);
 
 	SDL_SetAlpha(temp, 0, 0);
 
@@ -651,11 +342,11 @@ void text::CreateTex()
 	SDL_Rect //src={0,0,0,0},
 			dest={0,0,0,0};
 
-	/*src.x = 0;
-	src.y = 0;
-	src.w = w;
-	src.h = h;
-	 */
+	//src.x = 0;
+	//src.y = 0;
+	//src.w = w;
+	//src.h = h;
+
 
 	dest.x = 0;
 	dest.y = 0;
@@ -672,14 +363,14 @@ void text::CreateTex()
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tempb->w, tempb->h, 0, GL_BGRA,
 				GL_UNSIGNED_BYTE, tempb->pixels);
 
-	/*gluBuild2DMipmaps(GL_TEXTURE_2D,
-						GL_RGBA,
-						tempb->w,
-						tempb->h,
-						GL_RGBA,
-						GL_UNSIGNED_BYTE,
-						tempb->pixels);
-						*/
+	//gluBuild2DMipmaps(GL_TEXTURE_2D,
+	//					GL_RGBA,
+	//					tempb->w,
+	//					tempb->h,
+	//					GL_RGBA,
+	//					GL_UNSIGNED_BYTE,
+	//					tempb->pixels);
+
 
 	SDL_FreeSurface(temp);
 	SDL_FreeSurface(tempb);
@@ -812,117 +503,5 @@ int text::GetTextHeigth()
 {
 	return GetFont()->CalcTextHeigth(textString);
 }
-
-//-----------------------------------------------------------------------
-
-text_manager::text_manager()
-{
-	Graphics = 0;
-	if(!Texts.empty())
-		Texts.clear();
-}
-
-//-----------------------------------------------------------------------
-
-text_manager::~text_manager()
-{
-	DeleteText();
-	if(!Texts.empty())
-		Texts.clear();
-	Graphics = 0;
-}
-
-//-----------------------------------------------------------------------
-
-// Получаем информацию по тексту
-text *text_manager::GetTextInfos(GLuint texture)
-{
-	// Получаем информацию о текстуре из её ID
-	for(unsigned int loop = 0; loop < Texts.size(); loop++)
-	{
-		if(Texts[loop]->tex == texture)
-		{
-			return Texts[loop];
-		}
-	}
-	return 0;
-}
-
-//-----------------------------------------------------------------------
-
-//Удаляем текст
-void text_manager::DeleteText()
-{
-	for(unsigned int loop = 0; loop < Texts.size(); loop++)
-	{
-		delete Texts[loop];
-	}
-}
-
-//-----------------------------------------------------------------------
-
-//Добавляем и удаляем из вектора управляющего текстом
-void text_manager::ManageText(text *managed_text)
-{
-	for(unsigned int loop = 0; loop < Texts.size(); loop++)
-	{
-		if(Texts[loop]->tex == managed_text->tex)
-		{
-			return;
-		}
-	}
-	/*if(!managed_image->TextureManager)
-		managed_image->SetTexManager(this);
 */
-	Texts.push_back(managed_text);
-}
-
-//-----------------------------------------------------------------------
-
-void text_manager::UnManageText(text *managed_text)
-{
-	// Удаляем текст из вектора управления
-	// Внимание: Это только удалит текст из вектора управления, но не удалит сам текст
-	// 	для этого нужно использовать delete - внутри деструктора вызовется Delete() и сделает всё необходимое
-	// Лучше использовать delete вместо UnManageTexture - внутри деструктора вызовется UnManage
-
-	int place = -1;
-
-	// Ищем текст с данным ID в памяти
-	for(unsigned int loop = 0; loop < Texts.size(); loop++)
-	{
-		if(Texts[loop]->tex == managed_text->tex)
-		{
-			place = loop;
-			break;
-		}
-	}
-
-	// Текстура не найдена - выходм
-	if(place < 0)
-		return;
-
-	if((unsigned int)(place+1) == Texts.size())
-	{
-		// Текст в самом конце - удаляем, перед этим обснулив указатель на менеджер Texts
-		//Texts[place]->TextureManager = 0;
-		Texts.pop_back();
-	}
-	else
-	{
-		// Текст где-то внутри вектора - удаляем, перед этим обснулив указатель на менеджер Texts
-		//TODO: проверить
-		//Textures[place] = Textures[ Textures.size() - 1 ];
-		//Texts[place]->TextureManager = 0;
-		Texts.erase( Texts.begin() + place);
-	}
-}
-
-//-----------------------------------------------------------------------
-
-void text_manager::SetGraphics(graphics *setGraphics)
-{
-	Graphics = setGraphics;
-}
-
 //-----------------------------------------------------------------------

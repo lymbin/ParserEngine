@@ -29,26 +29,26 @@
 #include "GraphicTypes.h"
 
 class font;
-class text;
 class graphics;
 
-class font_manager
+typedef std::list<font *> tFontsList;
+typedef std::list<font *>::iterator tFontsListIt;
+
+typedef GLuint tTextTexture;
+
+class cFontManager
 {
 	// Менеджер шрифтов - управляет памятью всех шрифтов как менеджер текстур
 	// Пока не используется, всё по той же причине, что и менеджер текстур - из-за сложности передачи каждому новому шрифту указатель на менеджер
 	// TODO: доделать позднее выделив в глобал или в синглтон
 	friend font;
 
-	// Добавляем и удаляем шрифты из менеджера
-	void ManageFont(font *managed_font);
-	void UnManageFont(font *managed_font);
-
 	// Храним все шрифты
 	std::vector < font *> Fonts;
 	graphics *Graphics;
 public:
-	font_manager();
-	~font_manager();
+	cFontManager();
+	~cFontManager();
 
 	// Инициализация TTF
 	static int FontsInit();
@@ -59,8 +59,32 @@ public:
 	// Устанавливаем указатель на графику
 	void SetGraphics(graphics *setGraphics);
 
+	// Добавляем и удаляем шрифты из менеджера
+	void ManageFont(font *managed_font);
+	void UnManageFont(font *managed_font);
 };
-struct fontFormatting
+
+class cTextManager
+{
+	// Храним все шрифты
+	tTextureMap mTextTextures;
+	graphics *Graphics;
+
+public:
+	cTextManager();
+	~cTextManager();
+
+	// Удаляем шрифты из памяти
+	void DeleteAll();
+
+	// Устанавливаем указатель на графику
+	void SetGraphics(graphics *setGraphics);
+
+	// Добавляем и удаляем тексты из менеджера
+	void ManageText(tTextTexture aTextTexture, std::string aMapId = "");
+	void UnManageText(tTextTexture aTextTexture, std::string aMapId = "");
+};
+struct sFontFormatting
 {
 	// Формат шрифта
 	SDL_Color 	textcolor; 	// Цвет текста TODO: убрать отсюда в текст
@@ -70,31 +94,40 @@ struct fontFormatting
 	bool		italic;		// Курсив
 	bool		underline;	// Подчёркивание
 };
+
 class font
 {
-	friend text;
-	friend font_manager;
-
+private:
 	TTF_Font 		*ttf_font; 	// SDL TTF шрифт
 	std::string 	fileName;	// Файл со шрифтом
-	fontFormatting	format;		// Формат шрифта, содержащий множество параметров
+	sFontFormatting	mFormat;	// Формат шрифта, содержащий множество параметров
 	bool 			StaticFont; // Шрифт не меняется при изменении камеры TODO: протестировать позднее
+	std::string		msCurrentText;
 
-	font_manager *FontManager;
+	cFontManager *mpFontManager;
+	cTextManager *mpTextManager;
+
+	//Создаём текстуру с текстом определённого размера(он берётся из шрифта)
+	void CreateTex(GLuint *tex, int w, int h);
+	void Bind(GLuint *tex);
+	void Draw(float x, float y, int w, int h, GLfloat red = 1.0f, GLfloat green = 1.0f, GLfloat blue = 1.0f, GLfloat alpha = 1.0f);
+
 public:
+
 	font(std::string file = "", int size = SYS_TEXT_SIZE);
 	~font();
 
 	// Получаем все private параметры, в том числе формата шрифта
 	TTF_Font	*GetFont() {return ttf_font;}
-	int 		GetSize() { return format.size;}
-	bool		isBold() { return format.bold;}
-	bool		isItalic() { return format.italic;}
-	bool		isUnderline() { return format.underline;}
-	SDL_Color	GetColor() { return format.textcolor;}
-	SDL_Color	GetBGColor() { return format.bgcolor;}
-	fontFormatting GetFormat() { return format;}
+	int 		GetSize() { return mFormat.size;}
+	bool		isBold() { return mFormat.bold;}
+	bool		isItalic() { return mFormat.italic;}
+	bool		isUnderline() { return mFormat.underline;}
+	SDL_Color	GetColor() { return mFormat.textcolor;}
+	SDL_Color	GetBGColor() { return mFormat.bgcolor;}
+	sFontFormatting GetFormat() { return mFormat;}
 	bool GetStaticFont() { return StaticFont;}
+	std::string GetCurrentText() {return msCurrentText;}
 
 	// Открываем шрифт с заданным размером
 	int Open(std::string source, int size = SYS_TEXT_SIZE);
@@ -114,7 +147,10 @@ public:
 	void SetStatic(bool static_font);
 
 	// Устанавливаем менеджер шрифтов для полуавтоматического управления памятью менеджером
-	void SetTexManager(font_manager *FonManager);
+	void SetFontManager(cFontManager *apFontManager);
+
+	// Устанавливаем менеджер текстов для полуавтоматического управления памятью менеджером
+	void SetTextManager(cTextManager *apTextManager);
 
 	// Пишем текст прямо из класса шрифт и вносим текст в менеджер текста
 	// обязательно удалить tex после каждого кадра - иначе будет засорять память
@@ -133,40 +169,12 @@ public:
 	// Получаем ширину и высоту текстуры с текстом данного шрифта
 	int CalcTextWidth(std::string text);
 	int CalcTextHeigth(std::string text);
-
 };
 
-class text_manager
-{
-	// Менеджер текста - управляет памятью.
-	// Пока не используется для текста из-за сложности передачи каждому новому тексту указатель на менеджер
-	// TODO: доделать позднее выделив в глобал или в синглтон
-	friend text;
-	friend graphics;
-	graphics *Graphics;
-protected:
-
-	// Вектор хранящий все текстуры, которыми управляем
-	std::vector< text *> Texts;
-public:
-	text_manager();
-	~text_manager();
-
-	// Получаем информацию по тексту
-	text *GetTextInfos(GLuint texture);
-
-	//Удаляем текст
-	void DeleteText();
-
-	//Добавляем и удаляем из вектора управляющего текстом
-	void ManageText(text *managed_text);
-	void UnManageText(text *managed_text);
-
-	void SetGraphics(graphics *setGraphics);
-};
+// Не используемые более классы
+/*
 class text
 {
-	friend text_manager;
 
 	GLuint 		tex;		// OpenGL текстура
 	std::string textString;	// Сам текст для написания(можно менять и делать всё новые и новые записи тем же шрифтом)
@@ -217,6 +225,7 @@ public:
 	int GetTextWidth();
 	int GetTextHeigth();
 };
+*/
 
 
 #endif /* FONT_H_ */

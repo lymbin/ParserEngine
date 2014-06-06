@@ -16,7 +16,8 @@
 
 class cTexture;
 class texture_manager;
-class font_manager;
+class cFontManager;
+class cTextManager;
 class camera;
 class window;
 class cColor;
@@ -58,8 +59,9 @@ public:
 class graphics: public iLowLevelGraphics
 {
 	friend cTexture;
-	texture_manager *TextureManager;	// Менеджер текстур
-	font_manager 	*FontManager;
+	texture_manager *mpTextureManager;	// Менеджер текстур
+	cFontManager 	*mpFontManager;
+	cTextManager	*mpTextManager;
 
 	SDL_Surface *screen;	// Сурфейс окна
 	GLuint CurrentTexture;	// Текущая забинженная текстура
@@ -118,6 +120,9 @@ public:
 
 	camera *GetCamera();
 	window *GetWindow();
+	texture_manager *GetTextureManager();
+	cFontManager 	*GetFontManager();
+	cTextManager	*GetTextManager();
 };
 class camera
 {

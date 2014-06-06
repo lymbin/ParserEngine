@@ -34,7 +34,7 @@
 
 ///////////////// MAIN SYSTEM CONSTANTS /////////////////
 
-const int 			SYS_AUDIO = 0; 					//аудио(0 - отключено, !0 - включено)
+const int 			SYS_AUDIO = 1; 					//аудио(0 - отключено, !0 - включено)
 const int			SYS_FULLSCREEN = 0;				//оконный режим(0 - оконный режим, !0 - полноэкранны режим)
 const int			SYS_REGULATING_FRAME_RATE = 0;	//регулируем ли FPS(0 - нет, !0 - да)
 
@@ -63,9 +63,9 @@ const int 			SYS_AUDIO_BUFFERS = 1024;
 
 ///////////////// VERSIONS CONSTANTS /////////////////
 
-const std::string 	SYS_VERSION = "0.0.0.0.48";
-const std::string 	SYS_BUILD = "000048";
-const std::string	SYS_TEST_VERSION = "0.2.0.48";
+const std::string 	SYS_VERSION = "0.0.0.0.49";
+const std::string 	SYS_BUILD = "000049";
+const std::string	SYS_TEST_VERSION = "0.2.1.49";
 
 
 #endif /* SYSTEMCONSTANTS_H_ */
