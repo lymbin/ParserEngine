@@ -8,6 +8,7 @@
 #ifndef COLLISION_H_
 #define COLLISION_H_
 
+#include "Physics.h"
 #include <algorithm>
 
 class iCollisionBody;
@@ -31,6 +32,7 @@ public:
 	~cCollisionBody();
 
 	PE_Rect mBox;
+	eCollisionSystem mColSystem;
 };
 
 class cCollision
@@ -38,6 +40,7 @@ class cCollision
 #ifdef DEBUGGING
 	// Включена ли система
 	bool IsEnabled;
+	iCollisionLayer *mpWorld;
 #endif
 
 public:
@@ -53,6 +56,8 @@ public:
 	static PE_Rect GetCollisionPoints(cCollisionBody A, cCollisionBody B);
 	static PE_Rect GetCollisionPoints(PE_Rect A, PE_Rect B);
 
+	static void Collide(PE_Rect CollisionPoints, cCollisionBody A, cCollisionBody B, PE_Rect &aBox);
+	static void Collide(eCollisionSystem aSys, PE_Rect CollisionPoints, PE_Rect A, PE_Rect B, PE_Rect &aBox);
 
 	void AddCollisionBody(iCollisionBody *aBody);
 	void AddCollisionLayer(iCollisionLayer *aLayer);

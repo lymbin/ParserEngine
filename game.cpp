@@ -26,8 +26,6 @@ void game::update()
 	{
 		StaticBox->Update();
 	}
-	if(StaticBox)
-		StaticBox->HandleCollisions();
 	if(Hero)
 		Hero->HandleCollisions();
 }
@@ -173,7 +171,7 @@ void game::MainLoop()
 	//Главный цикл приложения
 	while(!game::quit)
 	{
-		if(!Mix_PlayingMusic())
+		if(MainMusic && !Mix_PlayingMusic())
 			MainMusic->Play(0);
 
 		sstream.str(string());
@@ -193,7 +191,7 @@ void game::MainLoop()
 			quit = true;
 			break;
 		}
-		if(Input->IsKeyDown(KEY_p))
+		if(MainMusic && Input->IsKeyDown(KEY_p))
 		{
 			if(!MainMusic->IsPaused())
 			{
@@ -365,7 +363,7 @@ int game::CreatingObjects()
 			StaticBox->CALLBACK(cStaticBox::CollisionHandler, StaticBox, 0);
 		}
 	}
-	if(!MainMusic)
+	if(!MainMusic && SYS_AUDIO)
 	{
 		MainMusic = new cMusic("data/sounds/Zhenya_Sazonov-Flying.ogg");
 		MainMusic->SetAudio(Audio);

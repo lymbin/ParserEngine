@@ -5,7 +5,6 @@
  *      Author: dmitry
  */
 
-#include "Physics.h"
 #include "Collision.h"
 
 using namespace std;
@@ -42,6 +41,8 @@ cCollisionBody::cCollisionBody()
 	mBox.Width = 0;
 	mBox.X = 0;
 	mBox.Y = 0;
+
+	mColSystem = eCollisionSystem_Simple;
 }
 
 //-----------------------------------------------------------------------
@@ -242,6 +243,65 @@ PE_Rect cCollision::GetCollisionPoints(PE_Rect A, PE_Rect B)
 	return CrossedRect;
 }
 
+void cCollision::Collide(PE_Rect CollisionPoints, cCollisionBody A, cCollisionBody B, PE_Rect &aBox)
+{
+	cCollision::Collide(A.mColSystem, CollisionPoints, A.mBox, B.mBox, aBox);
+}
+
+//-----------------------------------------------------------------------
+
+void cCollision::Collide(eCollisionSystem aSys, PE_Rect CollisionPoints, PE_Rect A, PE_Rect B, PE_Rect &aBox)
+{
+	//Тестовый модуль отталкивания тела
+	// Чекаем модуль отталкивания - у нас простое отталкивание тела
+	// Знаем что данное тело двигалось - его и отталкиваем от точки столкновения
+	// TODO: как-то допилить модуль - возможно нужно флаги движения тела передать сюда
+	switch (aSys) {
+		case eCollisionSystem_Simple:
+			float leftA, leftB;
+			float rightA, rightB;
+			float topA, topB;
+			float bottomA, bottomB;
+
+			leftA = A.X;
+			rightA = A.X + A.Width;
+			topA = A.Y;
+			bottomA = A.Y + A.Heigth;
+
+			leftB = B.X;
+			rightB = B.X + B.Width;
+			topB = B.Y;
+			bottomB = B.Y + B.Heigth;
+
+			if(CollisionPoints.Heigth >= CollisionPoints.Width)
+			{
+				if(leftA <= leftB )
+				{
+					aBox.X-=CollisionPoints.Width;
+				}
+				else
+				{
+					aBox.X+= CollisionPoints.Width;
+
+				}
+			}
+			else
+			{
+				if(topA <= topB)
+				{
+					aBox.Y-= CollisionPoints.Heigth;
+				}
+				else
+				{
+					aBox.Y+= CollisionPoints.Heigth;
+				}
+			}
+			break;
+		default:
+			break;
+	}
+}
+
 //-----------------------------------------------------------------------
 
 void iCollisionBody::SetBox(float W, float H, float X, float Y)
@@ -314,7 +374,16 @@ bool iCollisionBody::HandleCollisions()
 				Result = true;
 				if(handler)
 				{
-					handler(this, cCollision::GetCollisionPoints(*this, **BodiesIt), (*BodiesIt)->mpCollidedObject, mpCallBackData); // Вызываем обработчик столкновения заданного класса
+					PE_Rect CollisionPoints = cCollision::GetCollisionPoints(*this, **BodiesIt);
+
+					cCollision::Collide(CollisionPoints, *this, **BodiesIt, (*this).mBox);
+
+					handler(this, CollisionPoints, (*BodiesIt)->mpCollidedObject, mpCallBackData); // Вызываем обработчик столкновения заданного тела
+					if((*BodiesIt)->handler)
+					{
+						// И вызываем обработчик столкновения другого тела
+						(*BodiesIt)->handler((*BodiesIt), CollisionPoints, this->mpCollidedObject, (*BodiesIt)->mpCallBackData);
+					}
 				}
 			}
 		}

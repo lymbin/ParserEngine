@@ -520,9 +520,9 @@ void hero::SetGame(game *apGame)
 }
 void hero::CollisionHandler(iCollisionBody *thisBody, PE_Rect CollidedRect, void *CollidedObject, void *data)
 {
-	PE_Rect *Rect = (PE_Rect *)data;
+	//PE_Rect *Rect = (PE_Rect *)data;
 
-	thisBody->SetBox(*Rect);
+	//thisBody->SetBox(*Rect);
 
 
 	cout << "collided!" << endl;

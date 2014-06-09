@@ -25,4 +25,11 @@ enum eBodyPosition{
 	eBodyPosition_Intersect,
 	eBodyPosition_LastEnum
 };
+enum eCollisionSystem{
+	eCollisionSystem_Simple,
+	eCollisionSystem_Hard1,
+	eCollisionSystem_Hard2,
+	eCollisionSystem_Hard3,
+	eCollisionSystem_LastEnum
+};
 #endif /* PHYSICSTYPES_H_ */
