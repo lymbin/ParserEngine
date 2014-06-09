@@ -26,9 +26,12 @@ int engine::init()
 	if(Graphics->Init() < 0)
 		return -1;
 
-	Audio = new audio();
-	if(Audio->init() < 0)
-		return -1;
+	if(SYS_AUDIO)
+	{
+		Audio = new cAudio();
+		if(Audio->init() < 0)
+			return -1;
+	}
 
 	Input = new input();
 	if(Input->init() < 0)

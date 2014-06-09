@@ -173,6 +173,9 @@ void game::MainLoop()
 	//Главный цикл приложения
 	while(!game::quit)
 	{
+		if(!Mix_PlayingMusic())
+			MainMusic->Play(0);
+
 		sstream.str(string());
 		Graphics->ClearScreen();
 		//Graphics->SetClearColor(cColor());
@@ -184,23 +187,32 @@ void game::MainLoop()
 			break;
 		}
 
-		Input->Update();
-
-		if(Input->IsKeyDown(KEY_ESCAPE)|| Input->IsKeyHeld(KEY_ESCAPE))
+		if(Input->IsKeyDown(KEY_ESCAPE))
 		{
 			//Выходим
 			quit = true;
 			break;
 		}
+		if(Input->IsKeyDown(KEY_p))
+		{
+			if(!MainMusic->IsPaused())
+			{
+				MainMusic->Pause();
+			}
+			else
+			{
+				MainMusic->Resume();
+			}
+		}
 
 		if(simple_menu)
 		{
-			if(Input->IsKeyDown(KEY_1) || Input->IsKeyHeld(KEY_1))
+			if(Input->IsKeyDown(KEY_1))
 			{
 				// Входим в игру
 				simple_menu = false;
 			}
-			else if(Input->IsKeyDown(KEY_2)|| Input->IsKeyHeld(KEY_2))
+			else if(Input->IsKeyDown(KEY_2))
 			{
 				//Выходим
 				quit = true;
@@ -280,6 +292,8 @@ void game::MainLoop()
 #endif
 		Graphics->SwapBuffers();
 		SDL_Delay(10);
+
+		Input->Update();
 	}
 #ifdef DEBUG_INFOS
 	delete fps_font;
@@ -351,6 +365,11 @@ int game::CreatingObjects()
 			StaticBox->CALLBACK(cStaticBox::CollisionHandler, StaticBox, 0);
 		}
 	}
+	if(!MainMusic)
+	{
+		MainMusic = new cMusic("data/sounds/Zhenya_Sazonov-Flying.ogg");
+		MainMusic->SetAudio(Audio);
+	}
 
 	return 0;
 }
@@ -409,6 +428,10 @@ void game::FreeObjects()
 	{
 		delete StaticBox;
 	}
+	if(MainMusic)
+	{
+		delete MainMusic;
+	}
 	delete Collision;
 }
 game::game()
@@ -421,6 +444,7 @@ game::game()
 	DynamicTextFont = 0;
 	StaticBox = 0;
 	Collision = new cCollision();
+	MainMusic = 0;
 }
 game::~game()
 {

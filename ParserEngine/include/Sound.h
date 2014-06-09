@@ -16,63 +16,79 @@
 #include <set>
 #include <vector>
 
+//#include "smpeg.h" - поддержка mp3 - не активна
 #include "SDL/SDL_mixer.h"
 #include "SystemConstants.h"
 
-class sound;
-class audio;
-class music;
+class cSound;
+class cMusic;
+class cAudio;
 
-class sound
+class cSound
 {
-	friend audio;
+	friend cAudio;
+
 	Mix_Chunk *Sound;
+
 	std::string fileName;
+	cAudio *mpAudio;
+
 public:
-	sound(std::string file = "");
-	~sound();
+	cSound(std::string file = "");
+	~cSound();
 
 	int Open(std::string file);
 
-	void Delete();
-
 	void Play(unsigned int Repeats = 0);
+	void SetAudio(cAudio *apAudio);
 };
-class music
+class cMusic
 {
-	friend audio;
+	friend cAudio;
+
 	Mix_Music *Music;
+
 	std::string fileName;
+	cAudio *mpAudio;
+
+	bool mbIsPaused;
 
 	void Stop();
 
-	void Pause();
-
-	void Resume();
 public:
-	music(std::string file = "");
-	~music();
+	cMusic(std::string file = "");
+	~cMusic();
 
 	int Open(std::string file);
 
-	void Delete();
-
 	void Play(unsigned int Repeats = 0);
+	void Pause();
+	void Resume();
+	bool IsPaused();
+
+	void SetAudio(cAudio *apAudio);
 };
-class audio
+
+typedef std::list<cSound *> tSoundList;
+typedef std::list<cSound *>::iterator tSoundListIt;
+
+typedef std::list<cMusic *> tMusicList;
+typedef std::list<cMusic *>::iterator tMusicListIt;
+
+class cAudio
 {
 	// Менеджер звуков и музыки
 	unsigned int SoundVolume;
 	unsigned int MusicVolume;
 
-	std::vector< sound *> Sounds;
-	std::vector< music *> Music;
+	tSoundList mSounds;
+	tMusicList mMusic;
 
-	music *CurrentMusic;
+	cMusic *CurrentMusic;
 
 public:
-	audio();
-	~audio();
+	cAudio();
+	~cAudio();
 
 	// Инициализация аудио системы
 	int init();
@@ -105,12 +121,15 @@ public:
 	void DeleteAllSounds();
 
 	// Функции управления памятью звуков
-	void ManageSound(sound *managed_sound);
-	void UnManageSound(sound *managed_sound);
+	void ManageSound(cSound *apSound);
+	void UnManageSound(cSound *apSound);
 
 	// Функции управления памятью музыки
-	void ManageMusic(music *managed_music);
-	void UnManageMusic(music *managed_music);
+	void ManageMusic(cMusic *apMusic);
+	void UnManageMusic(cMusic *apMusic);
+
+	cMusic *GetCurrentMusic();
+	void SetCurrentMusic(cMusic *apMusic);
 };
 
 

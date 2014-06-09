@@ -55,7 +55,7 @@ const std::string	SYS_GL_IMG_ZIP_MODE = "rb";
 
 ///////////////// AUDIO SYSTEM CONSTANTS /////////////////
 
-const int			SYS_AUDIO_VOLUME = 64;
+const int			SYS_AUDIO_VOLUME = 64; // 50%
 const int			SYS_AUDIO_RATE = 44100;
 const Uint16 		SYS_AUDIO_FORMAT = AUDIO_S16; // 16-bit stereo
 const int			SYS_AUDIO_CHANNELS = 2;
@@ -63,9 +63,9 @@ const int 			SYS_AUDIO_BUFFERS = 1024;
 
 ///////////////// VERSIONS CONSTANTS /////////////////
 
-const std::string 	SYS_VERSION = "0.0.0.0.49";
-const std::string 	SYS_BUILD = "000049";
-const std::string	SYS_TEST_VERSION = "0.2.1.49";
+const std::string 	SYS_VERSION = "0.0.0.0.50";
+const std::string 	SYS_BUILD = "000050";
+const std::string	SYS_TEST_VERSION = "0.3.0.50";
 
 
 #endif /* SYSTEMCONSTANTS_H_ */

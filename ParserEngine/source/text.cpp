@@ -86,7 +86,7 @@ void cTextManager::ManageText(tTextTexture aTextTexture, std::string aMapId)
 	}
 
 	tTextureListIt It = MapIt->second.begin();
-	for( ; It != MapIt->second.begin(); ++It)
+	for( ; It != MapIt->second.end(); ++It)
 	{
 		if((*It) == aTextTexture)
 		{
@@ -118,7 +118,7 @@ void cTextManager::UnManageText(tTextTexture aTextTexture, std::string aMapId)
 		for( ; MapIt != mTextTextures.end(); ++MapIt)
 		{
 			tTextureListIt It = MapIt->second.begin();
-			for( ; It != MapIt->second.begin(); ++It)
+			for( ; It != MapIt->second.end(); ++It)
 			{
 				if((*It) == aTextTexture)
 				{

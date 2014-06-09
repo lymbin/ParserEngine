@@ -62,6 +62,7 @@ class game: public engine
 	cCollision *Collision;
 	cStaticBox *StaticBox;
 	font 	*DynamicTextFont;
+	cMusic *MainMusic;
 
 
 public:

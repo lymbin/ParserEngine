@@ -49,7 +49,7 @@
 
 class graphics;
 class camera;
-class audio;
+class cAudio;
 class window;
 
 class cTexture;
@@ -71,7 +71,7 @@ public:
 
 	//Компоненты
 	graphics *Graphics;
-	audio *Audio;
+	cAudio *Audio;
 	input *Input;
 	events *Events;
 	cPhysics *Physics;
