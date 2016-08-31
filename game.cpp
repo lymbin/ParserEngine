@@ -80,7 +80,7 @@ void game::render()
 			}
 			else
 			{
-				sstream << "Mind Walkers Production 2014.";
+				sstream << "Mind Walkers Production 2014-2016.";
 			}
 		}
 		else
@@ -89,7 +89,7 @@ void game::render()
 				sstream << "Hero Speed: " << Hero->GetVelocity() << " Hero Health: " << Hero->GetHealth();
 			else
 			{
-				sstream << "Mind Walkers Production 2014.";
+				sstream << "Mind Walkers Production 2014-2016.";
 			}
 		}
 		DynamicTextFont->Write(sstream.str(), ScreenRect, GuiAlignment, &texD);
@@ -260,7 +260,7 @@ void game::MainLoop()
 		}
 
 
-		sstream << "PreAlpha ParserEngine Demo. Version " << SYS_TEST_VERSION << ".";
+		sstream << "Parser Engine Demo. Version " << SYS_TEST_VERSION << "." << SYS_BUILD;
 		//help_text->SetText(sstream.str());
 		fps_font->Write(sstream.str(), ScreenRect, eTextAlignment_Right | eTextAlignment_Bottom, &tex);
 
