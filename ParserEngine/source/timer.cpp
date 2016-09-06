@@ -12,7 +12,7 @@
 #include <fstream>
 #include <string.h>
 
-#include "SDL/SDL.h"
+#include "SDL2/SDL.h"
 
 p_timer::p_timer()
 {

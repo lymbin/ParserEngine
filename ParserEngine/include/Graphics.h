@@ -63,11 +63,12 @@ class graphics: public iLowLevelGraphics
 	cFontManager 	*mpFontManager;
 	cTextManager	*mpTextManager;
 
-	SDL_Surface *screen;	// Сурфейс окна
+	SDL_Window 	*sdlWindow;		// Сурфейс окна
 	GLuint CurrentTexture;	// Текущая забинженная текстура
+	SDL_Renderer *sdlRenderer;
 
 	camera *Camera;
-	window *Window;
+	window *_Window;
 
 	int mbFullScreen;
 
@@ -111,7 +112,7 @@ public:
 	// Устанавливаем текущую забинженную текстуру
 	void SetCurrentTexture(GLuint texture);
 
-	SDL_Surface *Screen();
+	SDL_Window *Screen();
 	GLuint GetCurrentTexture();
 
 	int GetScreenWidth();

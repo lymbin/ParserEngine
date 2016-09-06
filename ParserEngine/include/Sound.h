@@ -17,7 +17,7 @@
 #include <vector>
 
 //#include "smpeg.h" - поддержка mp3 - не активна
-#include "SDL/SDL_mixer.h"
+#include "SDL2/SDL_mixer.h"
 #include "SystemConstants.h"
 
 class cSound;

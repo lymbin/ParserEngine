@@ -50,7 +50,7 @@ input::~input()
 
 int input::init()
 {
-	KeyStates[KEY_ESCAPE] = 'n';
+	KeyStates[SDL_SCANCODE_ESCAPE] = 'n';
 	for(int loop = 0; loop <= BUTTON_LASTENUM; loop++)
 	{
 		MouseButtons.push_back('n');
@@ -146,13 +146,14 @@ int input::handle_event(SDL_Event event)
 	switch(event.type)
 	{
 		case SDL_KEYDOWN:
-			KeyStates[event.key.keysym.sym] = 'd';
-			keys.push_back((eKey)event.key.keysym.sym);
+			KeyStates[event.key.keysym.scancode] = 'd';
+			keys.push_back((eKey)event.key.keysym.scancode);
+			cout << "Key down:" << event.key.keysym.scancode << endl;
 			return 1;
 			break;
 		case SDL_KEYUP:
-			KeyStates[event.key.keysym.sym] = 'u';
-			keys.push_back((eKey)event.key.keysym.sym);
+			KeyStates[event.key.keysym.scancode] = 'u';
+			keys.push_back((eKey)event.key.keysym.scancode);
 			return 1;
 			break;
 		case SDL_MOUSEMOTION:

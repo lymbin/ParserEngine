@@ -37,13 +37,26 @@ int window::handle_event(SDL_Event event)
 	{
 		switch(event.type)
 		{
-			case SDL_VIDEORESIZE:
-				Graphics->ResizeWin(event.resize.w, event.resize.h);
-
-				return 1;
-				break;
-			case SDL_ACTIVEEVENT:
-				return 1;
+			case SDL_WINDOWEVENT:
+				switch (event.window.event)
+				{
+					//Get new dimensions and repaint on window size change
+					case SDL_WINDOWEVENT_RESIZED:
+						Graphics->ResizeWin(event.window.data1, event.window.data2);
+						return 1;
+						break;
+					case SDL_WINDOWEVENT_EXPOSED:
+					case SDL_WINDOWEVENT_ENTER:
+					case SDL_WINDOWEVENT_LEAVE:
+					case SDL_WINDOWEVENT_FOCUS_GAINED:
+					case SDL_WINDOWEVENT_FOCUS_LOST:
+					case SDL_WINDOWEVENT_MINIMIZED:
+					case SDL_WINDOWEVENT_MAXIMIZED:
+					case SDL_WINDOWEVENT_RESTORED:
+						// TODO: add events handlers
+						return 1;
+						break;
+				}
 				break;
 		}
 	}

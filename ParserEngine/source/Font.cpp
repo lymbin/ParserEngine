@@ -48,8 +48,8 @@ font::font(string file, int fontSize)
 	fileName = file;
 	StaticFont = true;
 	mFormat.bold = mFormat.italic = mFormat.underline = false;
-	mFormat.textcolor.r = mFormat.textcolor.g = mFormat.textcolor.b = mFormat.textcolor.unused =255;
-	mFormat.bgcolor.r = mFormat.bgcolor.g = mFormat.bgcolor.b = mFormat.bgcolor.unused = 0;
+	mFormat.textcolor.r = mFormat.textcolor.g = mFormat.textcolor.b = mFormat.textcolor.a =255;
+	mFormat.bgcolor.r = mFormat.bgcolor.g = mFormat.bgcolor.b = mFormat.bgcolor.a = 0;
 	mFormat.size = fontSize;
 
 	mpFontManager = 0;
@@ -196,7 +196,7 @@ void font::SetColor(Uint8 R, Uint8 G, Uint8 B, Uint8 A )
 	mFormat.textcolor.r = R;
 	mFormat.textcolor.g = G;
 	mFormat.textcolor.b = B;
-	mFormat.textcolor.unused = A;
+	mFormat.textcolor.a = A;
 }
 
 //-----------------------------------------------------------------------
@@ -467,7 +467,7 @@ void font::CreateTex(GLuint *tex, int w, int h)
 
 	temp = TTF_RenderUTF8_Blended(ttf_font, msCurrentText.c_str(), mFormat.textcolor);
 
-	SDL_SetAlpha(temp, 0, 0);
+	SDL_SetSurfaceBlendMode(temp, SDL_BLENDMODE_NONE);
 
 	tempb = SDL_CreateRGBSurface(0, w, h, SYS_TEXT_DEPTH, rmask, gmask, bmask, amask);
 	if(!tempb)

@@ -26,10 +26,11 @@ graphics::graphics()
 	mpTextureManager->SetGraphics(this);
 
 	CurrentTexture = 0;
-	screen = 0;
+	sdlWindow = 0;
+	sdlRenderer = 0;
 
 	Camera = new camera();
-	Window = new window(this);
+	_Window = new window(this);
 }
 graphics::~graphics()
 {
@@ -49,23 +50,35 @@ int graphics::Init(int W, int H, int BPP, int abFullScreen)
 	mbFullScreen = abFullScreen;
 
 	// Инициализация SDL-графики
-	screen = SDL_SetVideoMode(mlScreenWidth, mlScreenHeigth, mlScreenBpp, SDL_OPENGL|SDL_RESIZABLE);
-	if(!screen)
+	// Задаём текст для заголовка окна
+	std::stringstream title;
+	title << "FireFly project " << SYS_VERSION << " prealpha test. Build " << SYS_BUILD << ".";
+	sdlWindow = SDL_CreateWindow (title.str().c_str(),
+					SDL_WINDOWPOS_UNDEFINED,
+					SDL_WINDOWPOS_UNDEFINED,
+					mlScreenWidth,
+					mlScreenHeigth,
+					SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
+	if(!sdlWindow)
 	{
 #ifdef DEBUG_ERRORS
-		cout << "Unable to set screen: " << SDL_GetError() << endl;
+		cout << "Unable to set window: " << SDL_GetError() << endl;
+#endif
+		return -1;
+	}
+
+	sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, 0);
+
+	if(!sdlRenderer)
+	{
+#ifdef DEBUG_ERRORS
+		cout << "Unable to set renderer: " << SDL_GetError() << endl;
 #endif
 		return -1;
 	}
 
 	// Задаём двойную буфферизацию
 		//SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-	// Задаём текст для заголовка окна
-	std::stringstream title;
-	title << "FireFly project " << SYS_VERSION << " prealpha test. Build " << SYS_BUILD << ".";
-	SDL_WM_SetCaption(title.str().c_str(), "test icon");
-
 
 	// Инициализация шрифтов
 	if(cFontManager::FontsInit() < 0)
@@ -127,9 +140,9 @@ int graphics::InitGL()
 }
 void graphics::CleanUp()
 {
-	if(screen)
-		SDL_FreeSurface(screen);
-	screen = 0;
+	if(sdlWindow)
+		SDL_DestroyWindow(sdlWindow);
+	sdlWindow = 0;
 
 	if(mpTextureManager)
 		delete mpTextureManager;
@@ -160,11 +173,11 @@ void graphics::ResizeWin(int width, int heigth)
 	mlScreenHeigth = heigth;
 
 	// Устанавливаем новый видео режим
-	screen = SDL_SetVideoMode(mlScreenWidth, mlScreenHeigth, mlScreenBpp, SDL_OPENGL|SDL_RESIZABLE);
+	//screen = SDL_SetVideoMode(mlScreenWidth, mlScreenHeigth, mlScreenBpp, SDL_OPENGL|SDL_RESIZABLE);
 	ClearScreen();
 
 	// Выходим из программы, если не можем изменить размеры окна
-	if(!screen)
+	if(!sdlWindow)
 	{
 #ifdef DEBUG_ERRORS
 		cout << "Unable to Resize win " << SDL_GetError() << endl;
@@ -200,18 +213,43 @@ void graphics::ResizeWin(int width, int heigth)
 // Очистка экрана
 void graphics::ClearScreen()
 {
+	if(!sdlRenderer)
+	{
+#ifdef DEBUG_ERRORS
+		cout << "Unable to set renderer: " << SDL_GetError() << endl;
+#endif
+		return;
+	}
+	//SDL_RenderClear(sdlRenderer);
+	//SDL_RenderPresent(sdlRenderer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 // Очищаем цвет
 void graphics::ClearColor()
 {
+	if(!sdlRenderer)
+	{
+#ifdef DEBUG_ERRORS
+		cout << "Unable to set renderer: " << SDL_GetError() << endl;
+#endif
+		return;
+	}
+	//SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
 	glClearColor(0,0,0,0);
 	//SetClearColor(cColor(1.0f, 1.0f));
 }
-// Устанавливаем цвет OpenGL
+// Устанавливаем цвет
 void graphics::SetClearColor(cColor aCol)
 {
+	if(!sdlRenderer)
+	{
+#ifdef DEBUG_ERRORS
+		cout << "Unable to set renderer: " << SDL_GetError() << endl;
+#endif
+		return;
+	}
+	//SDL_SetRenderDrawColor(sdlRenderer, aCol.r, aCol.g, aCol.b, aCol.a);
 	glColor4f(aCol.r, aCol.g, aCol.b, aCol.a);
 }
 void graphics::PushMatrix()
@@ -225,16 +263,16 @@ void graphics::PopMatrix()
 // Отрисовываем буферы на экране
 void graphics::SwapBuffers()
 {
-	SDL_GL_SwapBuffers();
+	SDL_GL_SwapWindow(sdlWindow);
 }
 void graphics::ToggleFullScreen()
 {
 	// Переключаем полноэкранный режим и включаем мышь
 	// TODO: работает но с натягом - доделать
 	mbFullScreen = !mbFullScreen;
-	if(screen)
+	if(sdlWindow)
 	{
-		if(!SDL_WM_ToggleFullScreen(screen))
+		if(!SDL_SetWindowFullscreen(sdlWindow, 0))
 		{
 #ifdef DEBUG_ERRORS
 		cout << "Error toggle fullscreen: " << SDL_GetError() << endl;
@@ -254,9 +292,9 @@ void graphics::SetCurrentTexture(GLuint texture)
 {
 	CurrentTexture = texture;
 }
-SDL_Surface *graphics::Screen()
+SDL_Window *graphics::Screen()
 {
-	return screen;
+	return sdlWindow;
 }
 GLuint graphics::GetCurrentTexture()
 {
@@ -281,7 +319,7 @@ camera *graphics::GetCamera()
 }
 window *graphics::GetWindow()
 {
-	return Window;
+	return _Window;
 }
 texture_manager *graphics::GetTextureManager()
 {

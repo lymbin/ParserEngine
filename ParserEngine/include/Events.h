@@ -8,7 +8,7 @@
 #ifndef EVENTS_H_
 #define EVENTS_H_
 
-#include "SDL/SDL.h"
+#include "SDL2/SDL.h"
 #include "Input.h"
 #include "Graphics.h"
 
