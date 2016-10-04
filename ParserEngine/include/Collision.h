@@ -5,6 +5,10 @@
  *      Author: dmitry
  */
 
+#ifdef CALLBACK
+#undef CALLBACK // fix for Windows CALLBACK
+#endif
+
 #ifndef COLLISION_H_
 #define COLLISION_H_
 

@@ -23,11 +23,12 @@ public:
 	cStaticBox(std::string asName = "", int alHitPoints = 100);
 	~cStaticBox();
 
-	void OnDraw();	// Перерисовка
+	void OnDraw();		// Перерисовка
 	void Reset();		// Сброс настроек
-	void OnStart();	// Установка начальных данных
-	void OnExit();	// Выполняем при выходе, на последней итерации фреймов или при удалении
-	void Update();	// Обновление данных
+	void OnStart();		// Установка начальных данных
+	void OnExit();		// Выполняем при выходе, на последней итерации фреймов или при удалении
+	void Update();		// Обновление данных
+	void PostUpdate(); 	// Обновление данных объекта в конце выполнения общего update
 
 	void SetGame(game *apGame){mpGame = apGame;}
 	static void CollisionHandler(iCollisionBody *thisBody, PE_Rect CollidedRect, void *CollidedObject, void *data);
@@ -40,11 +41,12 @@ public:
 	cDynamicBox(std::string asName = "", int alHitPoints = 100);
 	~cDynamicBox();
 
-	void OnDraw();	// Перерисовка
+	void OnDraw();		// Перерисовка
 	void Reset();		// Сброс настроек
-	void OnStart();	// Установка начальных данных
-	void OnExit();	// Выполняем при выходе, на последней итерации фреймов или при удалении
-	void Update();	// Обновление данных
+	void OnStart();		// Установка начальных данных
+	void OnExit();		// Выполняем при выходе, на последней итерации фреймов или при удалении
+	void Update();		// Обновление данных
+	void PostUpdate();	// Обновление данных объекта в конце выполнения общего update
 
 	void Move(int alDirection, int alAnimation, int alAnimpos);
 	void Jump() {}

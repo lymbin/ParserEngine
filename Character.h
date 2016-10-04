@@ -22,6 +22,7 @@ enum eCharacterType
 	eCharacterType_LastEnum
 };
 
+// TODO: добавить анимации iAnimed
 class iCharacter : public iGameObject
 {
 protected:
@@ -63,6 +64,7 @@ public:
 	virtual void OnStart() {}	// Установка начальных данных
 	virtual void OnExit() {}	// Выполняем при выходе, на последней итерации фреймов или при удалении
 	virtual void Update() {}	// Обновление данных
+	virtual void PostUpdate() {}// Обновление данных объекта в конце выполнения общего update
 
 	sAnim GetAnim(int alAnimType);
 
@@ -74,8 +76,6 @@ public:
 	inventory_item GetWeapon();
 
 	eCharacterType mCharacterType;
-
 };
-
 
 #endif /* CHARACTER_H_ */

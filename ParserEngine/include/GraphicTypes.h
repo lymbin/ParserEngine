@@ -67,7 +67,7 @@ struct PE_Tetra
 	GLfloat Bottom;		/**< Координата крайней нижней точки  */
 };
 
-enum eTextAlignment{
+enum eTextAlignment {
 	eTextAlignment_Left = 1,
 	eTextAlignment_Centered_H = 2,
 	eTextAlignment_Right = 4,

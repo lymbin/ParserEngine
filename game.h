@@ -57,7 +57,7 @@ class game: public engine
 	static bool timer_running;
 	MainMenu Mmenu;
 	game_gui *Gui;
-	hero *Hero;
+	hero *Hero; // TODO: rename to player
 	iCollisionLayer *layer;
 	cCollision *Collision;
 	cStaticBox *StaticBox;
@@ -83,6 +83,9 @@ public:
 
 	// Обновляем координаты текстур и объектов
 	void update();
+
+	// Обновление данных объекта в конце выполнения общего update
+	void PostUpdate();
 
 	// Отрисовываем текстуры и объекты
 	void render();

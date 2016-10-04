@@ -22,6 +22,10 @@ input::input()
 	KeyStates.clear();
 	MouseButtons.clear();
 	KeyHeldTime.clear();
+	KeysPressed.clear();
+
+	mModifier = eKeyModifier_NONE;
+
 	Engine = 0;
 }
 
@@ -34,13 +38,12 @@ input::~input()
 	KeyStates.clear();
 	MouseButtons.clear();
 	KeyHeldTime.clear();
+	KeysPressed.clear();
 
 #ifdef DEBUG_SYS
 	cout << "Input clean up - success" << endl;
 #endif
 }
-
-//-----------------------------------------------------------------------
 
 //////////////////////////////////////////////////////////////////////////
 // PUBLIC METODS
@@ -142,18 +145,25 @@ bool input::IsButtonHeld(eButton button)
 
 int input::handle_event(SDL_Event event)
 {
-	std::vector< eKey> keys;
 	switch(event.type)
 	{
 		case SDL_KEYDOWN:
+		{
 			KeyStates[event.key.keysym.scancode] = 'd';
-			keys.push_back((eKey)event.key.keysym.scancode);
+			int sdl_mod = event.key.keysym.mod;
+			mModifier = eKeyModifier_NONE;
+
+			if (sdl_mod & KMOD_CTRL)	mModifier |= eKeyModifier_CTRL;
+			if (sdl_mod & KMOD_SHIFT)	mModifier |= eKeyModifier_SHIFT;
+			if (sdl_mod & KMOD_ALT)		mModifier |= eKeyModifier_ALT;
+
+			KeysPressed.push_back(cKeyPress((eKey)event.key.keysym.scancode, mModifier));
 			cout << "Key down:" << event.key.keysym.scancode << endl;
 			return 1;
 			break;
+		}
 		case SDL_KEYUP:
 			KeyStates[event.key.keysym.scancode] = 'u';
-			keys.push_back((eKey)event.key.keysym.scancode);
 			return 1;
 			break;
 		case SDL_MOUSEMOTION:
@@ -177,7 +187,7 @@ int input::handle_event(SDL_Event event)
 int input::Update()
 {
 	std::vector< eKey> keys;
-
+	KeysPressed.clear();
 	for(std::map<int, char>::iterator it = KeyStates.begin(); it != KeyStates.end(); it++)
 	{
 		if(it->second == 'u')

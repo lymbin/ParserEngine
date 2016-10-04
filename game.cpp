@@ -14,7 +14,7 @@ bool game::quit = false;
 void game::update()
 {
 	// Обновляем все координаты объектов, текстов и прочего
-	// TODO:Обновляем все Updatable объекты
+	// TODO: Обновляем все Updatable объекты
 
 	if(Hero)
 	{
@@ -22,13 +22,23 @@ void game::update()
 		Hero->Update();
 		Hero->CALLBACK(hero::CollisionHandler, Hero, &OldBox);
 	}
-	if(StaticBox)
-	{
+	if (StaticBox)
 		StaticBox->Update();
-	}
-	if(Hero)
+
+	if (Hero)
 		Hero->HandleCollisions();
+
+	PostUpdate();
 }
+
+void game::PostUpdate()
+{
+	if(Hero && Hero->GetHealth() > 0) {
+		Hero->PostUpdate();
+		StaticBox->PostUpdate();
+	}
+}
+
 void game::render()
 {
 	// Отрисовываем все объекты
@@ -41,7 +51,7 @@ void game::render()
 
     //Graphics->ClearColor();
     //Graphics->DrawFilledRectangle(10, 10, 200, 100, 0.0f, 0.0f, 1.0f, 1.0f);
-   // Graphics->DrawFilledRectangle(10, 110, 200, 100, 1.0f, 0.0f, 0.0f, 1.0f);
+    //Graphics->DrawFilledRectangle(10, 110, 200, 100, 1.0f, 0.0f, 0.0f, 1.0f);
 
 	static GLuint tex = 0;
 	static GLuint texD = 0;
@@ -69,7 +79,8 @@ void game::render()
 		ScreenRect.X = ScreenRect.Y = 0;
 		ScreenRect.Heigth = Graphics->GetScreenHeigth();
 		ScreenRect.Width = Graphics->GetScreenWidth();
-		if(killed)
+
+		if (killed)
 		{
 			static int frames = 0;
 			if(frames < 180)
@@ -82,6 +93,9 @@ void game::render()
 			{
 				sstream << "Mind Walkers Production 2014-2016.";
 			}
+
+			DynamicTextFont->Write(sstream.str(), ScreenRect, GuiAlignment, &texD);
+			goto EndRender;
 		}
 		else
 		{
@@ -91,14 +105,18 @@ void game::render()
 			{
 				sstream << "Mind Walkers Production 2014-2016.";
 			}
+
+			DynamicTextFont->Write(sstream.str(), ScreenRect, GuiAlignment, &texD);
 		}
-		DynamicTextFont->Write(sstream.str(), ScreenRect, GuiAlignment, &texD);
+
+		if(StaticBox)
+		{
+			StaticBox->OnDraw();
+			DynamicTextFont->Write("DEMO!", StaticBox->GetBox(), eTextAlignment_Centered_H | eTextAlignment_Centered_V, &tex);
+		}
 	}
-	if(StaticBox)
-	{
-		StaticBox->OnDraw();
-		DynamicTextFont->Write("DEMO!", StaticBox->GetBox(), eTextAlignment_Centered_H | eTextAlignment_Centered_V, &tex);
-	}
+
+EndRender:
 	if(tex)
 	{
 		glDeleteTextures(1, &tex);

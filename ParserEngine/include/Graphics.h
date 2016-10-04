@@ -13,12 +13,13 @@
 #include "Font.h"
 #include "GraphicTypes.h"
 #include "Color.h"
+#include "Camera.h"
 
 class cTexture;
 class texture_manager;
 class cFontManager;
 class cTextManager;
-class camera;
+class cCamera;
 class window;
 class cColor;
 
@@ -67,7 +68,7 @@ class graphics: public iLowLevelGraphics
 	GLuint CurrentTexture;	// Текущая забинженная текстура
 	SDL_Renderer *sdlRenderer;
 
-	camera *Camera;
+	cCamera *Camera;
 	window *_Window;
 
 	int mbFullScreen;
@@ -112,6 +113,9 @@ public:
 	// Устанавливаем текущую забинженную текстуру
 	void SetCurrentTexture(GLuint texture);
 
+	// Устанавливаем положение камеры
+	void SetCameraPosition(int cameraX, int cameraY);
+
 	SDL_Window *Screen();
 	GLuint GetCurrentTexture();
 
@@ -119,25 +123,11 @@ public:
 	int GetScreenHeigth();
 	int GetScreenBpp();
 
-	camera *GetCamera();
+	cCamera *GetCamera();
 	window *GetWindow();
 	texture_manager *GetTextureManager();
 	cFontManager 	*GetFontManager();
 	cTextManager	*GetTextManager();
-};
-class camera
-{
-	GLfloat gCameraX;
-	GLfloat gCameraY;
-public:
-	camera();
-	~camera();
-
-	void MoveTo(GLfloat x, GLfloat y);
-	void SetPosition(GLfloat x, GLfloat y);
-
-	GLfloat GetXposition();
-	GLfloat GetYposition();
 };
 class window
 {

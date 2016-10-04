@@ -16,16 +16,19 @@
 #include <vector>
 
 // Базовый класс для обновляемых данных
-class iUpdateable
+class iUpdatable
 {
 public:
-	iUpdateable(const std::string asName) : msName(asName) {}
+	iUpdatable(const std::string asName) : msName(asName) {}
+	virtual ~iUpdatable() {}
 
 	virtual void OnDraw() {}	// Перерисовка
 	virtual void Reset() {}		// Сброс настроек
 	virtual void OnStart() {}	// Установка начальных данных
 	virtual void OnExit() {}	// Выполняем при выходе, на последней итерации фреймов или при удалении
 	virtual void Update() {}	// Обновление данных
+	virtual void PostUpdate() {}// Обновление данных объекта в конце выполнения общего update
+
 	const std::string GetName() {return msName;}
 private:
 	std::string msName;	// Имя(для информации)
@@ -33,10 +36,10 @@ private:
 
 // Переопределяем типы
 // Карта содержит несколько листов обновляющихся данных
-typedef std::list<iUpdateable*> tUpdateableList;
-typedef tUpdateableList::iterator tUpdateableListIt;
+typedef std::list<iUpdatable*> tUpdatableList;
+typedef tUpdatableList::iterator tUpdatableListIt;
 
-typedef std::map<std::string, tUpdateableList> tUpdateContainerMap;
+typedef std::map<std::string, tUpdatableList> tUpdateContainerMap;
 typedef tUpdateContainerMap::iterator tUpdateContainerMapIt;
 
 // Класс, содержащий все обновляемые объекты, и вызывающий Update и Draw
@@ -53,6 +56,7 @@ public:
 	void Reset();
 	void OnExit();
 	void Update();
+	void PostUpdate(); // Обновление данных объекта в конце выполнения общего update
 
 	bool SetContainer(std::string asContainer);
 
@@ -60,14 +64,14 @@ public:
 
 	bool AddContainer(std::string asName);
 
-	bool AddUpdate(std::string asContainer, iUpdateable *apUpdate);
+	bool AddUpdate(std::string asContainer, iUpdatable *apUpdate);
 
 private:
 	std::string msCurrentUpdates;
 
 	tUpdateContainerMap m_mapUpdateContainer;
 
-	tUpdateableList *mpCurrentUpdates;
+	tUpdatableList *mpCurrentUpdates;
 };
 
 

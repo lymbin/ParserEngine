@@ -14,11 +14,11 @@
 
 enum eGameObjectType
 {
-	eGameObjectType_Wall,			 // Стенка
-	eGameObjectType_StaticObject,  	// Обычные блоки, которые не меняют своего положения на экране
-	eGameObjectType_DynamicObject, 	// Двигающиеся блоки
+	eGameObjectType_Wall,			// Стены, неразрушаемые объекты.
+	eGameObjectType_StaticObject,  	// Статичные объекты, не меняющие своего положения на экране со временем.
+	eGameObjectType_DynamicObject, 	// Динамичные объекты, двигающиеся по экрану.
 	eGameObjectType_Character,	 	// Персонажи
-	eGameObjectType_Ship,			 // Корабли
+	eGameObjectType_Ship,			// TODO: not used - remove.
 	eGameObjectType_LastEnum
 };
 
@@ -34,13 +34,16 @@ public:
 	iAnimed(){mAnims.clear();}
 	virtual ~iAnimed(){}
 
-	virtual void Move(int alDirection, int alAnimation, int alAnimpos) {}
+	//virtual void Animate(int alAnimation, int alAnimpos) {} // TODO: add this function to animate action for game object.
+	virtual void Move(int alDirection, int alAnimation, int alAnimpos) {} // One of the standard action in animation.
+
+	// TODO: remove this from iAnimed class and put it to iCharacter or some else.
 	virtual void Jump() {}
 	virtual void Sit(){}
 	virtual void Shoot(){}
 };
 
-class iGameObject : public iCollisionBody, public iUpdateable
+class iGameObject : public iCollisionBody, public iUpdatable
 {
 protected:
 	int mlHitPoints;
@@ -55,7 +58,9 @@ public:
 	virtual void OnStart() {}	// Установка начальных данных
 	virtual void OnExit() {}	// Выполняем при выходе, на последней итерации фреймов или при удалении
 	virtual void Update() {}	// Обновление данных
+	virtual void PostUpdate() {}// Обновление данных объекта в конце выполнения общего update
 
+	// TODO: remove velocity, cause static objects does not have velocity.
 	void SetHitPoints(int alHP);
 	void SetVelocity(unsigned int alVelocity);
 
@@ -67,6 +72,8 @@ public:
 	//virtual void CollisionHandler(iCollisionBody *Collider, iCollisionBody *CollSurface, void *data) {}
 };
 
+// TODO: добавить анимации
+// Статичные объекты, не меняющие своего положения на экране со временем. Могут иметь анимации.
 class iStaticObject : public iGameObject
 {
 	sStaticTexture mTexture;
@@ -80,6 +87,7 @@ public:
 	virtual void OnStart() {}	// Установка начальных данных
 	virtual void OnExit() {}	// Выполняем при выходе, на последней итерации фреймов или при удалении
 	virtual void Update() {}	// Обновление данных
+	virtual void PostUpdate() {}// Обновление данных объекта в конце выполнения общего update
 
 	//virtual void CollisionHandler(){}
 };
@@ -103,10 +111,13 @@ public:
 	virtual void OnStart() {}	// Установка начальных данных
 	virtual void OnExit() {}	// Выполняем при выходе, на последней итерации фреймов или при удалении
 	virtual void Update() {}	// Обновление данных
+	virtual void PostUpdate() {}// Обновление данных объекта в конце выполнения общего update
 
 	virtual void CollisionHandler(){}
 
+	//virtual void Animate(int alAnimation, int alAnimpos) {} // TODO: add this function to animate action for game object.
 	virtual void Move(int alDirection, int alAnimation, int alAnimpos){}
+	// TODO: remove this from iAnimed class and put it to iCharacter or some else.
 	virtual void Jump() {}
 	virtual void Sit(){}
 	virtual void Shoot(){}

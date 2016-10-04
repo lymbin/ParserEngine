@@ -47,7 +47,7 @@ class animation
 	tRectVector frames;
 
 	// Текущий фрейм анимации
-	uint CurrentFrame;
+	unsigned int CurrentFrame;
 
 	// Таймер для тиков и подсчёта
 	Uint32 SpeedTicks;
@@ -131,7 +131,7 @@ public:
 	Uint32 GetSpeed();
 
 	// Получаем размер массива фреймов
-	uint GetFramesSize();
+	unsigned int GetFramesSize();
 
 	std::string GetItemName();
 

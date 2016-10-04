@@ -22,7 +22,7 @@ void cUpdater::OnDraw()
 {
 	if(mpCurrentUpdates)
 	{
-		for(tUpdateableListIt Iter = mpCurrentUpdates->begin(); Iter!=mpCurrentUpdates->end(); ++Iter)
+		for(tUpdatableListIt Iter = mpCurrentUpdates->begin(); Iter!=mpCurrentUpdates->end(); ++Iter)
 		{
 			(*Iter)->OnDraw();
 		}
@@ -33,7 +33,7 @@ void cUpdater::OnStart()
 	tUpdateContainerMapIt ContIter = m_mapUpdateContainer.begin();
 	while(ContIter != m_mapUpdateContainer.end())
 	{
-		tUpdateableListIt UpIter = ContIter->second.begin();
+		tUpdatableListIt UpIter = ContIter->second.begin();
 		while(UpIter != ContIter->second.end())
 		{
 			(*UpIter)->OnStart();
@@ -47,11 +47,11 @@ void cUpdater::Reset()
 	tUpdateContainerMapIt ContIter = m_mapUpdateContainer.begin();
 	while(ContIter != m_mapUpdateContainer.end())
 	{
-		tUpdateableList *pUpdates = &ContIter->second;
-		tUpdateableListIt UpIter = pUpdates->begin();
+		tUpdatableList *pUpdates = &ContIter->second;
+		tUpdatableListIt UpIter = pUpdates->begin();
 		while(UpIter != pUpdates->end())
 		{
-			iUpdateable *pUpdate = *UpIter;
+			iUpdatable *pUpdate = *UpIter;
 			pUpdate->Reset();
 			++UpIter;
 		}
@@ -63,7 +63,7 @@ void cUpdater::OnExit()
 	tUpdateContainerMapIt ContIter = m_mapUpdateContainer.begin();
 	while(ContIter != m_mapUpdateContainer.end())
 	{
-		tUpdateableListIt UpIter = ContIter->second.begin();
+		tUpdatableListIt UpIter = ContIter->second.begin();
 		while(UpIter != ContIter->second.end())
 		{
 			(*UpIter)->OnExit();
@@ -76,9 +76,20 @@ void cUpdater::Update()
 {
 	if(mpCurrentUpdates)
 	{
-		for(tUpdateableListIt Iter = mpCurrentUpdates->begin(); Iter!=mpCurrentUpdates->end(); ++Iter)
+		for(tUpdatableListIt Iter = mpCurrentUpdates->begin(); Iter!=mpCurrentUpdates->end(); ++Iter)
 		{
-			(*Iter)->OnDraw();
+			(*Iter)->Update();
+		}
+	}
+}
+
+void cUpdater::PostUpdate()
+{
+	if(mpCurrentUpdates)
+	{
+		for(tUpdatableListIt Iter = mpCurrentUpdates->begin(); Iter!=mpCurrentUpdates->end(); ++Iter)
+		{
+			(*Iter)->PostUpdate();
 		}
 	}
 }
@@ -104,12 +115,12 @@ std::string cUpdater::GetCurrentContainerName()
 
 bool cUpdater::AddContainer(std::string asName)
 {
-	tUpdateContainerMap::value_type val = tUpdateContainerMap::value_type(asName, tUpdateableList());
+	tUpdateContainerMap::value_type val = tUpdateContainerMap::value_type(asName, tUpdatableList());
 	m_mapUpdateContainer.insert(val);
 	return true;
 }
 
-bool cUpdater::AddUpdate(std::string asContainer, iUpdateable *apUpdate)
+bool cUpdater::AddUpdate(std::string asContainer, iUpdatable *apUpdate)
 {
 	if(!apUpdate)
 		return false;

@@ -5,34 +5,34 @@
  *      Author: dmitry
  */
 
-#include "widget.h"
-
-cButton::cButton(float W, float H, float X, float Y):cWidget(eWidgetType_Button, W, H, X, Y)
+#include "WidgetButton.h"
+/*
+cWidgetButton::cWidgetButton():iWidget(eWidgetType_Button)
 {
 	mbPressed = false;
-
 	mpTexture = 0;
 }
-cButton::~cButton()
+cWidgetButton::~cWidgetButton()
 {
 
 }
 
-void cButton::SetImage(cTexture *aTexture)
+void cWidgetButton::SetImage(cTexture *aTexture)
 {
 	mpTexture = aTexture;
 }
 
-void cButton::OnInit()
-{
-
-}
-void cButton::OnDraw()
-{
-
-}
-void cButton::OnUpdate()
+void cWidgetButton::OnInit()
 {
 
 }
 
+void cWidgetButton::OnDraw()
+{
+
+}
+
+void cWidgetButton::OnUpdate()
+{
+
+}*/

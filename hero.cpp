@@ -214,6 +214,7 @@ void hero::Move(int direction, int animation, int animpos)
 
 		// Пока блочим движение тела
 		// 	но в дальнейшем нужно менять камеру при движении
+		/*
 		if(mpGame && mpGame->Graphics && mTexture.mpTexture)
 		{
 			if(Box.X > (mpGame->Graphics->GetScreenWidth()- mTexture.mpTexture->GetWidth()*mTexture.mfScaledMultiplier))
@@ -225,6 +226,7 @@ void hero::Move(int direction, int animation, int animpos)
 			if(Box.Y < 0)
 				Box.Y+=mlVelocity;
 		}
+		*/
 	}
 	else
 	{
@@ -444,6 +446,7 @@ void hero::Update()
 		}
 	}
 
+	//cout << "X: " << GetBox().X << "Y: " << GetBox().Y << endl;
 
 	/*
 	if(sit_animation && (Game->Input->IsKeyDown(KEY_DOWN) || Game->Input->IsKeyHeld(KEY_DOWN)))
@@ -464,6 +467,22 @@ void hero::Update()
 	*/
 	//CALLBACK(hero::CollisionHandler, this, &OldBox);
 }
+
+void hero::PostUpdate()
+{
+	// Обновляем параметры камеры для отрисовки объектов.
+	// На данный момент нет поддержки какого-либо типа камеры, отличного от центрированной на боксе объекта.
+
+	cout << "X: " << GetBox().X << "Y: " << GetBox().Y << endl;
+	mpGame->Graphics->SetCameraPosition(GetBox().X + GetBox().Width / 2,
+										GetBox().Y + GetBox().Heigth / 2);
+
+	// Сдвигаем бокс игрока
+	SetBox(GetBox().Width, GetBox().Heigth,
+			GetBox().X + mpGame->Graphics->GetCamera()->GetXposition(),
+			GetBox().Y + mpGame->Graphics->GetCamera()->GetYposition());
+}
+
 void hero::OnDraw()
 {
 	bool moved = false;

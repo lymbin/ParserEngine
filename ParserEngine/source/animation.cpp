@@ -111,7 +111,7 @@ void animation_manager::UnManageAnimation(animation *managed_anim)
 
 	int place = -1;
 
-	// Ищем звук в векторе
+	// Ищем анимацию в векторе
 	for(unsigned int loop = 0; loop < Animations.size(); loop++)
 	{
 		if(Animations[loop] == managed_anim)
@@ -121,19 +121,19 @@ void animation_manager::UnManageAnimation(animation *managed_anim)
 		}
 	}
 
-	// звук не найден - выходим
+	// анимация не найден - выходим
 	if(place < 0)
 		return;
 
 	if((unsigned int)(place+1) == Animations.size())
 	{
-		// Звук в самом конце - удаляем, перед этим обснулив указатель на менеджер
+		// Анимация в самом конце - удаляем, перед этим обнулив указатель на менеджер
 		//Sounds[place]->AudoManager = 0;
 		Animations.pop_back();
 	}
 	else
 	{
-		// Звук где-то внутри вектора - удаляем, перед этим обнулив указатель на менеджер
+		// Анимация где-то внутри вектора - удаляем, перед этим обнулив указатель на менеджер
 		//TODO: проверить
 		//Sounds[place] = Sounds[ Sounds.size() - 1 ];
 		//Sounds[place]->AudoManager = 0;
@@ -397,7 +397,7 @@ Uint32 animation::GetSpeed()
 
 //-----------------------------------------------------------------------
 
-uint animation::GetFramesSize()
+unsigned int animation::GetFramesSize()
 {
 	return frames.size();
 }

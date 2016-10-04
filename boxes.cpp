@@ -44,11 +44,17 @@ void cStaticBox::OnExit()
 void cStaticBox::Update()
 {
 	PE_Rect Box = GetBox();
-	// TODO: обновлять камеру тут
 
 	SetBox(Box);
 }
 
+void cStaticBox::PostUpdate()
+{
+	SetBox(GetBox().Width, GetBox().Heigth,
+			GetBox().X + mpGame->Graphics->GetCamera()->GetXposition(),
+			GetBox().Y + mpGame->Graphics->GetCamera()->GetYposition());
+
+}
 
 void cStaticBox::CollisionHandler(iCollisionBody *thisBody, PE_Rect CollidedRect, void *CollidedObject, void *data)
 {
@@ -101,6 +107,10 @@ void cDynamicBox::OnExit()
 
 }
 void cDynamicBox::Update()
+{
+
+}
+void cDynamicBox::PostUpdate()
 {
 
 }

@@ -7,7 +7,11 @@
 
 #include "Graphics.h"
 
+#include <algorithm>
+
 using namespace std;
+
+float clip(float n, float lower, float upper);
 
 graphics::graphics()
 {
@@ -29,7 +33,7 @@ graphics::graphics()
 	sdlWindow = 0;
 	sdlRenderer = 0;
 
-	Camera = new camera();
+	Camera = new cCamera();
 	_Window = new window(this);
 }
 graphics::~graphics()
@@ -292,6 +296,40 @@ void graphics::SetCurrentTexture(GLuint texture)
 {
 	CurrentTexture = texture;
 }
+
+// Устанавливаем положение камеры
+void graphics::SetCameraPosition(int cameraX, int cameraY)
+{
+	if (Camera) {
+		// Можно добавить сюда тип камеры
+		switch (Camera->GetCameraMoveType()) {
+			case eCameraMoveTypeFluid:
+			{
+				float distX = Camera->GetXposition() - cameraX + GetScreenWidth()/2;
+				float distY = Camera->GetYposition() - cameraY + GetScreenHeigth()/2;
+				Camera->SetPosition(cameraX - Camera->GetFluidSize() * distX,
+									cameraY - Camera->GetFluidSize() * distY);
+				break;
+			}
+			case eCameraMoveTypeInner:
+			{
+				float leftAreaX = cameraX - GetScreenWidth()/2 - Camera->GetInnerSize();
+				float rightAreaX = cameraX - GetScreenWidth()/2 + Camera->GetInnerSize();
+
+				float leftAreaY = cameraY - GetScreenHeigth()/2 - Camera->GetInnerSize();
+				float rightAreaY = cameraY - GetScreenHeigth()/2 + Camera->GetInnerSize();
+
+				Camera->SetPosition(clip(Camera->GetXposition(), leftAreaX, rightAreaX),
+									clip(Camera->GetYposition(), leftAreaY, rightAreaY));
+				break;
+			}
+			default:
+				Camera->SetPosition(cameraX - GetScreenWidth()/2, cameraY - GetScreenHeigth()/2);
+				break;
+		}
+	}
+}
+
 SDL_Window *graphics::Screen()
 {
 	return sdlWindow;
@@ -313,7 +351,7 @@ int graphics::GetScreenBpp()
 {
 	return mlScreenBpp;
 }
-camera *graphics::GetCamera()
+cCamera *graphics::GetCamera()
 {
 	return Camera;
 }
@@ -332,4 +370,9 @@ cFontManager *graphics::GetFontManager()
 cTextManager *graphics::GetTextManager()
 {
 	return mpTextManager;
+}
+
+float clip(float n, float lower, float upper)
+{
+	return std::max(lower, std::min(n, upper)); // TODO: C++17 has a clamp function.
 }

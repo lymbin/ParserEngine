@@ -38,17 +38,19 @@
 
 #include "timer.h"
 #include "GraphicTypes.h"
-#include "keys.h"
+#include "MathTypes.h"
+#include "InputTypes.h"
 #include "PhysicsTypes.h"
 #include "Graphics.h"
 #include "Sound.h"
 #include "Input.h"
 #include "Events.h"
 #include "Physics.h"
-
+#include "Gui.h"
+#include "GuiTypes.h"
 
 class graphics;
-class camera;
+class cCamera;
 class cAudio;
 class window;
 

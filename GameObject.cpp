@@ -7,7 +7,7 @@
 
 #include "GameObject.h"
 
-iGameObject::iGameObject(eGameObjectType aType, std::string asName, int alHP) : iUpdateable(asName)
+iGameObject::iGameObject(eGameObjectType aType, std::string asName, int alHP) : iUpdatable(asName)
 {
 	mlVelocity = 0;
 	mGameObjectType = aType;

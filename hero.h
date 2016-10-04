@@ -16,13 +16,13 @@ class hero;
 
 class game;
 
-const unsigned int MAX_HERO_ANIM_SPEED = 30;
+const unsigned int MAX_HERO_ANIM_SPEED = 50;
 
 class hero : public iCharacter
 {
 	game *mpGame;
 public:
-	hero(std::string nam = "Timmi", int hp = 100);
+	hero(std::string asName = "Timmi", int hp = 100);
 	~hero();
 
 	void Move(int aiDirection, int aiAnimation = ANIM_UNKNOWN, int aiAnimpos = 0);
@@ -30,11 +30,12 @@ public:
 	void Sit();
 	void Shoot();
 
-	void OnDraw();	// Перерисовка
-	void Reset();	// Сброс настроек
-	void OnStart();	// Установка начальных данных
-	void OnExit(); // Выполняем при выходе, на последней итерации фреймов или при удалении
-	void Update(); // Обновление данных
+	void OnDraw();		// Перерисовка
+	void Reset();		// Сброс настроек
+	void OnStart();		// Установка начальных данных
+	void OnExit(); 		// Выполняем при выходе, на последней итерации фреймов или при удалении
+	void Update(); 		// Обновление данных
+	void PostUpdate();	// Обновление данных объекта в конце выполнения общего update
 
 	void SetGame(game *apGame);
 	static void CollisionHandler(iCollisionBody *thatBody, PE_Rect CollidedRect, void *CollidedObject, void *data);

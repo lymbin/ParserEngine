@@ -1,8 +1,14 @@
 /*
- * widget.h
+ * widget.h - base class for gui parts.
+ * Widget realization taken from HPL Engine.
  *
  *  Created on: 28.05.2014
- *      Author: dmitry
+ *  	Author: Dmitry Kilchanov <dmitrykilchanov@gmail.com>
+ *
+ *	Copyright 2014-2016 Dmitry Kilchanov <dmitrykilchanov@gmail.com> - Mind Walkers
+ *
+ *	This file is part of Parser Engine
+ *
  */
 
 #ifndef WIDGET_H_
@@ -10,130 +16,64 @@
 
 #include "engine.h"
 
-enum eWidgetType
+
+class cGui;
+
+struct cGuiMessageData
 {
-	eWidgetType_Root,
-	eWidgetType_Window,
-	eWidgetType_Button,
-	eWidgetType_Label,
-	eWidgetType_TextBox,
-	eWidgetType_Slider,
-	eWidgetType_Image,
-
-	eWidgetType_LastEnum
-};
-
-enum eGuiMessage
-{
-	eGuiMessage_MouseMove,
-	eGuiMessage_MouseDown,
-	eGuiMessage_MouseUp,
-	eGuiMessage_MouseDoubleClick,
-	eGuiMessage_MouseEnter,
-	eGuiMessage_MouseLeave,
-
-	eGuiMessage_GotFocus,
-	eGuiMessage_LostFocus,
-
-	eGuiMessage_OnDraw,
-
-	eGuiMessage_ButtonPressed,
-
-	eGuiMessage_TextChange,
-
-	eGuiMessage_CheckChange,
-
-	eGuiMessage_KeyPress,
-
-	eGuiMessage_SliderMove,
-
-	eGuiMessage_SelectionChange,
-
-	eGuiMessage_LastEnum,
-};
-
-/*
-
-class iWidget;
-
-typedef void(*tCallbackFunc)(void *, iWidget *);
-typedef std::list<iWidget *> tWidgetList;
-typedef tWidgetList::iterator tWidgetListIt;
-
-struct cWidgetCallback
-{
-	cWidgetCallback(void *cbObject, tCallbackFunc cbFunc)
+	cGuiMessageData(){}
+	cGuiMessageData(const cVector2f& avPos, const cVector2f& avRel)
 	{
-		mpObject = cbObject;
-		mpFunc = cbFunc;
+		mvPos = avPos;
+        mvRel = avRel;
+	}
+	cGuiMessageData(const cVector2f& avPos,const cVector2f& avRel, int alVal)
+	{
+		mvPos = avPos;
+		mvRel = avRel;
+		mlVal = alVal;
+	}
+	cGuiMessageData(int alVal)
+	{
+		mlVal = alVal;
+	}
+	cGuiMessageData(float afVal)
+	{
+		mfVal = afVal;
+	}
+	cGuiMessageData(const cKeyPress& aKeyPress)
+	{
+		mKeyPress = aKeyPress;
 	}
 
-	void *mpObject;
-	tCallbackFunc mpFunc;
-
+	cVector2f	mvPos;
+	cVector2f	mvRel;
+	int			mlVal;
+	cKeyPress	mKeyPress;
+	float		mfVal;
+	void*		mpData;
+	eGuiMessage mMessage;
 };
+
+class cGuiClipRegion;
+
+//--------------------------------
+//////////////////////
+
+class iWidget;
+class cWidgetCallback;
+
+typedef std::list<iWidget *> tWidgetList;
+typedef tWidgetList::iterator tWidgetListIt;
 
 typedef std::list<cWidgetCallback> tWidgetCallbackList;
 typedef tWidgetCallbackList::iterator tWidgetCallbackListIt;
 
-class iWidget
-{
-	std::vector<tWidgetCallbackList> mvCallbackLists;
+typedef bool(*tCallbackFunc)(void *, iWidget *, cGuiMessageData&);
 
-public:
-	iWidget(eWidgetType aType);
-	virtual ~iWidget();
-
-	void AddCallback(void *cbObject, tCallbackFunc cbFunc);
-
-	// Virtual methods
-	virtual void OnDraw() {}
-
-	virtual bool OnMouseMove() 	{return false;}
-	virtual bool OnMouseDown() 	{return false;}
-	virtual bool OnMouseUp() 	{return false;}
-	virtual bool OnMouseEnter() {return false;}
-	virtual bool OnMouseLeave() {return false;}
-	//
-
-	bool mbVisible;
-	eWidgetType mType;
-};
-
-class cGuiGfxElement
-{
-
-};
-
-class cWidgetButton: public iWidget
-{
-	bool mbPressed;
-
-	bool mbDestroyImage;
-
-
-public:
-	cWidgetButton();
-	~cWidgetButton();
-
-	void SetImage();
-	void OnDraw();
-
-	bool OnMouseMove();
-	bool OnMouseDown();
-	bool OnMouseUp();
-	bool OnMouseEnter();
-	bool OnMouseLeave();
-
-};*/
-
-class cWidget;
-typedef std::list<cWidget *> tWidgetList;
-typedef tWidgetList::iterator tWidgetListIt;
-
-typedef void(*tCallbackFunc)(std::string, void *, cWidget *);
-
-class cGui
+// TODO: To gui.h and gui.cpp. Also it is a manager for all gui parts.
+/*
+class cGuiOld //: public iUpdatable
 {
 public:
 	cGui();
@@ -142,13 +82,67 @@ public:
 	int Init();
 
 	void Update();
-	void Draw();
+	void DrawAll();
 	void Delete();
 
-	tWidgetList mWidgetsList;
-	input *mpInput;
-};
+	// Create widgets for this set
+	cWidgetButton *CreateWidgetButton();
 
+	void DestroyWidget(iWidget *apWidget);
+
+	////////////////////////////////////
+	// Properties
+	void SetActive(bool active);
+	bool IsActive(){return mActive;}
+
+	void SetDrawMouse(bool drawMouse);
+	bool GetDrawMouse(){ return mDrawMouse;}
+
+	bool HasFocus();
+
+private:
+	void AddWidget(iWidget *apWidget,iWidget *apParent);
+
+	bool OnMouseMove(cGuiMessageData &aData);
+	bool OnMouseDown(cGuiMessageData &aData);
+	bool OnMouseUp(cGuiMessageData &aData);
+	bool OnMouseDoubleClick(cGuiMessageData &aData);
+
+	bool OnKeyPress(cGuiMessageData &aData);
+
+	bool DrawMouse(iWidget* apWidget,cGuiMessageData& aData);
+
+	// TODO: add skin
+	std::string mName;
+	cSound *mSound;
+
+	iWidget *mFocusedWidget;
+
+	iWidget *mWidgetRoot; // TODO: move this to guiSet.
+	tWidgetList mWidgetsList;
+	bool mActive;
+	bool mDrawMouse;
+};
+*/
+// set of graphics, sounds and other for all gui elements.
+/*
+class cGuiSet
+{
+public:
+	cGuiSet(const std::string &asName, cGui *apGui);
+	~cGuiSet();
+
+	//////////
+
+	void Update();
+
+	void DrawAll();
+
+	bool SendMessage(eGuiMessage, cGuiMessageData &aData);
+};
+*/
+
+// Used for callback for a widgets events.
 struct cWidgetCallback
 {
 	cWidgetCallback(void *cbObject, tCallbackFunc cbFunc)
@@ -160,57 +154,152 @@ struct cWidgetCallback
 	tCallbackFunc mpFunc;
 };
 
-class cWidget
+typedef std::vector<tWidgetCallbackList> tCallbackLists;
+typedef std::vector<tWidgetCallbackList>::iterator tCallbackListIt;
+
+// Базовый класс GUI виджетов. Каждый виджет имеет коробку WidgetBox
+// TODO: добавить iUpdatable как базовый?
+class iWidget
 {
+	friend class cGui;
 protected:
 	PE_Rect WidgetBox;
+	cVector2f mvPosition;
+	cVector2f mvGlobalPosition;
+	cVector2f mvSize;
 
-	cWidget *mpParent;
 	cGui *mpGui;
-	//tWidgetList mChildList;
+	tWidgetList mChildList;
 
-	bool mbHasParent;
 	std::string msName;
 
+	bool mbEnabled;
 	bool mbVisible;
-	eWidgetType mType;
+	eWidgetType mType; // TODO: удалить типы виджетов и сделать их универсальными.
 
 	bool mbMouseIsOver;
 
-	std::map <eGuiMessage, cWidgetCallback *> mCallbackList;
-	std::map <eGuiMessage, cWidgetCallback *>::iterator mCallbackListIt;
+	std::string msText;
+
+	cTexture *mpTexture;
+
+
+	tCallbackLists mCallbackLists;
+	tCallbackListIt mCallbackListIt;
+
+	virtual void OnChangeSize() {}
+	virtual void OnChangePosition() {}
+	virtual void OnChangeText() {}
+
+	virtual void OnInit() {}
+	virtual void OnDraw(float afTimeStep) {}
+	virtual void OnUpdate(float afTimeStep) {}
+
+	virtual bool OnMessage(eGuiMessage aMessage, cGuiMessageData &aData){return false;}
+	virtual bool OnMouseMove(cGuiMessageData &aData){return false;}
+	virtual bool OnMouseDown(cGuiMessageData &aData){return false;}
+	virtual bool OnMouseUp(cGuiMessageData &aData){return false;}
+	virtual bool OnMouseDoubleClick(cGuiMessageData &aData){return false;}
+	virtual bool OnMouseEnter(cGuiMessageData &aData){return false;}
+	virtual bool OnMouseLeave(cGuiMessageData &aData){return false;}
+
+	virtual bool OnGotFocus(cGuiMessageData &aData);
+	virtual bool OnLostFocus(cGuiMessageData &aData){return false;}
+
+	virtual bool OnKeyPress(cGuiMessageData &aData){return false;}
+
+	// Private Helper functions
+	cVector2f WorldToLocalPosition(const cVector2f &avPos);
+	cVector2f GetPosRelativeToMouse(cGuiMessageData &aData);
+
+	//The order must be like this:
+	//Borders: Right, Left, Up and Down
+	//Corners: LEftUp, RightUp, RightDown and LEftDown.
+/*
+	void DrawBordersAndCorners(cGuiGfxElement *apBackground,
+								cGuiGfxElement **apBorderVec,cGuiGfxElement **apCornerVec,
+								const cVector3f &avPosition, const cVector2f &avSize);
+
+	void DrawSkinText(const tWString& asText, eGuiSkinFont aFont,const cVector2f& avPosition,
+			eTextAlignment aAlign = eFontAlign_Left);
+
+	void DrawDefaultText(	const tWString& asText,
+							const cVector3f& avPosition,eFontAlign aAlign);
+*/
+	void SetPositionUpdated();
+
+	void LoadGraphics();
+
 
 public:
-	cWidget(eWidgetType aType, float W, float H, float X, float Y);
-	virtual ~cWidget();
+	iWidget(eWidgetType aType, float W, float H, float X, float Y);
+	virtual ~iWidget();
+
+	//General
+	void Update(float afTimeStep);
+
+	void Draw(float afTimeStep);
+
+	bool ProcessMessage(eGuiMessage aMessage, cGuiMessageData &aData);
 
 	void AddCallback(eGuiMessage aMessage, void *cbObject, tCallbackFunc cbFunc);
 
-	cWidget *GetParent();
+	void Init();
 
+	// Public Helper functions
+	bool PointIsInside(const cVector2f& avPoint, bool abOnlyClipped);
+
+	// Работа с наследниками.
+	void AttachChild(iWidget *apChild);
+	void RemoveChild(iWidget *apChild);
+
+	//Properties
 	bool IsVisible();
-	bool HasParent();
+	void SetVisible(bool abx);
+	bool IsEnabled();
+	void SetEnabled(bool abX);
 
-	virtual void OnInit() {}
-	virtual void OnDraw() {}
-	virtual void OnUpdate() {}
+	bool HasFocus();
 
+	void SetName(const std::string &asName);
+	const std::string &GetName();
+
+	void SetText(const std::string &asText);
+	const std::string &GetText();
+
+	const cColor &GetDefaultFontColor();
+	void SetDefaultFontColot(const cColor &aColor);
+
+	// TODO: add set and get font size
+
+	void SetPosition(const cVector2f &avPos);
+	void SetGlobalPosition(const cVector2f &aPos);
+	const cVector2f &GetLocalPosition() { return mvPosition; }
+	const cVector2f &GetGlobalPosition() { return mvGlobalPosition; }
+
+	void SetSize(const cVector2f &avSize);
+	cVector2f GetSize() { return mvSize; }
+
+	bool IsMouseOver() { return mbMouseIsOver; }
+
+	iWidget *mpParent;
+
+private:
+	void SetMouseIsOver(bool abX){ mbMouseIsOver = abX; }
+	bool ProcessCallbacks(eGuiMessage aMessage, cGuiMessageData &aData);
 };
-class cButton: public cWidget
+
+/*
+class cLabel: public cWidget
 {
-	bool mbPressed;
-	cTexture *mpTexture;
-
 public:
-	cButton(float W, float H, float X, float Y);
-	~cButton();
-
-	void SetImage(cTexture *aTexture);
+	cLabel(float W, float H, float X, float Y);
+	~cLabel();
 
 	void OnInit();
 	void OnDraw();
 	void OnUpdate();
 };
-
+*/
 
 #endif /* WIDGET_H_ */
