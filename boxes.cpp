@@ -50,10 +50,7 @@ void cStaticBox::Update()
 
 void cStaticBox::PostUpdate()
 {
-	SetBox(GetBox().Width, GetBox().Heigth,
-			GetBox().X + mpGame->Graphics->GetCamera()->GetXposition(),
-			GetBox().Y + mpGame->Graphics->GetCamera()->GetYposition());
-
+	SetBox(graphics::Instance()->GetCameraRelativeBox(GetBox()));
 }
 
 void cStaticBox::CollisionHandler(iCollisionBody *thisBody, PE_Rect CollidedRect, void *CollidedObject, void *data)

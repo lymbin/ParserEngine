@@ -53,6 +53,16 @@ struct PE_Rect
 	GLfloat Y;		/**< Координата Y верхней левой точки  */
 	GLfloat Width; 	/**< Ширина прямоугольника 	*/
 	GLfloat Heigth; /**< Высота прямоугольника 	*/
+
+	PE_Rect& operator=(const PE_Rect& right)
+	{
+		X = right.X;
+		Y = right.Y;
+		Width = right.Width;
+		Heigth = right.Heigth;
+
+		return *this;
+	}
 };
 
 typedef std::vector<PE_Rect> tRectVector;
@@ -65,6 +75,16 @@ struct PE_Tetra
 	GLfloat Right;		/**< Координата крайней правой точки  */
 	GLfloat Top; 		/**< Координата крайней верхней точки  */
 	GLfloat Bottom;		/**< Координата крайней нижней точки  */
+
+	PE_Tetra& operator=(const PE_Tetra& right)
+	{
+		Left = right.Left;
+		Right = right.Right;
+		Top = right.Top;
+		Bottom = right.Bottom;
+
+		return *this;
+	}
 };
 
 enum eTextAlignment {

@@ -11,6 +11,9 @@
 
 using namespace std;
 
+// Graphics singleton
+graphics *graphics::_self = 0;
+
 float clip(float n, float lower, float upper);
 
 graphics::graphics()
@@ -35,10 +38,19 @@ graphics::graphics()
 
 	Camera = new cCamera();
 	_Window = new window(this);
+
+	if (_self) {
+		delete _self;
+		_self = 0;
+	}
+
+	_self = this; // TODO: check how safe use it.
 }
 graphics::~graphics()
 {
 	CleanUp();
+
+	_self = 0;
 
 #ifdef DEBUG_SYS
 	cout << "Graphics clean up - success" << endl;
@@ -300,9 +312,11 @@ void graphics::SetCurrentTexture(GLuint texture)
 // Устанавливаем положение камеры
 void graphics::SetCameraPosition(int cameraX, int cameraY)
 {
-	if (Camera) {
+	if (Camera)
+	{
 		// Можно добавить сюда тип камеры
-		switch (Camera->GetCameraMoveType()) {
+		switch (Camera->GetCameraMoveType())
+		{
 			case eCameraMoveTypeFluid:
 			{
 				float distX = Camera->GetXposition() - cameraX + GetScreenWidth()/2;
@@ -328,6 +342,17 @@ void graphics::SetCameraPosition(int cameraX, int cameraY)
 				break;
 		}
 	}
+}
+
+PE_Rect graphics::GetCameraRelativeBox(PE_Rect aBox)
+{
+	PE_Rect cameraRBox = aBox;
+	if (Camera)
+	{
+		cameraRBox.X += Camera->GetXposition();
+		cameraRBox.Y += Camera->GetYposition();
+	}
+	return cameraRBox;
 }
 
 SDL_Window *graphics::Screen()

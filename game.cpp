@@ -167,7 +167,6 @@ void game::MainLoop()
 	Graphics->SwapBuffers();
 
 
-
 	fps.start();
 
 #ifdef DEBUG_SYS

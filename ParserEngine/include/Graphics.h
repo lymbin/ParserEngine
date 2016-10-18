@@ -70,6 +70,7 @@ class graphics: public iLowLevelGraphics
 
 	cCamera *Camera;
 	window *_Window;
+	static graphics *_self;
 
 	int mbFullScreen;
 
@@ -79,6 +80,11 @@ class graphics: public iLowLevelGraphics
 public:
 	graphics();
 	~graphics();
+
+	static graphics* Instance()
+	{
+		return _self;
+	}
 
 	// Инициализируем все внутренние подсистемы
 	int Init(int W = SYS_WIDTH, int H = SYS_HEIGTH, int BPP = SYS_BPP, int abFullScreen = SYS_FULLSCREEN);
@@ -113,8 +119,14 @@ public:
 	// Устанавливаем текущую забинженную текстуру
 	void SetCurrentTexture(GLuint texture);
 
-	// Устанавливаем положение камеры
+	// Устанавливаем положение камеры центрированное относительно бокса
+	void SetCameraPosition(PE_Rect aBox);
+
+	// Устанавливаем положение камеры с центром в точке (cameraX, cameraY)
 	void SetCameraPosition(int cameraX, int cameraY);
+
+	// Возвращаем бокс пере
+	PE_Rect GetCameraRelativeBox(PE_Rect aBox);
 
 	SDL_Window *Screen();
 	GLuint GetCurrentTexture();

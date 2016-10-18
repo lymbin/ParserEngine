@@ -11,6 +11,9 @@
 
 #include "Camera.h"
 
+#define SYS_CAMERA_INNER_SIZE 100;
+#define SYS_CAMERA_FLUID_SIZE 0.2;
+
 //////////////////////////////////////////////////////////////////////////
 // CONSTRUCTORS
 //////////////////////////////////////////////////////////////////////////
@@ -22,8 +25,8 @@ cCamera::cCamera()
 	gCameraX = 0;
 	gCameraY = 0;
 	mCameraMoveType = eCameraMoveTypeImmediatly;
-	mInnerSize = 0;
-	mFluidSize = 1.0;
+	mInnerSize = SYS_CAMERA_INNER_SIZE;
+	mFluidSize = SYS_CAMERA_FLUID_SIZE;
 }
 
 //-----------------------------------------------------------------------
