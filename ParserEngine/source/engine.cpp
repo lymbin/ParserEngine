@@ -23,13 +23,12 @@ int engine::init()
 
 	//Забиваем графику
 	Graphics = new graphics();
-	if(Graphics->Init() < 0)
+	if (Graphics->Init() < 0)
 		return -1;
 
-	if(SYS_AUDIO)
+	if (SYS_AUDIO)
 	{
-		Audio = new cAudio();
-		if(Audio->init() < 0)
+		if(Audio()->Init() < 0)
 			return -1;
 	}
 
@@ -63,10 +62,9 @@ void engine::CleanUp()
 		delete Graphics;
 		Graphics = 0;
 	}
-	if(Audio)
+	if (Audio())
 	{
-		delete Audio;
-		Audio = 0;
+		cAudio::DeleteInstance();
 	}
 	if(Input)
 	{
@@ -94,11 +92,12 @@ void engine::CleanUp()
 #endif
 
 }
+
 engine::engine()
 {
 	//Конструктор
 	Graphics = 0;
-	Audio = 0;
+	Audio();
 	Input = 0;
 	Events = 0;
 	Physics = 0;
@@ -107,10 +106,16 @@ engine::engine()
 	//
 	frame = 0;
 }
+
 engine::~engine()
 {
 	//Деструктор
 #ifdef DEBUG_SYS
 	cout << "Engine completely clean up - success" << endl;
 #endif
+}
+
+cAudio *engine::Audio()
+{
+	return cAudio::Instance();
 }

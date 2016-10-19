@@ -210,7 +210,7 @@ void game::MainLoop()
 		}
 		if(MainMusic && Input->IsKeyDown(KEY_p))
 		{
-			if(!MainMusic->IsPaused())
+			if(!Audio()->IsPaused())
 			{
 				MainMusic->Pause();
 			}
@@ -382,8 +382,7 @@ int game::CreatingObjects()
 	}
 	if(!MainMusic && SYS_AUDIO)
 	{
-		MainMusic = new cMusic("data/sounds/Zhenya_Sazonov-Flying.ogg");
-		MainMusic->SetAudio(Audio);
+		MainMusic = Audio()->CreateMusic("data/sounds/Zhenya_Sazonov-Flying.ogg");
 	}
 
 	return 0;

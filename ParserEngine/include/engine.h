@@ -71,9 +71,11 @@ public:
 	// Очищаем все системы движка
 	void CleanUp();
 
+
+
 	//Компоненты
 	graphics *Graphics;
-	cAudio *Audio;
+	cAudio 		*Audio();
 	input *Input;
 	events *Events;
 	cPhysics *Physics;
