@@ -2,7 +2,11 @@
  * game.cpp
  *
  *  Created on: 08.05.2014
- *      Author: dmitry
+ *  	Author: Dmitry Kilchanov <dmitrykilchanov@gmail.com>
+ *
+ *	Copyright 2014-2016 Dmitry Kilchanov <dmitrykilchanov@gmail.com> - Mind Walkers
+ *
+ *	This file is part of Parser Engine
  */
 
 #include "game.h"
@@ -58,7 +62,7 @@ void game::render()
 
 	int GuiAlignment = eTextAlignment_Left | eTextAlignment_Bottom;
 	static bool killed = false;
-	if(Hero)
+	if (Hero)
 	{
 		if(Hero->GetHealth() > 0)
 		{
@@ -72,7 +76,7 @@ void game::render()
 		}
 	}
 
-	if(DynamicTextFont)
+	if (DynamicTextFont)
 	{
 		PE_Rect ScreenRect;
 		std::stringstream sstream;
@@ -97,22 +101,29 @@ void game::render()
 			DynamicTextFont->Write(sstream.str(), ScreenRect, GuiAlignment, &texD);
 			goto EndRender;
 		}
-		else
-		{
-			if(Hero)
-				sstream << "Hero Speed: " << Hero->GetVelocity() << " Hero Health: " << Hero->GetHealth();
-			else
-			{
-				sstream << "Mind Walkers Production 2014-2016.";
-			}
 
-			DynamicTextFont->Write(sstream.str(), ScreenRect, GuiAlignment, &texD);
-		}
-
-		if(StaticBox)
+		if (StaticBox)
 		{
 			StaticBox->OnDraw();
 			DynamicTextFont->Write("DEMO!", StaticBox->GetBox(), eTextAlignment_Centered_H | eTextAlignment_Centered_V, &tex);
+		}
+
+		if (!killed)
+		{
+			if (Hero)
+				sstream << "Hero Speed: " << Hero->GetVelocity() << " Hero Health: " << Hero->GetHealth();
+			else
+				sstream << "Mind Walkers Production 2014-2016.";
+
+			DynamicTextFont->Write(sstream.str(), ScreenRect, GuiAlignment, &texD);
+
+			sstream.str(string());
+
+			if (MainPlaylist)
+				sstream << "Current music: " << MainPlaylist->GetCurrentMusic()->GetName();
+
+			DynamicTextFont->Write(sstream.str(), ScreenRect, GuiAlignment, &texD,
+					0, -DynamicTextFont->CalcTextHeigth("Hero Speed:"));
 		}
 	}
 
@@ -188,8 +199,8 @@ void game::MainLoop()
 	//Главный цикл приложения
 	while(!game::quit)
 	{
-		if(MainMusic && !Mix_PlayingMusic())
-			MainMusic->Play(0);
+		if (MainPlaylist && !Mix_PlayingMusic())
+			MainPlaylist->Play();
 
 		sstream.str(string());
 		Graphics->ClearScreen();
@@ -208,15 +219,27 @@ void game::MainLoop()
 			quit = true;
 			break;
 		}
-		if(MainMusic && Input->IsKeyDown(KEY_p))
+
+		if (MainPlaylist)
 		{
-			if(!Audio()->IsPaused())
+			if (Input->IsKeyDown(KEY_p))
 			{
-				MainMusic->Pause();
+				if(!Audio()->IsPaused())
+				{
+					MainPlaylist->Pause();
+				}
+				else
+				{
+					MainPlaylist->Resume();
+				}
 			}
-			else
+			else if (Input->IsKeyDown(KEY_n))
 			{
-				MainMusic->Resume();
+				MainPlaylist->Next();
+			}
+			else if (Input->IsKeyDown(KEY_b))
+			{
+				MainPlaylist->Prev();
 			}
 		}
 
@@ -380,9 +403,11 @@ int game::CreatingObjects()
 			StaticBox->CALLBACK(cStaticBox::CollisionHandler, StaticBox, 0);
 		}
 	}
-	if(!MainMusic && SYS_AUDIO)
+	if (!MainPlaylist && SYS_AUDIO)
 	{
-		MainMusic = Audio()->CreateMusic("data/sounds/Zhenya_Sazonov-Flying.ogg");
+		MainPlaylist = Audio()->CreatePlaylist();
+		//MainPlaylist->AddMusic("data/sounds/test.ogg"); // TODO: for test playlist
+		MainPlaylist->AddMusic("data/sounds/Zhenya_Sazonov-Flying.ogg");
 	}
 
 	return 0;
@@ -408,6 +433,7 @@ int game::LoadTextures()
 
 	return 0;
 }
+
 void game::FreeTextures()
 {
 #ifdef DEBUG_SYS
@@ -421,6 +447,7 @@ void game::FreeTextures()
 		delete Mmenu.MainMenuFont;
 	Mmenu.MainMenuFont = 0;
 }
+
 void game::FreeObjects()
 {
 #ifdef DEBUG_SYS
@@ -442,12 +469,9 @@ void game::FreeObjects()
 	{
 		delete StaticBox;
 	}
-	if(MainMusic)
-	{
-		delete MainMusic;
-	}
 	delete Collision;
 }
+
 game::game()
 {
 	Mmenu.background = 0;
@@ -458,7 +482,7 @@ game::game()
 	DynamicTextFont = 0;
 	StaticBox = 0;
 	Collision = new cCollision();
-	MainMusic = 0;
+	MainPlaylist = 0;
 }
 game::~game()
 {

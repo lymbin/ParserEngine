@@ -1,11 +1,16 @@
 /*
- * sound.cpp
+ * sound.cpp - music and sound system
  *
  *  Created on: 17.04.2014
- *      Author: dmitry
+ *  	Author: Dmitry Kilchanov <dmitrykilchanov@gmail.com>
+ *
+ *	Copyright 2014-2016 Dmitry Kilchanov <dmitrykilchanov@gmail.com> - Mind Walkers
+ *
+ *	This file is part of Parser Engine
  */
 
 #include "Sound.h"
+#include "CommonStringFunctions.h"
 
 using namespace std;
 
@@ -32,7 +37,7 @@ cSound::cSound(string file)
 
 cSound::~cSound()
 {
-	if(Sound)
+	if (Sound)
 	{
 		Mix_FreeChunk(Sound);
 		Sound = 0;
@@ -43,13 +48,15 @@ cSound::~cSound()
 
 cMusic::cMusic(cPlaylist *aParent, std::string file)
 {
-	Music = 0;
+	mMusic = 0;
 	mFileName = file;
 	mParent = aParent;
 
-	if(file != "")
+	if (file != "")
 	{
 		Open(file);
+		mName = FindLastNCopyAfter(file, "/");
+		FindNReplace(mName, "/", "");
 	}
 }
 
@@ -57,11 +64,11 @@ cMusic::cMusic(cPlaylist *aParent, std::string file)
 
 cMusic::~cMusic()
 {
-	if(Music)
+	if (mMusic)
 	{
 		Stop();
-		Mix_FreeMusic(Music);
-		Music = 0;
+		Mix_FreeMusic(mMusic);
+		mMusic = 0;
 	}
 }
 //-----------------------------------------------------------------------
@@ -195,13 +202,12 @@ cPlaylist *cAudio::CreatePlaylist()
 
 //-----------------------------------------------------------------------
 
+// Создаём плейлист и добавляем в него музыку.
 cMusic *cAudio::CreateMusic(std::string file)
 {
-	// TODO: вообще-то необходимо создать плейлист с одной записью и вывести указатель на неё.
 	cPlaylist *aPlaylist = new cPlaylist();
 	mPlaylists.push_back(aPlaylist);
-	cMusic *aMusic = new cMusic(aPlaylist, file);
-	aPlaylist->AddMusic(aMusic);
+	cMusic *aMusic = aPlaylist->AddMusic(file);
 	return aMusic;
 }
 
@@ -282,10 +288,10 @@ void cAudio::StopMusic()
 
 //-----------------------------------------------------------------------
 
-void cAudio::PlayLoopMusic()
+void cAudio::PlayMusic()
 {
-	// Проигрывание музыки в определённом порядке
-	// TODO: подумать над этой функцией
+	if (mCurrentPlaylist)
+		mCurrentPlaylist->Play();
 }
 
 //-----------------------------------------------------------------------
@@ -297,6 +303,7 @@ void cAudio::PauseMusic()
 	{
 		if(!Mix_PausedMusic())
 		{
+			mIsPaused = true;
 			Mix_PauseMusic();
 		}
 	}
@@ -311,6 +318,7 @@ void cAudio::ResumeMusic()
 	{
 		if(Mix_PausedMusic())
 		{
+			mIsPaused = false;
 			Mix_ResumeMusic();
 		}
 	}
@@ -328,96 +336,6 @@ void cAudio::DeleteAllSounds()
 	}
 
 	mSounds.clear();
-}
-
-//-----------------------------------------------------------------------
-
-//Добавляем звук в вектор для управления
-void cAudio::ManageSound(cSound *apSound)
-{
-	if(!apSound)
-		return;
-
-	tSoundListIt It = mSounds.begin();
-	for( ; It != mSounds.end(); ++It)
-	{
-		if((*It) == apSound)
-		{
-			return;
-		}
-	}
-
-	mSounds.push_back(apSound);
-}
-
-//-----------------------------------------------------------------------
-
-// Удаляем звук из вектора управления
-void cAudio::UnManageSound(cSound *apSound)
-{
-	// Внимание: Это только удалит звук из вектора управления, но не удалит сам звук
-	// 	для этого нужно использовать delete - внутри деструктора вызовется Delete() и сделает всё необходимое
-	// Лучше использовать delete вместо UnManageTexture - внутри деструктора вызовется UnManage, но можно и не удалять объект
-	// 	менеджер сам всё удалит при выходе из программы/удалении менеджера
-
-	if(!apSound || mSounds.empty())
-		return;
-
-	tSoundListIt It = mSounds.begin();
-	for( ; It != mSounds.end(); ++It)
-	{
-		if((*It) == apSound)
-		{
-			mSounds.erase(It);
-			return;
-		}
-	}
-}
-
-//-----------------------------------------------------------------------
-
-// Функции управления памятью музыки
-void cAudio::ManageMusic(cMusic *apMusic)
-{
-	//Добавляем звук в вектор для управления
-	if(!apMusic)
-		return;
-
-	tMusicListIt It = mMusic.begin();
-	for( ; It != mMusic.end(); ++It)
-	{
-		if((*It) == apMusic)
-		{
-			return;
-		}
-	}
-
-	mMusic.push_back(apMusic);
-
-}
-
-//-----------------------------------------------------------------------
-
-void cAudio::UnManageMusic(cMusic *apMusic)
-{
-	// Удаляем музыку из вектора управления
-	// Внимание: Это только удалит музыку из вектора управления, но не удалит саму музыку
-	// 	для этого нужно использовать delete - внутри деструктора вызовется Delete() и сделает всё необходимое
-	// Лучше использовать delete вместо UnManageTexture - внутри деструктора вызовется UnManage, но можно и не удалять объект
-	// 	менеджер сам всё удалит при выходе из программы/удалении менеджера
-
-	if(!apMusic || mMusic.empty())
-		return;
-
-	tMusicListIt It = mMusic.begin();
-	for( ; It != mMusic.end(); ++It)
-	{
-		if((*It) == apMusic)
-		{
-			mMusic.erase(It);
-			return;
-		}
-	}
 }
 
 //-----------------------------------------------------------------------
@@ -476,18 +394,16 @@ void cSound::Play(unsigned int Repeats)
 
 int cMusic::Open(std::string file)
 {
-	Music = Mix_LoadMUS(file.c_str());
+	mMusic = Mix_LoadMUS(file.c_str());
 
-	if(!Music)
+	if (!mMusic)
 	{
 #ifdef DEBUG_ERRORS
 		cout << "Open music - failure : " << file << endl;
 #endif
 		return -1;	//TODO: перенести в мэйн Audio, т.к. останавливает текущую проигрываемую музыку, а не эту
-		if(Mix_PlayingMusic())
-		{
+		if (Mix_PlayingMusic())
 			Mix_HaltMusic();
-		}
 	}
 
 	mFileName = file;
@@ -497,15 +413,22 @@ int cMusic::Open(std::string file)
 
 //-----------------------------------------------------------------------
 
+cPlaylist *cMusic::Playlist()
+{
+	return mParent;
+}
+
+//-----------------------------------------------------------------------
+
 void cMusic::Play(unsigned int Repeats)
 {
-	if(Music)
+	if (mMusic)
 	{
-		if(Mix_PlayingMusic())
+		if (Mix_PlayingMusic())
 		{
 			Stop();
 		}
-		if(Mix_PlayMusic(Music, Repeats))
+		if (Mix_PlayMusic(mMusic, Repeats))
 		{
 			std::cout << "Unable to play " << mFileName << std::endl;
 		}
@@ -516,63 +439,97 @@ void cMusic::Play(unsigned int Repeats)
 
 void cMusic::Pause()
 {
-	//TODO: перенести в мэйн Audio, т.к. паузит текущую проигрываемую музыку, а не эту
-	if(Mix_PlayingMusic())
-	{
-		 if(!Mix_PausedMusic())
-		 {
-			 Mix_PauseMusic();
-		 }
-	}
+	cAudio::Instance()->PauseMusic();
 }
 
 //-----------------------------------------------------------------------
 
 void cMusic::Resume()
 {
-	//TODO: перенести в мэйн Audio, т.к. возобновляет текущую проигрываемую музыку, а не эту
-	if(Mix_PlayingMusic())
-	{
-		 if(Mix_PausedMusic())
-		 {
-			 Mix_ResumeMusic();
-		 }
-	}
+	cAudio::Instance()->ResumeMusic();
 }
 
 //-----------------------------------------------------------------------
 
-void cPlaylist::Play()
+std::string cMusic::GetName()
 {
+	return mName;
+}
 
+//-----------------------------------------------------------------------
+
+void cPlaylist::Play(bool aPlayBack)
+{
+	if (!mMusic.empty()) {
+		if (!aPlayBack)
+			Next();
+		else
+			Prev();
+	}
+}
+//-----------------------------------------------------------------------
+
+void cPlaylist::Play(int aMusicId)
+{
+	mMusic[aMusicId]->Play();
 }
 
 //-----------------------------------------------------------------------
 
 void cPlaylist::Pause()
 {
-
+	cAudio::Instance()->PauseMusic();
 }
 
 //-----------------------------------------------------------------------
 
 void cPlaylist::Resume()
 {
-
+	cAudio::Instance()->ResumeMusic();
 }
 
 //-----------------------------------------------------------------------
 
 void cPlaylist::Next()
 {
-
+	if (!mMusic.empty())
+	{
+		Stop();
+		tMusicMapIt It = mMusic.end();
+		--It;
+		if (mCurrentMusic == It->first)
+		{
+			mCurrentMusic = mMusic.begin()->first;
+			Play(mCurrentMusic);
+		}
+		else
+		{
+			mCurrentMusic += 1;
+			Play(mCurrentMusic);
+		}
+	}
 }
 
 //-----------------------------------------------------------------------
 
 void cPlaylist::Prev()
 {
-
+	if (!mMusic.empty())
+	{
+		Stop();
+		if (mCurrentMusic == mMusic.begin()->first)
+		{
+			tMusicMapIt It = mMusic.end();
+			--It;
+			mCurrentMusic = It->first;
+			Play(mCurrentMusic);
+		}
+		else
+		{
+			mCurrentMusic -= 1;
+			Play(mCurrentMusic);
+		}
+	}
 }
 
 //-----------------------------------------------------------------------
@@ -584,14 +541,29 @@ bool cAudio::IsPaused()
 
 //-----------------------------------------------------------------------
 
+cMusic *cPlaylist::AddMusic(std::string aFile)
+{
+	cMusic *aMusic = new cMusic(this, aFile);
+	AddMusic(aMusic);
+	return aMusic;
+}
+
 void cPlaylist::AddMusic(cMusic *aMusic, int aId)
 {
 	if (!aMusic)
 		return;
 
+	int newId = aId;
+
 	if (!mMusic.empty())
 	{
-		if (mMusic.find(aId)->second)
+		if (newId < 0)
+		{
+			tMusicMapIt It = mMusic.end();
+			It--;
+			newId = It->first + 1;
+		}
+		else if (mMusic.find(aId)->second)
 		{
 			if (mCurrentMusic == aId)
 			{
@@ -603,8 +575,16 @@ void cPlaylist::AddMusic(cMusic *aMusic, int aId)
 
 		}
 	}
+	else if (newId < 0)
+	{
+		newId = 0;
+	}
 
-	mMusic.insert(std::pair<int, cMusic *>(aId, aMusic));
+#ifdef DEBUG_ERRORS
+		cout << "Music id " << newId << endl;
+#endif
+
+	mMusic.insert(std::pair<int, cMusic *>(newId, aMusic));
 }
 
 //-----------------------------------------------------------------------

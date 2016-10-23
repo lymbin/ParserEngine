@@ -2,7 +2,11 @@
  * game.h
  *
  *  Created on: 18.04.2014
- *      Author: dmitry
+ *  	Author: Dmitry Kilchanov <dmitrykilchanov@gmail.com>
+ *
+ *	Copyright 2014-2016 Dmitry Kilchanov <dmitrykilchanov@gmail.com> - Mind Walkers
+ *
+ *	This file is part of Parser Engine
  */
 
 #ifndef GAME_H_
@@ -53,16 +57,18 @@ public:
 };
 class game: public engine
 {
-	static bool quit;
-	static bool timer_running;
-	MainMenu Mmenu;
-	game_gui *Gui;
-	hero *Hero; // TODO: rename to player
-	iCollisionLayer *layer;
-	cCollision *Collision;
-	cStaticBox *StaticBox;
-	font 	*DynamicTextFont;
-	cMusic *MainMusic;
+	static bool 		quit;
+	static bool 		timer_running;
+
+	MainMenu 			Mmenu;
+	game_gui 			*Gui;
+	hero 				*Hero; // TODO: rename to player
+	iCollisionLayer 	*layer;
+	cCollision 			*Collision;
+	cStaticBox 			*StaticBox;
+	font 				*DynamicTextFont;
+	//cMusic 			*MainMusic;
+	cPlaylist			*MainPlaylist;
 
 
 public:

@@ -15,11 +15,11 @@
 - 2D collision system.
 - Graphics primitives support.
 - Animation support.
+- Game camera.
 
 ##Features in development:
 - OpenGL 3.
 - Sound system.
 - UI widgets.
-- Game camera.
 - More graphics primitives.
 - Mobile platform support.

@@ -38,4 +38,6 @@
 
 #include "Updater.h"
 
+#include "Level.h"
+
 #endif /* PE_H_ */

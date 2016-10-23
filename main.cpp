@@ -2,7 +2,11 @@
  * main.cpp
  *
  *  Created on: 17.04.2014
- *      Author: dmitry
+ *  	Author: Dmitry Kilchanov <dmitrykilchanov@gmail.com>
+ *
+ *	Copyright 2014-2016 Dmitry Kilchanov <dmitrykilchanov@gmail.com> - Mind Walkers
+ *
+ *	This file is part of Parser Engine
  */
 
 #include "game.h"
@@ -28,6 +32,9 @@ int main(int argc, char *argv[])
 	Game->CleanUp();
 	delete Game;
 
+#ifdef DEBUG_SYS
+	cout << "Game cleanup - success" << endl;
+#endif
 	return 0;
 }
 

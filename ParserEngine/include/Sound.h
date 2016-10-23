@@ -1,8 +1,12 @@
 /*
- * Sound.h
+ * Sound.h - music and sound system
  *
  *  Created on: 30.05.2014
- *      Author: dmitry
+ *  	Author: Dmitry Kilchanov <dmitrykilchanov@gmail.com>
+ *
+ *	Copyright 2014-2016 Dmitry Kilchanov <dmitrykilchanov@gmail.com> - Mind Walkers
+ *
+ *	This file is part of Parser Engine
  */
 
 #ifndef SOUND_H_
@@ -47,23 +51,25 @@ class cMusic
 	friend cAudio;
 	friend cPlaylist;
 
-	Mix_Music *Music;
+	Mix_Music *mMusic;
 
 	std::string mFileName;
+	std::string mName;
 
 	cPlaylist *mParent;
 
-	void Stop();
-
-public:
 	cMusic(cPlaylist *aParent, std::string file = "");
 	~cMusic();
 
+	void Stop();
+public:
 	int Open(std::string file);
+	cPlaylist *Playlist();
 
 	void Play(unsigned int Repeats = 0);
 	void Pause();
 	void Resume();
+	std::string GetName();
 };
 
 typedef std::list<cSound *> tSoundList;
@@ -87,21 +93,23 @@ class cPlaylist {
 
 	void Stop();
 public:
-	void Play();
+	void Play(bool aPlayBack = false);
+	void Play(int aMusicId);
 	void Pause();
 	void Resume();
 
 	void Next();
 	void Prev();
 
-	void AddMusic(cMusic *aMusic, int aId = 0);
-	void RemoveMusic(cMusic *aMusic);
-	void RemoveMusic(int aId);
+	cMusic 	*AddMusic(std::string aFile);
+	void 	AddMusic(cMusic *aMusic, int aId = -1);
+	void 	RemoveMusic(cMusic *aMusic);
+	void 	RemoveMusic(int aId);
 
-	cMusic *GetCurrentMusic();
-	void SetCurrentMusic(cMusic *aMusic);
-	void SetCurrentMusic(int aId = 0);
-	int GetMusicId(cMusic *aMusic);
+	cMusic 	*GetCurrentMusic();
+	void 	SetCurrentMusic(cMusic *aMusic);
+	void 	SetCurrentMusic(int aId = 0);
+	int 	GetMusicId(cMusic *aMusic);
 };
 
 typedef std::list<cPlaylist *> tPlaylistList;
@@ -116,7 +124,7 @@ class cAudio
 	bool 			mIsPaused;
 
 	tSoundList 		mSounds;
-	tMusicList 		mMusic;				// store music not in playlist (TODO: remove it cause playlist can hold one music)
+	tMusicList 		mMusic;				// store music not in playlists (TODO: remove it cause playlist can hold one music)
 	tPlaylistList 	mPlaylists;
 
 	cPlaylist		*mCurrentPlaylist;
@@ -179,8 +187,7 @@ public:
 	// Останавливаем музыку
 	void StopMusic();
 
-	// Проигрывание музыки в лупе - тест
-	void PlayLoopMusic();
+	void PlayMusic();
 
 	// Паузим музыку
 	void PauseMusic();
@@ -189,15 +196,6 @@ public:
 	void ResumeMusic();
 
 	bool IsPaused();
-
-	// TODO: следующие методы нужно удалить -  устаревшая технология.
-	// Функции управления памятью звуков
-	void ManageSound(cSound *apSound);
-	void UnManageSound(cSound *apSound);
-
-	// Функции управления памятью музыки
-	void ManageMusic(cMusic *apMusic);
-	void UnManageMusic(cMusic *apMusic);
 
 	cMusic *GetCurrentMusic();
 	void SetCurrentMusic(cMusic *apMusic);

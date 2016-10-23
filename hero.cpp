@@ -472,8 +472,6 @@ void hero::PostUpdate()
 {
 	// Обновляем параметры камеры для отрисовки объектов.
 	// На данный момент нет поддержки какого-либо типа камеры, отличного от центрированной на боксе объекта.
-
-	cout << "X: " << GetBox().X << "Y: " << GetBox().Y << endl;
 	mpGame->Graphics->SetCameraPosition(GetBox().X + GetBox().Width / 2,
 										GetBox().Y + GetBox().Heigth / 2);
 
