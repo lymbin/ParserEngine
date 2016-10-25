@@ -16,7 +16,7 @@
 #include "Camera.h"
 
 class cTexture;
-class texture_manager;
+class cTextureManager;
 class cFontManager;
 class cTextManager;
 class cCamera;
@@ -60,7 +60,7 @@ public:
 class graphics: public iLowLevelGraphics
 {
 	friend cTexture;
-	texture_manager *mpTextureManager;	// Менеджер текстур
+	cTextureManager *mpTextureManager;	// Менеджер текстур
 	cFontManager 	*mpFontManager;
 	cTextManager	*mpTextManager;
 
@@ -137,7 +137,7 @@ public:
 
 	cCamera *GetCamera();
 	window *GetWindow();
-	texture_manager *GetTextureManager();
+	cTextureManager *GetTextureManager();
 	cFontManager 	*GetFontManager();
 	cTextManager	*GetTextManager();
 };

@@ -28,14 +28,26 @@ class cLevelManager {
 	int			mCurrentLevel;
 
 public:
+	bool	Start();
 	bool 	LoadLevel(int aLevelId = 0);
-	bool 	UnloadLevel(int aLevelId);
+	bool 	UnloadLevel(int aLevelId = -1);
 	int 	AddLevel(cLevel *aLevel);
 	void 	RemoveLevel(int aId);
 	int 	NextLevel();
 	int 	PreviousLevel();
 	int 	GetCurrentLevel();
 	cLevel	*GetLevel(int aLevelId);
+
+	int Init();
+	int CleanUp();
+	int CreatingObjects();
+	int LoadTextures();
+	void FreeTextures();
+	void FreeObjects();
+	void Update();
+	void PostUpdate();
+	void Render();
+	void PostRender();
 
 	static cLevelManager *Instance()
 	{
@@ -72,6 +84,7 @@ private:
 };
 
 class cLevel {
+	friend cLevelManager;
 public:
 	cLevel(std::string aLevelName = "", cLevelTheme *aLevelTheme = 0);
 	virtual ~cLevel();
@@ -116,6 +129,8 @@ protected:
 
 	// Отрисовываем текстуры и объекты
 	virtual void Render() { }
+
+	virtual void PostRender() { }
 
 };
 

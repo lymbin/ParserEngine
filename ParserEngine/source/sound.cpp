@@ -326,6 +326,22 @@ void cAudio::ResumeMusic()
 
 //-----------------------------------------------------------------------
 
+void cAudio::NextMusic()
+{
+	if (mCurrentPlaylist)
+		return mCurrentPlaylist->Next();
+}
+
+//-----------------------------------------------------------------------
+
+void cAudio::PrevMusic()
+{
+	if (mCurrentPlaylist)
+		return mCurrentPlaylist->Prev();
+}
+
+//-----------------------------------------------------------------------
+
 // Удаляем все звуки из менеджера
 void cAudio::DeleteAllSounds()
 {
@@ -336,6 +352,13 @@ void cAudio::DeleteAllSounds()
 	}
 
 	mSounds.clear();
+}
+
+//-----------------------------------------------------------------------
+
+cPlaylist *cAudio::GetCurrentPlaylist()
+{
+	return mCurrentPlaylist;
 }
 
 //-----------------------------------------------------------------------
@@ -548,6 +571,8 @@ cMusic *cPlaylist::AddMusic(std::string aFile)
 	return aMusic;
 }
 
+//-----------------------------------------------------------------------
+
 void cPlaylist::AddMusic(cMusic *aMusic, int aId)
 {
 	if (!aMusic)
@@ -690,3 +715,5 @@ void cPlaylist::Stop()
 {
 	cAudio::Instance()->StopMusic();
 }
+
+//-----------------------------------------------------------------------

@@ -24,7 +24,7 @@ class cColor;
 
 typedef std::vector <cTexture *> tTextureVector;
 
-class texture_manager
+class cTextureManager
 {
 	// Менеджер текстур - управляет памятью.
 	// Пока не используется для изображений из-за сложности передачи каждому новому изображению указатель на менеджер
@@ -37,8 +37,8 @@ protected:
 	// Вектор хранящий все текстуры, которыми управляем
 	tTextureVector Textures;
 public:
-	texture_manager();
-	~texture_manager();
+	cTextureManager();
+	~cTextureManager();
 
 	// Получаем информацию по текстуре
 	cTexture *GetTextureInfos(GLuint texture);
@@ -85,8 +85,8 @@ public:
 };
 class cTexture : public iLowLevelTexture
 {
-	friend texture_manager;
-	texture_manager *TextureManager; // TODO:в глобал или в синглтон
+	friend cTextureManager;
+	cTextureManager *TextureManager; // TODO:в глобал или в синглтон
 
 	//TODO: протестировать
 	//std::vector< std::vector< bool > > m_PixelOn; // Храним пиксели текстуры для модуля столкновений(коллизии)
@@ -98,7 +98,7 @@ public:
 	cTexture(std::string file = "", GLint filter = GL_NEAREST);
 	~cTexture();
 
-	void SetTexManager(texture_manager *TextureManager);
+	void SetTexManager(cTextureManager *TextureManager);
 
 	// Различные функции отрисовки
 	void DrawTransform(float x, float y, PE_Rect *Box,

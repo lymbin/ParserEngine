@@ -11,8 +11,13 @@
 
 #include "Level.h"
 
-
 cLevelManager *cLevelManager::self = 0;
+
+//////////////////////////////////////////////////////////////////////////
+// CONSTRUCTORS
+//////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------
 
 cLevelTheme::cLevelTheme(std::string aDataFolder) :
 		mDataFolder(aDataFolder)
@@ -20,10 +25,14 @@ cLevelTheme::cLevelTheme(std::string aDataFolder) :
 	mPlaylist = 0;
 }
 
+//-----------------------------------------------------------------------
+
 cLevelTheme::~cLevelTheme()
 {
 
 }
+
+//-----------------------------------------------------------------------
 
 cLevelManager::cLevelManager()
 {
@@ -31,10 +40,14 @@ cLevelManager::cLevelManager()
 	mLevels.clear();
 }
 
+//-----------------------------------------------------------------------
+
 cLevelManager::~cLevelManager()
 {
 
 }
+
+//-----------------------------------------------------------------------
 
 cLevel::cLevel(std::string aLevelName, cLevelTheme *aLevelTheme) :
 		mLevelName(aLevelName)
@@ -43,10 +56,27 @@ cLevel::cLevel(std::string aLevelName, cLevelTheme *aLevelTheme) :
 	mLevelTheme = aLevelTheme;
 }
 
+//-----------------------------------------------------------------------
+
 cLevel::~cLevel()
 {
 
 }
+
+//-----------------------------------------------------------------------
+
+//////////////////////////////////////////////////////////////////////////
+// PRIVATE METODS
+//////////////////////////////////////////////////////////////////////////
+
+//-----------------------------------------------------------------------
+
+bool cLevelManager::Start()
+{
+	return LoadLevel();
+}
+
+//-----------------------------------------------------------------------
 
 bool cLevelManager::LoadLevel(int aLevelId)
 {
@@ -78,10 +108,17 @@ bool cLevelManager::LoadLevel(int aLevelId)
 	return false;
 }
 
+//-----------------------------------------------------------------------
+
 bool cLevelManager::UnloadLevel(int aLevelId)
 {
 	if (!mLevels.empty())
 	{
+		if (aLevelId < 0)
+		{
+			return mLevels[mCurrentLevel]->UnloadLevel();
+		}
+
 		tLevelsIt It = mLevels.begin();
 		for (; It != mLevels.end(); ++It)
 		{
@@ -93,6 +130,8 @@ bool cLevelManager::UnloadLevel(int aLevelId)
 	}
 	return false;
 }
+
+//-----------------------------------------------------------------------
 
 int cLevelManager::AddLevel(cLevel *aLevel)
 {
@@ -111,6 +150,8 @@ int cLevelManager::AddLevel(cLevel *aLevel)
 	}
 	return levelId;
 }
+
+//-----------------------------------------------------------------------
 
 void cLevelManager::RemoveLevel(int aLevelId)
 {
@@ -131,6 +172,8 @@ void cLevelManager::RemoveLevel(int aLevelId)
 	}
 }
 
+//-----------------------------------------------------------------------
+
 int cLevelManager::NextLevel()
 {
 	if (!mLevels.empty())
@@ -141,9 +184,10 @@ int cLevelManager::NextLevel()
 		{
 			if (UnloadLevel(mCurrentLevel))
 			{
-				if (LoadLevel(mLevels.begin()->first))
+				It = mLevels.begin();
+				if (It->second->LoadLevel())
 				{
-					mCurrentLevel = mLevels.begin()->first;
+					mCurrentLevel = It->first;
 				}
 				else
 				{
@@ -155,9 +199,12 @@ int cLevelManager::NextLevel()
 		{
 			if (UnloadLevel(mCurrentLevel))
 			{
-				if (LoadLevel(mCurrentLevel+1))
+				int aNextLevelId = mCurrentLevel + 1;
+				mCurrentLevel = aNextLevelId;
+
+				if (mLevels[aNextLevelId]->LoadLevel())
 				{
-					mCurrentLevel = mCurrentLevel+1;
+					mCurrentLevel = aNextLevelId;
 				}
 				else
 				{
@@ -168,6 +215,8 @@ int cLevelManager::NextLevel()
 	}
 	return mCurrentLevel;
 }
+
+//-----------------------------------------------------------------------
 
 int cLevelManager::PreviousLevel()
 {
@@ -207,27 +256,164 @@ int cLevelManager::PreviousLevel()
 	return mCurrentLevel;
 }
 
+//-----------------------------------------------------------------------
+
 int cLevelManager::GetCurrentLevel()
 {
 	return mCurrentLevel;
 }
 
-cLevel	*cLevelManager::GetLevel(int aLevelId)
+//-----------------------------------------------------------------------
+
+cLevel *cLevelManager::GetLevel(int aLevelId)
 {
 	cLevel *aLevel = 0;
 	if (!mLevels.empty())
 	{
-
+		tLevelsIt It = mLevels.begin();
+		for (; It != mLevels.end(); ++It)
+		{
+			if (It->first == aLevelId)
+			{
+				aLevel = It->second;
+				break;
+			}
+		}
 	}
 	return aLevel;
 }
+
+//-----------------------------------------------------------------------
+
+int cLevelManager::Init()
+{
+	if (mCurrentLevel >= 0)
+	{
+		mLevels[mCurrentLevel]->Init();
+		return 0;
+	}
+	return 1;
+}
+
+//-----------------------------------------------------------------------
+
+int cLevelManager::CleanUp()
+{
+	if (mCurrentLevel >= 0)
+	{
+		mLevels[mCurrentLevel]->CleanUp();
+		return 0;
+	}
+	return 1;
+}
+
+//-----------------------------------------------------------------------
+
+int cLevelManager::CreatingObjects()
+{
+	if (mCurrentLevel >= 0)
+	{
+		mLevels[mCurrentLevel]->CreatingObjects();
+		return 0;
+	}
+	return 1;
+}
+
+//-----------------------------------------------------------------------
+
+int cLevelManager::LoadTextures()
+{
+	if (mCurrentLevel >= 0)
+	{
+		mLevels[mCurrentLevel]->LoadTextures();
+		return 0;
+	}
+	return 1;
+}
+
+//-----------------------------------------------------------------------
+
+void cLevelManager::FreeTextures()
+{
+	if (mCurrentLevel >= 0)
+		mLevels[mCurrentLevel]->FreeTextures();
+}
+
+//-----------------------------------------------------------------------
+
+void cLevelManager::FreeObjects()
+{
+	if (mCurrentLevel >= 0)
+		mLevels[mCurrentLevel]->FreeObjects();
+}
+
+//-----------------------------------------------------------------------
+
+void cLevelManager::Update()
+{
+	if (mCurrentLevel >= 0)
+		mLevels[mCurrentLevel]->Update();
+}
+
+//-----------------------------------------------------------------------
+
+void cLevelManager::PostUpdate()
+{
+	if (mCurrentLevel >= 0)
+		mLevels[mCurrentLevel]->PostUpdate();
+}
+
+//-----------------------------------------------------------------------
+
+void cLevelManager::Render()
+{
+	if (mCurrentLevel >= 0)
+		mLevels[mCurrentLevel]->Render();
+}
+
+//-----------------------------------------------------------------------
+
+void cLevelManager::PostRender()
+{
+	if (mCurrentLevel >= 0)
+		mLevels[mCurrentLevel]->PostRender();
+}
+
+//-----------------------------------------------------------------------
 
 bool cLevel::LoadLevel()
 {
 	return !Init();
 }
 
+//-----------------------------------------------------------------------
+
 bool cLevel::UnloadLevel()
 {
 	return !CleanUp();
 }
+
+//-----------------------------------------------------------------------
+
+int cLevel::getLevelId ()
+{
+	return mLevelId;
+}
+
+//-----------------------------------------------------------------------
+
+void cLevel::setLevelId (int aLevelId)
+{
+	mLevelId = aLevelId;
+}
+
+//-----------------------------------------------------------------------
+
+void cLevel::setLevelTheme (cLevelTheme *aLevelTheme)
+{
+	// stop render
+	mLevelTheme = aLevelTheme;
+	// start render
+}
+
+//-----------------------------------------------------------------------

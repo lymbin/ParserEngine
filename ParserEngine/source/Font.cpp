@@ -346,7 +346,7 @@ int font::Open(string source, int fontSize)
 	if(!ttf_font)
 	{
 #ifdef DEBUG_ERRORS
-		cout << "Unable to open font : " << source << SDL_GetError() << endl;
+		cout << "Unable to open font : " << source << " " << SDL_GetError() << endl;
 #endif
 		return -1;
 	}

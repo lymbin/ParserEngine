@@ -15,11 +15,15 @@ using namespace std;
 
 bool game::quit = false;
 
+game *game::self = 0;
+
 void game::update()
 {
+	LevelManager()->Update();
 	// Обновляем все координаты объектов, текстов и прочего
 	// TODO: Обновляем все Updatable объекты
 
+	/*
 	if(Hero)
 	{
 		PE_Rect OldBox = Hero->GetBox();// Запоминаем старый бокс для случая столкновения с каким-либо телом и возвратом в исходное положение
@@ -31,22 +35,24 @@ void game::update()
 
 	if (Hero)
 		Hero->HandleCollisions();
-
+	 */
 	PostUpdate();
 }
 
 void game::PostUpdate()
 {
-	if(Hero && Hero->GetHealth() > 0) {
+	LevelManager()->PostUpdate();
+	/*
+	if(Hero && Hero->GetHealth() > 0)
+	{
 		Hero->PostUpdate();
 		StaticBox->PostUpdate();
-	}
+	}*/
 }
 
 void game::render()
 {
 	// Отрисовываем все объекты
-
 	Graphics->ClearScreen();
 	glMatrixMode( GL_MODELVIEW );
 	glPopMatrix();
@@ -57,6 +63,9 @@ void game::render()
     //Graphics->DrawFilledRectangle(10, 10, 200, 100, 0.0f, 0.0f, 1.0f, 1.0f);
     //Graphics->DrawFilledRectangle(10, 110, 200, 100, 1.0f, 0.0f, 0.0f, 1.0f);
 
+	LevelManager()->Render();
+
+	/*
 	static GLuint tex = 0;
 	static GLuint texD = 0;
 
@@ -138,6 +147,7 @@ EndRender:
 		glDeleteTextures(1, &texD);
 		texD = 0;
 	}
+	*/
 /*
     if(Mmenu.background)
     {
@@ -169,14 +179,22 @@ EndRender:
 }
 void game::MainLoop()
 {
+	InitLevels();
 
-	LoadTextures();
-	CreatingObjects();
+	if (!LevelManager()->LoadLevel())
+	{
+#ifdef DEBUG_ERRORS
+	cout << "Cannot load levels!" << endl;
+#endif
+		return;
+	}
+
+	//LoadTextures();
+	//CreatingObjects();
 
 	Graphics->ClearScreen();
 	//Graphics->SetClearColor(cColor());
 	Graphics->SwapBuffers();
-
 
 	fps.start();
 
@@ -184,65 +202,62 @@ void game::MainLoop()
 	cout << "Game start!" << endl;
 #endif
 
-
-#ifdef DEBUG_INFOS
 	font *fps_font = new font("data/fonts/non-free/Minecraftia.ttf", 18);
-	if(Graphics)
+	if (Graphics)
 		Graphics->GetFontManager()->ManageFont(fps_font);
 
 	std::string fps_rate;
 	GLuint tex = 0;
 
-#endif
 	std::stringstream sstream;
-	bool simple_menu = true;
+	static int aCurrentLevel = LevelManager()->GetCurrentLevel();
+	//bool simple_menu = true;
 	//Главный цикл приложения
-	while(!game::quit)
+	while (!game::quit)
 	{
-		if (MainPlaylist && !Mix_PlayingMusic())
-			MainPlaylist->Play();
+NextFrame:
+		mIsLevelChanged = false;
+		//if (MainPlaylist && !Mix_PlayingMusic())
+		//	MainPlaylist->Play();
 
 		sstream.str(string());
 		Graphics->ClearScreen();
 		//Graphics->SetClearColor(cColor());
 
-		if(Events->handle_events())
+		if (Events->handle_events())
 		{
 			//Выходим
 			quit = true;
 			break;
 		}
 
-		if(Input->IsKeyDown(KEY_ESCAPE))
+		if (Input->IsKeyDown(KEY_ESCAPE))
 		{
 			//Выходим
 			quit = true;
 			break;
 		}
-
-		if (MainPlaylist)
+		if (Input->IsKeyDown(KEY_p))
 		{
-			if (Input->IsKeyDown(KEY_p))
+			if(!Audio()->IsPaused())
 			{
-				if(!Audio()->IsPaused())
-				{
-					MainPlaylist->Pause();
-				}
-				else
-				{
-					MainPlaylist->Resume();
-				}
+				Audio()->PauseMusic();
 			}
-			else if (Input->IsKeyDown(KEY_n))
+			else
 			{
-				MainPlaylist->Next();
-			}
-			else if (Input->IsKeyDown(KEY_b))
-			{
-				MainPlaylist->Prev();
+				Audio()->ResumeMusic();
 			}
 		}
+		else if (Input->IsKeyDown(KEY_n))
+		{
+			Audio()->NextMusic();
+		}
+		else if (Input->IsKeyDown(KEY_b))
+		{
+			Audio()->PrevMusic();
+		}
 
+		/*
 		if(simple_menu)
 		{
 			if(Input->IsKeyDown(KEY_1))
@@ -262,12 +277,22 @@ void game::MainLoop()
 			update();
 			render();
 		}
+		*/
+
+		update();
+		if (mIsLevelChanged)
+			goto NextFrame;
+		render();
+
+		LevelManager()->PostRender();
+
 
 		PE_Rect ScreenRect;
 		ScreenRect.X = ScreenRect.Y = 0;
 		ScreenRect.Heigth = Graphics->GetScreenHeigth();
 		ScreenRect.Width = Graphics->GetScreenWidth();
 
+		/*
 		if(simple_menu)
 		{
 			// Отрисовываем текст в центре
@@ -298,7 +323,7 @@ void game::MainLoop()
 					0, fps_font->CalcTextHeigth("Press ESC to Exit"));
 
 		}
-
+		*/
 
 		sstream << "Parser Engine Demo. Version " << SYS_TEST_VERSION << "." << SYS_BUILD;
 		//help_text->SetText(sstream.str());
@@ -306,7 +331,7 @@ void game::MainLoop()
 
 		sstream.str(string());
 		// Выводим FPS поверх игры
-#ifdef DEBUG_INFOS
+
 		frame++;
 
 		if(tex)
@@ -327,18 +352,33 @@ void game::MainLoop()
 		}
 
 		fps_font->Write(sstream.str(), Graphics->GetScreenWidth() - fps_font->CalcTextWidth(sstream.str()) - SYS_FRAME_PIXELS, 0 + SYS_FRAME_PIXELS, &tex);
-#endif
+
 		Graphics->SwapBuffers();
 		SDL_Delay(10);
-
 		Input->Update();
 	}
-#ifdef DEBUG_INFOS
-	delete fps_font;
-#endif
 
-	FreeTextures();
-	FreeObjects();
+	delete fps_font;
+#ifdef DEBUG_INFOS
+#endif
+	LevelManager()->UnloadLevel();
+	//FreeTextures();
+	//FreeObjects();
+}
+
+void game::InitLevels()
+{
+	textFont = new font("data/fonts/non-free/Minecraftia.ttf", 18);
+	if (game::Instance()->Graphics)
+		game::Instance()->Graphics->GetFontManager()->ManageFont(textFont);
+
+	mMainMenuLevel = new cMainMenu();
+	mGameLevel = new cGameLevel("Test level");
+}
+
+void game::MainQuit()
+{
+	game::quit = true;
 }
 
 int game::CreatingObjects()
@@ -347,6 +387,7 @@ int game::CreatingObjects()
 	cout << "Creating objects" << endl;
 #endif
 
+	/*
 	if(Collision)
 	{
 		layer = new iCollisionLayer(PE_Rect {0, 0, (float)Graphics->GetScreenWidth(), (float)Graphics->GetScreenHeigth()});
@@ -358,7 +399,6 @@ int game::CreatingObjects()
 	{
 		Hero = new hero();
 		Hero->SetStaticTexture(Mmenu.background);
-		Hero->SetGame(this);
 		Hero->SetVelocity(20);
 		Hero->SetScaledAndRotate(0.3, 0);
 
@@ -387,10 +427,10 @@ int game::CreatingObjects()
 		if(Graphics)
 			DynamicTextFont->SetFontManager(Graphics->GetFontManager());
 	}
+
 	if(!StaticBox)
 	{
 		StaticBox = new cStaticBox("Box1", 100);
-		StaticBox->SetGame(this);
 		StaticBox->SetBox(100,100,200,200);
 		if(layer)
 		{
@@ -409,7 +449,7 @@ int game::CreatingObjects()
 		//MainPlaylist->AddMusic("data/sounds/test.ogg"); // TODO: for test playlist
 		MainPlaylist->AddMusic("data/sounds/Zhenya_Sazonov-Flying.ogg");
 	}
-
+	*/
 	return 0;
 }
 
@@ -419,11 +459,13 @@ int game::LoadTextures()
 #ifdef DEBUG_SYS
 	cout << "Load textures" << endl;
 #endif
+	/*
 	Mmenu.background = new cTexture("data/graphics/test/test.png");
 	//Mmenu.background = new image("foo.png");
 	Mmenu.MainMenuFont = new font("data/fonts/non-free/Minecraftia.ttf", 30);
 	if(Graphics)
 		Graphics->GetFontManager()->ManageFont(Mmenu.MainMenuFont);
+		*/
 	//Mmenu.background->SetColorKey();
 	//Mmenu.title = new text("Кириллица", "data/fonts/PTS55F.ttf", 30);
 	//Mmenu.button_start = new image();
@@ -439,13 +481,14 @@ void game::FreeTextures()
 #ifdef DEBUG_SYS
 	cout << "Freeing textures" << endl;
 #endif
-
+/*
 	if(Mmenu.background)
 		delete Mmenu.background;
 	Mmenu.background = 0;
 	if(Mmenu.MainMenuFont)
 		delete Mmenu.MainMenuFont;
 	Mmenu.MainMenuFont = 0;
+*/
 }
 
 void game::FreeObjects()
@@ -453,6 +496,7 @@ void game::FreeObjects()
 #ifdef DEBUG_SYS
 	cout << "Freeing objects" << endl;
 #endif
+	/*
 	if(Hero)
 	{
 		delete Hero;
@@ -469,20 +513,26 @@ void game::FreeObjects()
 	{
 		delete StaticBox;
 	}
+	*/
 	delete Collision;
+	delete textFont;
 }
 
 game::game()
 {
-	Mmenu.background = 0;
-	Mmenu.MainMenuFont = 0;
+	//Mmenu.background = 0;
+	//Mmenu.MainMenuFont = 0;
 	Gui = 0;
-	Hero = 0;
-	layer = 0;
+	//Hero = 0;
+	//layer = 0;
 	DynamicTextFont = 0;
-	StaticBox = 0;
+	//StaticBox = 0;
 	Collision = new cCollision();
-	MainPlaylist = 0;
+	//MainPlaylist = 0;
+	textFont = 0;
+	mGameLevel = 0;
+	mMainMenuLevel = 0;
+	mIsLevelChanged = false;
 }
 game::~game()
 {

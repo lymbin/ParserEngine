@@ -195,8 +195,12 @@ public:
 	// Возобновляем проигрывание музыки
 	void ResumeMusic();
 
+	void NextMusic();
+	void PrevMusic();
+
 	bool IsPaused();
 
+	cPlaylist *GetCurrentPlaylist();
 	cMusic *GetCurrentMusic();
 	void SetCurrentMusic(cMusic *apMusic);
 };

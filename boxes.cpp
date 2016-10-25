@@ -11,7 +11,7 @@ using namespace std;
 
 cStaticBox::cStaticBox(std::string asName, int alHitPoints) : iStaticObject(asName, alHitPoints)
 {
-	mpGame = 0;
+
 }
 cStaticBox::~cStaticBox()
 {
@@ -23,10 +23,10 @@ cStaticBox::~cStaticBox()
 
 void cStaticBox::OnDraw()
 {
-	if(!mpGame && !mpGame->Graphics)
+	if(!game::Instance()->Graphics)
 		return;
 
-	mpGame->Graphics->DrawFilledRectangle(GetBox(), cColor(1.0f, 0.0f, 1.0f, 1.0f));
+	game::Instance()->Graphics->DrawFilledRectangle(GetBox(), cColor(1.0f, 0.0f, 1.0f, 1.0f));
 
 }
 void cStaticBox::Reset()
@@ -77,7 +77,7 @@ void cStaticBox::CollisionHandler(iCollisionBody *thisBody, PE_Rect CollidedRect
 
 cDynamicBox::cDynamicBox(std::string asName, int alHitPoints) : iDynamicObject(asName, alHitPoints)
 {
-	mpGame = 0;
+
 }
 cDynamicBox::~cDynamicBox()
 {

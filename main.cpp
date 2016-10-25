@@ -15,11 +15,11 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-	game *Game = new game();
+	game *Game = game::Instance();
 
-	if(Game->init()<0)
+	if (Game->init()<0)
 	{
-		delete Game;
+		game::DeleteInstance();
 		return 0;
 	}
 #ifdef DEBUG_SYS
@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 
 
 	Game->CleanUp();
-	delete Game;
+	game::DeleteInstance();
 
 #ifdef DEBUG_SYS
 	cout << "Game cleanup - success" << endl;

@@ -18,7 +18,6 @@ class iDynamicObject;
 
 class cStaticBox : public iStaticObject
 {
-	game *mpGame;
 public:
 	cStaticBox(std::string asName = "", int alHitPoints = 100);
 	~cStaticBox();
@@ -30,13 +29,11 @@ public:
 	void Update();		// Обновление данных
 	void PostUpdate(); 	// Обновление данных объекта в конце выполнения общего update
 
-	void SetGame(game *apGame){mpGame = apGame;}
 	static void CollisionHandler(iCollisionBody *thisBody, PE_Rect CollidedRect, void *CollidedObject, void *data);
 };
 
 class cDynamicBox : public iDynamicObject
 {
-	game *mpGame;
 public:
 	cDynamicBox(std::string asName = "", int alHitPoints = 100);
 	~cDynamicBox();
@@ -53,7 +50,6 @@ public:
 	void Sit(){}
 	void Shoot(){}
 
-	void SetGame(game *apGame){mpGame = apGame;}
 	static void CollisionHandler(iCollisionBody *, iCollisionBody *, PE_Rect, void *data);
 };
 

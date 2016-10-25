@@ -119,3 +119,8 @@ cAudio *engine::Audio()
 {
 	return cAudio::Instance();
 }
+
+cLevelManager *engine::LevelManager()
+{
+	return cLevelManager::Instance();
+}

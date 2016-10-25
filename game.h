@@ -18,9 +18,12 @@
 #include "Character.h"
 #include "boxes.h"
 #include "hero.h"
+#include "GameLevels.h"
 
 class hero;
 class cStaticBox;
+class cGameLevel;
+class cMainMenu;
 
 //Нижние дефайны пока никак не используем
 #define LEVEL_MAINMENU  0
@@ -30,15 +33,6 @@ const int GAME_GUI_HEIGTH = 200;
 
 const int GAME_HERO_HP = 100;
 const std::string GAME_HERO_NAME = "Timmi";
-
-
-struct MainMenu
-{
-	cTexture	*background;
-	font 		*MainMenuFont;
-	//image 	*button_start;
-	//image 	*button_exit;
-};
 
 struct bottom_gui
 {
@@ -60,20 +54,43 @@ class game: public engine
 	static bool 		quit;
 	static bool 		timer_running;
 
-	MainMenu 			Mmenu;
+	//MainMenu 			Mmenu;
 	game_gui 			*Gui;
-	hero 				*Hero; // TODO: rename to player
-	iCollisionLayer 	*layer;
-	cCollision 			*Collision;
-	cStaticBox 			*StaticBox;
+	//hero 				*Hero; // TODO: rename to player
+	//iCollisionLayer 	*layer;
+	//cStaticBox 			*StaticBox;
 	font 				*DynamicTextFont;
 	//cMusic 			*MainMusic;
-	cPlaylist			*MainPlaylist;
+	//cPlaylist			*MainPlaylist;
+	cGameLevel			*mGameLevel;
+	cMainMenu			*mMainMenuLevel;
 
-
-public:
 	game();
 	~game();
+
+public:
+	static game *Instance()
+	{
+		if (!self)
+			self = new game();
+
+		return self;
+	}
+
+	static bool DeleteInstance()
+	{
+		if (self)
+		{
+			delete self;
+			self = 0;
+			return true;
+		}
+		return false;
+	}
+
+	cCollision 	  	*Collision;
+	font 			*textFont;
+	bool			mIsLevelChanged;
 
 	// Определяем объекты
 	int CreatingObjects();
@@ -99,6 +116,12 @@ public:
 	// Основной цикл
 	void MainLoop();
 
+	void InitLevels();
+
+	void MainQuit();
+
+protected:
+	static game *self;
 
 };
 #endif /* GAME_H_ */

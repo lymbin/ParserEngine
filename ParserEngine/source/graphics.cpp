@@ -29,7 +29,7 @@ graphics::graphics()
 	mpTextManager = new cTextManager();
 	mpTextManager->SetGraphics(this);
 
-	mpTextureManager = new texture_manager();
+	mpTextureManager = new cTextureManager();
 	mpTextureManager->SetGraphics(this);
 
 	CurrentTexture = 0;
@@ -68,7 +68,7 @@ int graphics::Init(int W, int H, int BPP, int abFullScreen)
 	// Инициализация SDL-графики
 	// Задаём текст для заголовка окна
 	std::stringstream title;
-	title << "FireFly project " << SYS_VERSION << " prealpha test. Build " << SYS_BUILD << ".";
+	title << "Test game " << SYS_VERSION << ". Build " << SYS_BUILD << ".";
 	sdlWindow = SDL_CreateWindow (title.str().c_str(),
 					SDL_WINDOWPOS_UNDEFINED,
 					SDL_WINDOWPOS_UNDEFINED,
@@ -384,7 +384,7 @@ window *graphics::GetWindow()
 {
 	return _Window;
 }
-texture_manager *graphics::GetTextureManager()
+cTextureManager *graphics::GetTextureManager()
 {
 	return mpTextureManager;
 }

@@ -25,6 +25,7 @@
 
 //Закомментировать строчки ниже для запрета показа отладочной информации и ошибок
 // TODO: в систему логирования с уровнями вывода сообщений.
+// Log(level, message);
 #define DEBUGGING
 
 #ifdef DEBUGGING
@@ -36,7 +37,7 @@
 ///////////////// MAIN SYSTEM CONSTANTS /////////////////
 
 const int 			SYS_AUDIO = 1; 					//аудио(0 - отключено, !0 - включено)
-const int			SYS_FULLSCREEN = 0;				//оконный режим(0 - оконный режим, !0 - полноэкранны режим)
+const int			SYS_FULLSCREEN = 0;				//оконный режим(0 - оконный режим, !0 - полноэкранный режим)
 const int			SYS_REGULATING_FRAME_RATE = 0;	//регулируем ли FPS(0 - нет, !0 - да)
 
 const int			SYS_WIDTH = 1024;				//ширина
@@ -64,9 +65,9 @@ const int 			SYS_AUDIO_BUFFERS = 1024;
 
 ///////////////// VERSIONS CONSTANTS /////////////////
 
-const std::string 	SYS_VERSION = "0.0.57";
-const std::string 	SYS_BUILD = "057";
-const std::string	SYS_TEST_VERSION = "0.5.0";
+const std::string 	SYS_VERSION = "0.0.58";
+const std::string 	SYS_BUILD = "058";
+const std::string	SYS_TEST_VERSION = "0.6.0";
 
 
 #endif /* SYSTEMCONSTANTS_H_ */

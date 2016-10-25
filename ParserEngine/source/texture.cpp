@@ -319,7 +319,7 @@ void cTexture::Delete()
 }
 
 // Устанавливаем менеджер текстур для полуавтоматического управления памятью менеджером
-void cTexture::SetTexManager(texture_manager *TexManager)
+void cTexture::SetTexManager(cTextureManager *TexManager)
 {
 	// Если менеджер уже задан - выходим, т.к. менеджер может быть всего один на всю программу
 	if(TextureManager)
@@ -345,31 +345,32 @@ cTexture::~cTexture()
 {
 	Delete();
 }
-texture_manager::texture_manager()
+cTextureManager::cTextureManager()
 {
 	Graphics = 0;
-	if(!Textures.empty())
-	Textures.clear();
+
+	if (!Textures.empty())
+		Textures.clear();
 }
-texture_manager::~texture_manager()
+cTextureManager::~cTextureManager()
 {
 	DeleteTextures();
 	Textures.clear();
 	Graphics = 0;
 }
-cTexture *texture_manager::GetTextureInfos(GLuint texture)
+cTexture *cTextureManager::GetTextureInfos(GLuint texture)
 {
 	// Получаем информацию о текстуре из её ID
-	for(unsigned int loop = 0; loop < Textures.size(); loop++)
+	for (unsigned int loop = 0; loop < Textures.size(); loop++)
 	{
-		if(Textures[loop]->mTexture == texture)
+		if (Textures[loop]->mTexture == texture)
 		{
 			return Textures[loop];
 		}
 	}
 	return 0;
 }
-void texture_manager::ReloadTextures()
+void cTextureManager::ReloadTextures()
 {
 	for(unsigned int loop = 0; loop < Textures.size(); loop++)
 	{
@@ -378,7 +379,7 @@ void texture_manager::ReloadTextures()
 }
 /*
  TODO: доделать/удалить перерисовку
-void texture_manager::RedrawTextures()
+void cTextureManager::RedrawTextures()
 {
 	for(int loop = 0; loop < Textures.size(); loop++)
 	{
@@ -386,7 +387,7 @@ void texture_manager::RedrawTextures()
 	}
 }
 */
-void texture_manager::DeleteTextures()
+void cTextureManager::DeleteTextures()
 {
 	//Удаляем текстуры
 	for(unsigned int loop = 0; loop < Textures.size(); loop++)
@@ -394,22 +395,22 @@ void texture_manager::DeleteTextures()
 		delete Textures[loop];
 	}
 }
-void texture_manager::ManageTexture(cTexture *managed_image)
+void cTextureManager::ManageTexture(cTexture *managed_image)
 {
 	//Добавляем текстуру в вектор для управления
-	for(unsigned int loop = 0; loop < Textures.size(); loop++)
+	for (unsigned int loop = 0; loop < Textures.size(); loop++)
 	{
-		if(Textures[loop]->mTexture == managed_image->mTexture)
+		if (Textures[loop]->mTexture == managed_image->mTexture)
 		{
 			return;
 		}
 	}
-	if(!managed_image->TextureManager)
+	if (!managed_image->TextureManager)
 		managed_image->SetTexManager(this);
 
 	Textures.push_back(managed_image);
 }
-void texture_manager::UnManageTexture(cTexture *managed_image)
+void cTextureManager::UnManageTexture(cTexture *managed_image)
 {
 	// Удаляем текстуру из вектора управления
 	// Внимание: Это только удалит текстуру из вектора управления, но не удалит саму текстуру
@@ -419,9 +420,9 @@ void texture_manager::UnManageTexture(cTexture *managed_image)
 	int place = -1;
 
 	// Ищем текстуру с данным ID в памяти
-	for(unsigned int loop = 0; loop < Textures.size(); loop++)
+	for (unsigned int loop = 0; loop < Textures.size(); loop++)
 	{
-		if(Textures[loop]->mTexture == managed_image->mTexture)
+		if (Textures[loop]->mTexture == managed_image->mTexture)
 		{
 			place = loop;
 			break;
@@ -429,10 +430,10 @@ void texture_manager::UnManageTexture(cTexture *managed_image)
 	}
 
 	// Текстура не найдена - выходм
-	if(place < 0)
+	if (place < 0)
 		return;
 
-	if((unsigned int)(place+1) == Textures.size())
+	if ((unsigned int)(place+1) == Textures.size())
 	{
 		// Текстура в самом конце - удаляем, перед этим обснулив указатель на менеджер текстур
 		Textures[place]->TextureManager = 0;
@@ -447,7 +448,7 @@ void texture_manager::UnManageTexture(cTexture *managed_image)
 		Textures.erase( Textures.begin() + place);
 	}
 }
-void texture_manager::SetGraphics(graphics *setGraphics)
+void cTextureManager::SetGraphics(graphics *setGraphics)
 {
 	Graphics = setGraphics;
 }

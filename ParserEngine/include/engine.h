@@ -48,6 +48,7 @@
 #include "Physics.h"
 #include "Gui.h"
 #include "GuiTypes.h"
+#include "Level.h"
 
 class graphics;
 class cCamera;
@@ -79,6 +80,7 @@ public:
 	input *Input;
 	events *Events;
 	cPhysics *Physics;
+	cLevelManager *LevelManager();
 	//textures
 	//animation
 	//timer

@@ -16,10 +16,14 @@
 - Graphics primitives support.
 - Animation support.
 - Game camera.
+- Sound system, that support playlists and single play music and sound.
+- Level system without level themes.
 
 ##Features in development:
-- OpenGL 3.
-- Sound system.
 - UI widgets.
+- Loading levels data from files.
+- Expansive test game.
+- Make files for Linux and Eclipse project.
+- More level themes features.
 - More graphics primitives.
 - Mobile platform support.

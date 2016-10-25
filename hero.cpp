@@ -185,13 +185,31 @@ inventory_item iCharacter::GetWeapon()
 	return mWeapon;
 }
 
-hero::hero(std::string asName, int aiHP):iCharacter(eCharacterType_Hero, asName, aiHP)
+hero::hero(std::string asName, int aHP):iCharacter(eCharacterType_Hero, asName, aHP)
 {
-	mpGame = 0;
+	mGame = game::Instance();
 }
-hero::~hero()
+
+/*
+hero::hero(cTexture *aStaticTexture, std::string asName, int aHP):iCharacter(eCharacterType_Hero, asName, aHP)
 {
 
+	if (!aStaticTexture)
+		SetStaticTexture(aStaticTexture); // TODO: some problem with this
+
+	mGame = game::Instance();
+}
+
+
+hero::hero(std::string aTexturePath, std::string asName, int hp)
+{
+	// TODO: add AddTexture in Graphics
+	mGame = game::Instance();
+}
+*/
+
+hero::~hero()
+{
 #ifdef DEBUG_SYS
 	cout << "One hero deleted..." << endl;
 #endif
@@ -250,13 +268,13 @@ void hero::Move(int direction, int animation, int animpos)
 
 					// Пока блочим движение тела
 					// 	но в дальнейшем нужно менять камеру при движении
-					if(mpGame && mpGame->Graphics)
+					if(mGame && mGame->Graphics)
 					{
-						if(Box.X > mpGame->Graphics->GetScreenWidth())
+						if(Box.X > mGame->Graphics->GetScreenWidth())
 							Box.X-=(mlVelocity+mAnimIter->second.miSpeed);
 						if(Box.X < 0)
 							Box.X+=(mlVelocity+mAnimIter->second.miSpeed);
-						if(Box.Y > mpGame->Graphics->GetScreenHeigth())
+						if(Box.Y > mGame->Graphics->GetScreenHeigth())
 							Box.Y-=(mlVelocity+mAnimIter->second.miSpeed);
 						if(Box.Y < 0)
 							Box.Y+=(mlVelocity+mAnimIter->second.miSpeed);
@@ -281,13 +299,13 @@ void hero::Move(int direction, int animation, int animpos)
 
 			// Пока блочим движение тела
 			// 	но в дальнейшем нужно менять камеру при движении
-			if(mpGame && mpGame->Graphics)
+			if(mGame && mGame->Graphics)
 			{
-				if(Box.X > mpGame->Graphics->GetScreenWidth())
+				if(Box.X > mGame->Graphics->GetScreenWidth())
 					Box.X-=(mlVelocity+mAnims[animpos].miSpeed);
 				if(Box.X < 0)
 					Box.X+=(mlVelocity+mAnims[animpos].miSpeed);
-				if(Box.Y > mpGame->Graphics->GetScreenHeigth())
+				if(Box.Y > mGame->Graphics->GetScreenHeigth())
 					Box.Y-=(mlVelocity+mAnims[animpos].miSpeed);
 				if(Box.Y < 0)
 					Box.Y+=(mlVelocity+mAnims[animpos].miSpeed);
@@ -342,7 +360,7 @@ void hero::Shoot()
 }
 void hero::Update()
 {
-	if((!mpGame)||(!mpGame->Input))
+	if((!mGame)||(!mGame->Input))
 		return;
 
 	int move_type = MOVE_NONE;	// Необходимо для движения
@@ -365,7 +383,7 @@ void hero::Update()
 	}
 	*/
 
-	if(mpGame->Input->IsKeyDown(KEY_EQUALS) || mpGame->Input->IsKeyHeld(KEY_EQUALS))
+	if(mGame->Input->IsKeyDown(KEY_EQUALS) || mGame->Input->IsKeyHeld(KEY_EQUALS))
 	{
 		unsigned int speed = GetVelocity();
 		if(speed < MAX_HERO_ANIM_SPEED)
@@ -374,7 +392,7 @@ void hero::Update()
 			SetVelocity(speed);
 		}
 	}
-	else if(mpGame->Input->IsKeyDown(KEY_MINUS) || mpGame->Input->IsKeyHeld(KEY_MINUS))
+	else if(mGame->Input->IsKeyDown(KEY_MINUS) || mGame->Input->IsKeyHeld(KEY_MINUS))
 	{
 		unsigned int speed = GetVelocity();
 		if(speed > 1)
@@ -385,25 +403,25 @@ void hero::Update()
 	}
 
 	// Сначала проверяем нажате клавиш и забиваем переменную last_state
-	if(mpGame->Input->IsKeyDown(KEY_RIGHT) || mpGame->Input->IsKeyHeld(KEY_RIGHT))
+	if(mGame->Input->IsKeyDown(KEY_RIGHT) || mGame->Input->IsKeyHeld(KEY_RIGHT))
 	{
 		if(mLastState < MOVE_RIGHT)
 			mLastState = MOVE_RIGHT;
 		move_type = MOVE_RIGHT;
 	}
-	else if(mpGame->Input->IsKeyDown(KEY_LEFT) || mpGame->Input->IsKeyHeld(KEY_LEFT))
+	else if(mGame->Input->IsKeyDown(KEY_LEFT) || mGame->Input->IsKeyHeld(KEY_LEFT))
 	{
 		if(mLastState < MOVE_LEFT)
 			mLastState = MOVE_LEFT;
 		move_type = MOVE_LEFT;
 	}
-	else if(mpGame->Input->IsKeyDown(KEY_DOWN) || mpGame->Input->IsKeyHeld(KEY_DOWN))
+	else if(mGame->Input->IsKeyDown(KEY_DOWN) || mGame->Input->IsKeyHeld(KEY_DOWN))
 	{
 		if(mLastState < MOVE_DOWN)
 			mLastState = MOVE_DOWN;
 		move_type = MOVE_DOWN;
 	}
-	else if(mpGame->Input->IsKeyHeld(KEY_UP) || mpGame->Input->IsKeyHeld(KEY_UP))
+	else if(mGame->Input->IsKeyHeld(KEY_UP) || mGame->Input->IsKeyHeld(KEY_UP))
 	{
 		if(mLastState < MOVE_UP)
 			mLastState = MOVE_UP;
@@ -472,13 +490,13 @@ void hero::PostUpdate()
 {
 	// Обновляем параметры камеры для отрисовки объектов.
 	// На данный момент нет поддержки какого-либо типа камеры, отличного от центрированной на боксе объекта.
-	mpGame->Graphics->SetCameraPosition(GetBox().X + GetBox().Width / 2,
+	mGame->Graphics->SetCameraPosition(GetBox().X + GetBox().Width / 2,
 										GetBox().Y + GetBox().Heigth / 2);
 
 	// Сдвигаем бокс игрока
 	SetBox(GetBox().Width, GetBox().Heigth,
-			GetBox().X + mpGame->Graphics->GetCamera()->GetXposition(),
-			GetBox().Y + mpGame->Graphics->GetCamera()->GetYposition());
+			GetBox().X + mGame->Graphics->GetCamera()->GetXposition(),
+			GetBox().Y + mGame->Graphics->GetCamera()->GetYposition());
 }
 
 void hero::OnDraw()
@@ -530,10 +548,6 @@ void hero::OnStart()
 void hero::OnExit()
 {
 
-}
-void hero::SetGame(game *apGame)
-{
-	mpGame = apGame;
 }
 void hero::CollisionHandler(iCollisionBody *thisBody, PE_Rect CollidedRect, void *CollidedObject, void *data)
 {
