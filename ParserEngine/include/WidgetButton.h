@@ -15,12 +15,14 @@
 #include "widget.h"
 
 class cGui;
+class cGuiSet;
+class cGuiSkin;
 
 class cWidgetButton: public iWidget
 {
 public:
 	cWidgetButton(cGui *aGui);
-	//cWidgetButton(cGuiSet) TODO: add another way to construct gui via one guiSet.
+	cWidgetButton(cGuiSet *aSet, cGuiSkin *aSkin);
 	~cWidgetButton();
 
 	void SetImage(cTexture *aTexture);
@@ -29,7 +31,7 @@ public:
 protected:
 	void OnLoadGraphics();
 
-	void OnDraw();
+	void OnDraw(float afTimeStep);
 
 	bool OnMouseMove(cGuiMessageData &aData);
 	bool OnMouseDown(cGuiMessageData &aData);

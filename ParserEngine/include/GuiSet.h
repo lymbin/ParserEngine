@@ -1,8 +1,13 @@
 /*
  * GuiSet.h
  *
- *  Created on: 30 сент. 2016 г.
- *      Author: dmitry
+ *  Created on: 30.09.2016
+ *  	Author: Dmitry Kilchanov <dmitrykilchanov@gmail.com>
+ *
+ *	Copyright 2014-2016 Dmitry Kilchanov <dmitrykilchanov@gmail.com> - Mind Walkers
+ *
+ *	This file is part of Parser Engine.
+ *	Used HPL Engine.
  */
 
 #ifndef PARSERENGINE_INCLUDE_GUISET_H_
@@ -11,6 +16,9 @@
 #include "Gui.h"
 
 class cGuiClipRegion;
+class cWidgetButton;
+class iWidget;
+struct cGuiMessageData;
 
 typedef std::list<cGuiClipRegion*> tGuiClipRegionList;
 typedef tGuiClipRegionList::iterator tGuiClipRegionListIt;
@@ -19,9 +27,9 @@ class cGuiClipRegion
 {
 public:
 	cGuiClipRegion() : mRect(0,0,-1,-1){}
-	~cGuiClipRegion();
+	~cGuiClipRegion(){}
 
-	void Clear();
+	void Clear(){}
 	cGuiClipRegion* CreateChild(const cVector2f &avPos, const cVector2f &avSize);
 
 	//tGuiRenderObjectSet m_setObjects;
@@ -107,7 +115,7 @@ public:
 
 	bool HasFocus();
 
-	//void SetSkin(cGuiSkin* apSkin);
+	void SetSkin(cGuiSkin* apSkin);
 	//cGuiSkin* GetSkin(){ return mpSkin;}
 
 	//cResources* GetResources(){ return mpResources;}
@@ -127,23 +135,24 @@ private:
 	bool OnKeyPress(cGuiMessageData &aData);
 
 	bool DrawMouse(iWidget* apWidget,cGuiMessageData& aData);
+	kGuiCalllbackDeclarationEnd(DrawMouse);
 
 	cGui *mpGui;
 	cGuiSkin *mpSkin;
 
 	std::string msName;
 
-	cResources *mpResources;
-	cGraphics* mpGraphics;
-	cSound *mpSound;
-	cScene *mpScene;
+	//cResources *mpResources;
+	//cGraphics* mpGraphics;
+	//cSound *mpSound;
+	//cScene *mpScene;
 
 	iWidget *mpAttentionWidget;
 
 	iWidget *mpFocusedWidget;
 
 	iWidget* mpWidgetRoot;
-	tWidgetList mlstWidgets;
+	std::list<iWidget *> mlstWidgets;
 
 	//tGuiRenderObjectSet m_setRenderObjects;
 

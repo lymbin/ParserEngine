@@ -18,44 +18,8 @@
 
 
 class cGui;
-
-struct cGuiMessageData
-{
-	cGuiMessageData(){}
-	cGuiMessageData(const cVector2f& avPos, const cVector2f& avRel)
-	{
-		mvPos = avPos;
-        mvRel = avRel;
-	}
-	cGuiMessageData(const cVector2f& avPos,const cVector2f& avRel, int alVal)
-	{
-		mvPos = avPos;
-		mvRel = avRel;
-		mlVal = alVal;
-	}
-	cGuiMessageData(int alVal)
-	{
-		mlVal = alVal;
-	}
-	cGuiMessageData(float afVal)
-	{
-		mfVal = afVal;
-	}
-	cGuiMessageData(const cKeyPress& aKeyPress)
-	{
-		mKeyPress = aKeyPress;
-	}
-
-	cVector2f	mvPos;
-	cVector2f	mvRel;
-	int			mlVal;
-	cKeyPress	mKeyPress;
-	float		mfVal;
-	void*		mpData;
-	eGuiMessage mMessage;
-};
-
 class cGuiClipRegion;
+class cGuiSet;
 
 //--------------------------------
 //////////////////////
@@ -169,6 +133,8 @@ protected:
 	cVector2f mvSize;
 
 	cGui *mpGui;
+	cGuiSet *mpSet;
+	cGuiSkin *mpSkin;
 	tWidgetList mChildList;
 
 	std::string msName;
@@ -229,10 +195,11 @@ protected:
 	void SetPositionUpdated();
 
 	void LoadGraphics();
-
+	bool GetMouseIsOver(){ return mbMouseIsOver;}
 
 public:
-	iWidget(eWidgetType aType, float W, float H, float X, float Y);
+	iWidget(eWidgetType aType, cGuiSet *aSet, cGuiSkin *aSkin,
+			float W = 0, float H = 0, float X = 0, float Y = 0);
 	virtual ~iWidget();
 
 	//General

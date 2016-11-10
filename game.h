@@ -54,14 +54,10 @@ class game: public engine
 	static bool 		quit;
 	static bool 		timer_running;
 
-	//MainMenu 			Mmenu;
 	game_gui 			*Gui;
-	//hero 				*Hero; // TODO: rename to player
-	//iCollisionLayer 	*layer;
-	//cStaticBox 			*StaticBox;
 	font 				*DynamicTextFont;
-	//cMusic 			*MainMusic;
-	//cPlaylist			*MainPlaylist;
+
+	// Level list
 	cGameLevel			*mGameLevel;
 	cMainMenu			*mMainMenuLevel;
 

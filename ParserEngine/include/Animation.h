@@ -2,7 +2,11 @@
  * Animation.h
  *
  *  Created on: 30.05.2014
- *      Author: dmitry
+ *  	Author: Dmitry Kilchanov <dmitrykilchanov@gmail.com>
+ *
+ *	Copyright 2014-2016 Dmitry Kilchanov <dmitrykilchanov@gmail.com> - Mind Walkers
+ *
+ *	This file is part of Parser Engine
  */
 
 #ifndef ANIMATION_H_
@@ -13,12 +17,12 @@
 class animation;
 class cTexture;
 
-class animation_manager
+class cAnimationManager
 {
 	std::vector <animation * > Animations;
 public:
-	animation_manager();
-	~animation_manager();
+	cAnimationManager();
+	~cAnimationManager();
 
 	void DeleteAnims();
 

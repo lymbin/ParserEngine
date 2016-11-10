@@ -2,7 +2,11 @@
  * animation.cpp
  *
  *  Created on: 06.05.2014
- *      Author: dmitry
+ *  	Author: Dmitry Kilchanov <dmitrykilchanov@gmail.com>
+ *
+ *	Copyright 2014-2016 Dmitry Kilchanov <dmitrykilchanov@gmail.com> - Mind Walkers
+ *
+ *	This file is part of Parser Engine
  */
 
 #include "Animation.h"
@@ -15,14 +19,14 @@ using namespace std;
 
 //-----------------------------------------------------------------------
 
-animation_manager::animation_manager()
+cAnimationManager::cAnimationManager()
 {
 	Animations.clear();
 }
 
 //-----------------------------------------------------------------------
 
-animation_manager::~animation_manager()
+cAnimationManager::~cAnimationManager()
 {
 	DeleteAnims();
 }
@@ -35,7 +39,7 @@ animation_manager::~animation_manager()
 
 //-----------------------------------------------------------------------
 
-void animation_manager::DeleteAnims()
+void cAnimationManager::DeleteAnims()
 {
 	for(unsigned int loop = 0; loop < Animations.size(); loop++)
 	{
@@ -46,7 +50,7 @@ void animation_manager::DeleteAnims()
 
 //-----------------------------------------------------------------------
 
-void animation_manager::PauseAnims()
+void cAnimationManager::PauseAnims()
 {
 	for(unsigned int loop = 0; loop < Animations.size(); loop++)
 	{
@@ -56,7 +60,7 @@ void animation_manager::PauseAnims()
 
 //-----------------------------------------------------------------------
 
-void animation_manager::ResumeAnims()
+void cAnimationManager::ResumeAnims()
 {
 	for(unsigned int loop = 0; loop < Animations.size(); loop++)
 	{
@@ -66,7 +70,7 @@ void animation_manager::ResumeAnims()
 
 //-----------------------------------------------------------------------
 
-void animation_manager::ResetAnims()
+void cAnimationManager::ResetAnims()
 {
 	for(unsigned int loop = 0; loop < Animations.size(); loop++)
 	{
@@ -76,7 +80,7 @@ void animation_manager::ResetAnims()
 
 //-----------------------------------------------------------------------
 
-void animation_manager::UpdateAnims()
+void cAnimationManager::UpdateAnims()
 {
 	for(unsigned int loop = 0; loop < Animations.size(); loop++)
 	{
@@ -86,7 +90,7 @@ void animation_manager::UpdateAnims()
 
 //-----------------------------------------------------------------------
 
-void animation_manager::ManageAnimation(animation *managed_anim)
+void cAnimationManager::ManageAnimation(animation *managed_anim)
 {
 	for(unsigned int loop = 0; loop < Animations.size(); loop++)
 	{
@@ -101,7 +105,7 @@ void animation_manager::ManageAnimation(animation *managed_anim)
 
 //-----------------------------------------------------------------------
 
-void animation_manager::UnManageAnimation(animation *managed_anim)
+void cAnimationManager::UnManageAnimation(animation *managed_anim)
 {
 	// Удаляем анимацию из вектора управления
 	// Внимание: Это только удалит анимацию из вектора управления, но не удалит саму анимацию

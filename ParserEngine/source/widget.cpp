@@ -6,14 +6,21 @@
  */
 
 #include "widget.h"
+#include "GuiSet.h"
 
-iWidget::iWidget(eWidgetType aType, float W, float H, float X, float Y)
+iWidget::iWidget(eWidgetType aType, cGuiSet *aSet, cGuiSkin *aSkin,
+					float W, float H, float X, float Y)
 {
+	mvPosition = 0;
+	mvSize = 0;
+
 	mbMouseIsOver = true;
 	mbVisible = true;
 	mbEnabled = true;
 
-	mpGui = 0;
+	mpGui = mpSet->GetGui();
+	mpSet = aSet;
+	mpSkin = aSkin;
 	mpParent = 0;
 
 	mType = aType;
@@ -184,14 +191,16 @@ void iWidget::RemoveChild(iWidget *apChild)
 
 void iWidget::SetEnabled(bool abX)
 {
-	if (mbEnabled == abX) return;
+	if (mbEnabled == abX)
+		return;
 
 	mbEnabled = abX;
 }
 
 void iWidget::SetVisible(bool abX)
 {
-	if (mbVisible == abX) return;
+	if (mbVisible == abX)
+		return;
 
 	mbVisible = abX;
 }

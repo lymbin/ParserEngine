@@ -29,6 +29,59 @@
 typedef std::map<std::string, cGuiSet*> tGuiSetMap;
 typedef tGuiSetMap::iterator tGuiSetMapIt;
 
+#define kGuiCalllbackDeclarationEnd(FuncName) \
+	static bool FuncName##_static_gui(void *apObject,iWidget* apWidget,cGuiMessageData& aData);
+
+#define kGuiCalllbackDeclaredFuncEnd(ThisClass,FuncName) \
+	bool ThisClass::FuncName##_static_gui(void *apObject,iWidget* apWidget,cGuiMessageData& aData) \
+	{\
+		return ((ThisClass*)apObject)->FuncName(apWidget, aData); \
+	}
+
+#define kGuiCalllbackFuncEnd(ThisClass,FuncName) \
+	static bool FuncName##_static_gui(void *apObject,iWidget* apWidget,cGuiMessageData& aData) \
+	{ \
+		return ((ThisClass*)apObject)->FuncName(apWidget, aData); \
+}
+
+#define kGuiCallback(FuncName) &FuncName##_static_gui
+
+struct cGuiMessageData
+{
+	cGuiMessageData(){}
+	cGuiMessageData(const cVector2f& avPos, const cVector2f& avRel)
+	{
+		mvPos = avPos;
+        mvRel = avRel;
+	}
+	cGuiMessageData(const cVector2f& avPos,const cVector2f& avRel, int alVal)
+	{
+		mvPos = avPos;
+		mvRel = avRel;
+		mlVal = alVal;
+	}
+	cGuiMessageData(int alVal)
+	{
+		mlVal = alVal;
+	}
+	cGuiMessageData(float afVal)
+	{
+		mfVal = afVal;
+	}
+	cGuiMessageData(const cKeyPress& aKeyPress)
+	{
+		mKeyPress = aKeyPress;
+	}
+
+	cVector2f	mvPos;
+	cVector2f	mvRel;
+	int			mlVal;
+	cKeyPress	mKeyPress;
+	float		mfVal;
+	void*		mpData;
+	eGuiMessage mMessage;
+};
+
 class cGui
 {
 public:
